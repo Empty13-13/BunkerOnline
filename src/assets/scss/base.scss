@@ -1,0 +1,32 @@
+//Основные цвета
+$fontColor: #fff;
+$bodyColor: #000;
+
+//Дополнительные цвета
+$goldColor: linear-gradient(90.00deg, rgb(249, 211, 91),rgb(217, 102, 19) 100%);
+$goldColorHover: linear-gradient(180deg,#F9D35B,#D96613);
+
+$purpleColor: #5865F2;
+$purpleColorHover: #8e98ff;
+
+$redColor: #B52626;
+$redColorHover: #ff3838;
+
+$greenColor: #328925;
+$greenColorHover: #4ace36;
+
+$whiteGrayColor: linear-gradient(90.00deg, rgb(191, 191, 191),rgb(136, 136, 136) 53.646%,rgb(201, 201, 201) 100%);
+$whiteGrayColorHover: linear-gradient(90.00deg, rgb(191, 191, 191),rgb(136, 136, 136) 53.646%,rgb(201, 201, 201) 100%);
+
+$whiteBlueColor: #1289C4;
+$whiteBlueHover: #2ebaff;
+
+$blueColor: #0077FF;
+$blueHover: #519df6;
+
+//Для кнопок
+$buttonBorderWidth: 2px;
+
+//Border Width
+$BorderWidthBold: 6px;
+$BorderWidthLighter: 2px;
