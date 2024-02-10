@@ -34,8 +34,9 @@ defineProps(['imgName'])
   height: 100%;
   transform: translate(-50%, -50%);
   z-index: -1;
-  max-width: $containerWidth+px;
+  max-width: $containerWidth+200px;
   pointer-events: none;
+  overflow: hidden;
 
   &__shadows {
     position: absolute;

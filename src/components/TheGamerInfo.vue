@@ -215,7 +215,7 @@ import AppButton from "@/components/AppButton.vue";
   }
 
   &__title {
-    margin-top: 60px;
+    padding-top: 60px;
 
     @media (max-width: $tablet) {
       margin-top: 50px;

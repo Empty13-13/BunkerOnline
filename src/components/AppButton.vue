@@ -58,8 +58,9 @@ defineProps([
   height: 100%;
   min-width: 30px;
   justify-content: center;
+  align-items: center;
 
-  &:hover{
+  &:hover {
     background: #676767;
   }
 
@@ -82,7 +83,6 @@ defineProps([
     align-items: center;
     z-index: 4;
   }
-
 
 
   //========================================================================================================================================================

@@ -1,9 +1,33 @@
 <script setup="">
-import { computed, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 
 const capacity = ref(3)
 
 const firstItem = ['№ Имя', 'num']
+
+const myId = 123
+const myAccess = 'mpv'
+const gameData = reactive({
+  isStarted: true,
+  hostId: 123,
+  gamers: [
+    {id: 123, nickname: '123456789012345'},
+    {id: 234, nickname: 'NickNick1'},
+    {id: 345, nickname: 'NickNick2'},
+    {id: 456, nickname: 'NickNick3'},
+    {id: 567, nickname: 'NickNick4'},
+    {id: 678, nickname: 'NickNick5'},
+    {id: 678, nickname: 'NickNick6'},
+    {id: 678, nickname: 'NickNick7'},
+    {id: 678, nickname: 'NickNick8'},
+    {id: 678, nickname: 'NickNick9'},
+    {id: 678, nickname: 'NickNick10'},
+    {id: 678, nickname: 'NickNick11'},
+    {id: 678, nickname: 'NickNick12'},
+    {id: 678, nickname: 'NickNick13'},
+    {id: 678, nickname: 'NickNick14'},
+  ]
+})
 const itemsName = [
   // title:{title:'№ Имя'},
   // sex:{title:'Пол'},
@@ -235,32 +259,45 @@ const votedData = {
   allVoteNum: 7,
 }
 
-
 let isActive = ref(null)
+
+const isHost = computed(() => {
+  return myId===gameData.hostId
+})
+const mayStartGame = computed(() => {
+  return gameData.gamers.length>5
+})
 
 function changeVote() {
   console.log(isActive.value)
   // isActive.value = true
   console.log(isActive.value)
 }
-
 function getPercent(vote) {
   return (vote.whoVote.length / votedData.allVoteNum * 100).toFixed(2)
 }
-
 function voteCalc() {
   console.log(isActive.value)
 }
+function removeGamer(index) {
+  gameData.gamers.splice(index,1)
+}
+
+
+const getURL = computed(() => {
+  return window.location.href
+})
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import TheGamerInfo from "@/components/TheGamerInfo.vue";
 import TheVoteBlock from "@/components/TheVoteBlock.vue";
 import TheHostPanel from "@/components/TheHostPanel.vue";
+import router from "../router/index.js";
 </script>
 
 <template>
-  <main class="game">
+  <main v-if="gameData.isStarted" class="game">
     <Teleport to="#app">
       <TheHostPanel />
     </Teleport>
@@ -615,6 +652,97 @@ import TheHostPanel from "@/components/TheHostPanel.vue";
       </div>
     </div>
   </main>
+  <main v-else class="">
+    <div class="awaitRoom">
+      <AppBackground img-name="await.jpg" />
+      <div class="awaitRoom__container">
+        <div class="awaitRoom__body">
+          <div class="info-awaitRoom">
+            <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
+            <div class="info-awaitRoom__body">
+              <p v-if="isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке ниже</p>
+              <div v-if="isHost" class="info-awaitRoom__link">
+                {{ getURL }}
+                <span>
+              <svg width="14.000000" height="14.000000" viewBox="0 0 14 14" fill="none"
+                   xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<clipPath id="clip427_9687">
+			<rect id="copyblackinterfacesymboloftwopapersheets_79854 1" width="14.000000" height="14.000000" fill="white"
+            fill-opacity="0" />
+		</clipPath>
+	</defs>
+	<rect id="copyblackinterfacesymboloftwopapersheets_79854 1" width="14.000000" height="14.000000" fill="#FFFFFF"
+        fill-opacity="0" />
+	<g clip-path="url(#clip427_9687)">
+		<path id="Vector"
+          d="M12.7275 12.0909L12.7275 0L3.18164 0L3.18164 1.27271L11.4541 1.27271L11.4541 12.0909L12.7275 12.0909Z"
+          fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero" />
+		<path id="Vector"
+          d="M1.27246 2.04266L1.27246 13.8663C1.27246 13.9401 1.33105 13.9999 1.40332 13.9999L10.6865 13.9999C10.7598 13.9999 10.8184 13.9408 10.8184 13.8663L10.8184 2.04266C10.8184 1.96887 10.7598 1.90906 10.6865 1.90906L1.40332 1.90906C1.33105 1.90906 1.27246 1.96826 1.27246 2.04266ZM2.54492 3.81818L9.54492 3.81818L9.54492 4.45453L2.54492 4.45453L2.54492 3.81818ZM2.54492 5.72723L9.54492 5.72723L9.54492 6.36359L2.54492 6.36359L2.54492 5.72723ZM2.54492 7.63635L9.54492 7.63635L9.54492 8.27271L2.54492 8.27271L2.54492 7.63635ZM2.54492 9.54541L9.54492 9.54541L9.54492 10.1818L2.54492 10.1818L2.54492 9.54541ZM2.54492 11.4545L7 11.4545L7 12.0909L2.54492 12.0909L2.54492 11.4545Z"
+          fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero" />
+	</g>
+</svg>
+            </span>
+              </div>
+              <div v-if="isHost" class="info-awaitRoom__min">Чтобы начать игру нужно как минимум 6 человек.
+                                                             ({{ gameData.gamers.length }}/15)
+              </div>
+
+              <p v-if="!isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
+              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>
+              <p v-if="!isHost" class="info-awaitRoom__text">
+                Минимальное количество игроков: 6<br>
+                Максимальное количество игроков: 15
+              </p>
+
+              <div v-if="isHost" class="info-awaitRoom__buttons">
+                <AppButton @click="$router.push('/')" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату</AppButton>
+                <button :disabled="!mayStartGame"
+                        class="info-awaitRoom__btn startBtn"
+                        :class="mayStartGame?'btn green':''"
+                        @click="gameData.isStarted=true"
+                >
+                  Начать игру
+                </button>
+              </div>
+              <p v-else class="info-awaitRoom__text small">Только ведущий может начать игру</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="isHost" class="people-awaitRoom">
+      <div class="people-awaitRoom__container">
+        <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
+        <div class="people-awaitRoom__body">
+          <ul class="people-awaitRoom__list">
+            <li class="people-awaitRoom__item linear-border white"
+                v-for="(gamer,index) in gameData.gamers"
+                :key="gamer.id"
+            >
+              <div class="people-awaitRoom__item-column">
+                <div class="people-awaitRoom__title">Игрок {{ index + 1 }}</div>
+                <div class="people-awaitRoom__nickname">{{ gamer.nickname }}</div>
+              </div>
+              <div v-if="gamer.id!==myId" @click="removeGamer(index)" class="people-awaitRoom__removeBtn">
+                <svg width="14.631836" height="14.627319" viewBox="0 0 14.6318 14.6273" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <defs />
+                  <path id="Vector"
+                        d="M0.56543 14.6273C0.492188 14.6277 0.417969 14.6135 0.349609 14.5856C0.28125 14.5576 0.21875 14.5163 0.166016 14.4642C0.113281 14.4119 0.0722656 14.3497 0.0429688 14.2811C0.0146484 14.2126 0 14.139 0 14.0648C0 13.9905 0.0146484 13.917 0.0429688 13.8484C0.0722656 13.7799 0.113281 13.7177 0.166016 13.6654L13.666 0.165405C13.7725 0.0595093 13.916 0 14.0654 0C14.2158 0 14.3594 0.0595093 14.4648 0.165405C14.5713 0.271362 14.6309 0.414978 14.6309 0.564819C14.6309 0.7146 14.5713 0.858276 14.4648 0.964172L0.964844 14.4642C0.912109 14.5163 0.850586 14.5576 0.78125 14.5856C0.712891 14.6135 0.639648 14.6277 0.56543 14.6273Z"
+                        fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero" />
+                  <path id="Vector"
+                        d="M14.0654 14.6273C13.9922 14.6277 13.918 14.6135 13.8496 14.5856C13.7812 14.5576 13.7188 14.5163 13.666 14.4642L0.166016 0.964172C0.0605469 0.858276 0.000976562 0.7146 0.000976562 0.564819C0.000976562 0.414978 0.0605469 0.271362 0.166016 0.165405C0.272461 0.0595093 0.416016 0 0.56543 0C0.71582 0 0.859375 0.0595093 0.964844 0.165405L14.4648 13.6654C14.5176 13.7177 14.5596 13.7799 14.5879 13.8484C14.6172 13.917 14.6318 13.9905 14.6318 14.0648C14.6318 14.139 14.6172 14.2126 14.5879 14.2811C14.5596 14.3497 14.5176 14.4119 14.4648 14.4642C14.4121 14.5163 14.3506 14.5576 14.2812 14.5856C14.2129 14.6135 14.1396 14.6277 14.0654 14.6273Z"
+                        fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero" />
+                </svg>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
 </template>
 
 <style lang="scss">
@@ -788,7 +916,7 @@ import TheHostPanel from "@/components/TheHostPanel.vue";
 //========================================================================================================================================================
 .listGamer {
   background: #131313;
-  padding-top: 40px;
+  padding-top: 50px;
   padding-bottom: 130px;
 
   @media (max-width: $pc) {
@@ -1139,6 +1267,11 @@ import TheHostPanel from "@/components/TheHostPanel.vue";
 }
 
 .now-voting {
+  margin-bottom: 80px;
+
+  @media (max-width: $tablet) {
+    margin-bottom: 50px;
+  }
 
   &__title {
   }
@@ -1244,6 +1377,7 @@ import TheHostPanel from "@/components/TheHostPanel.vue";
 
 //========================================================================================================================================================
 .notes {
+  margin: 50px 0;
 
   &__container {
   }
@@ -1300,6 +1434,188 @@ import TheHostPanel from "@/components/TheHostPanel.vue";
     @media (max-width: $mobile) {
       text-align: center;
     }
+  }
+}
+
+</style>
+
+<style lang="scss">
+
+.awaitRoom {
+  width: 100vw;
+  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
+
+  &__container {
+    position: relative;
+    z-index: 5;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.info-awaitRoom {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    opacity: 0.7;
+    filter: blur(55.5px);
+    z-index: -1;
+  }
+
+  &__title {
+
+  }
+
+  &__body {
+  }
+
+  &__inviteText {
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+
+  &__link {
+    font-size: 14px;
+    line-height: 1.4;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+    padding: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 15px;
+
+    &:hover {
+      border: 1px solid white;
+      border-radius: 6px;
+    }
+
+    span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: 10px;
+    }
+  }
+
+  &__min {
+    margin-bottom: 30px;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 30px;
+
+    @media (max-width: 500px) {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  &__btn {
+    width: 200px;
+    height: 36px;
+    padding: 12px;
+    border-radius: 6px;
+
+    &.closeBtn {
+      font-weight: 700;
+    }
+
+    &.startBtn {
+      &:disabled {
+        font-weight: 700;
+        background: transparent;
+        border: 1px solid #FFFFFF70;
+        color: #ffffff80;
+      }
+    }
+  }
+
+  &__text {
+    font-weight: 500;
+    line-height: 1.8;
+    margin-bottom: 15px;
+    font-size: 14px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.bold {
+      line-height: 1;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    &.small {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+}
+
+.people-awaitRoom {
+  margin-top: 40px;
+  margin-bottom: 200px;
+
+
+  &__body {
+
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  &__item {
+    padding: 24px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 0 1 186px;
+  }
+
+  &__item-column {
+    color: #b4b4b4;
+  }
+
+  &__title {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+
+  &__nickname {
+    font-weight: 700;
+  }
+
+  &__removeBtn {
+    cursor: pointer;
   }
 }
 

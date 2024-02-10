@@ -32,18 +32,18 @@ const isAuth = ref(false)
             <nav class="menu__body" :class="{'menu-open':isOpen}">
               <ul class="menu__list">
                 <li class="menu__item">
-                  <router-link @click="isOpen=false" to="/example" class="menu__link">Правила игры</router-link>
+                  <router-link @click="isOpen=false" to="/rules" class="menu__link">Правила игры</router-link>
                 </li>
                 <li class="menu__item">
-                  <router-link @click="isOpen=false" to="/" class="menu__link">Вики</router-link>
+                  <router-link @click="isOpen=false" to="/wiki" class="menu__link">Вики</router-link>
                 </li>
                 <li class="menu__item">
-                  <router-link @click="isOpen=false" to="/" class="menu__link">Контакты</router-link>
+                  <router-link @click="isOpen=false" to="/contacts" class="menu__link">Контакты</router-link>
                 </li>
               </ul>
               <div class="header__socials socials-header">
                 <a target="_blank" href="" class="socials-header__item discord">
-                  <img src="/img/icons/discord.svg" alt="">
+                  <img src="/img/icons/discord.png" alt="">
                 </a>
                 <a target="_blank" href="" class="socials-header__item telegram">
                   <img src="/img/icons/telegram.svg" alt="">
@@ -251,6 +251,10 @@ const isAuth = ref(false)
 
     &.discord {
       background: $purpleColor;
+
+      img {
+        max-width: 19px;
+      }
 
       &:hover {
         background: $purpleColorHover;

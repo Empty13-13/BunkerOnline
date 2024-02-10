@@ -6,6 +6,9 @@
   <footer class="footer">
     <div class="footer__wrapper">
       <img src="/img/backgrounds/footer.jpg" alt="">
+      <img src="/img/backgrounds/up-shadow-footer.svg" alt="">
+    </div>
+    <div class="footer__upShadow">
     </div>
     <div class="footer__container">
       <h2 class="footer__title titleH2">Игра «Бункер Онлайн!»</h2>
@@ -76,6 +79,10 @@
 
       @media (max-width: $mobile) {
         height: 1075px;
+      }
+
+      &:nth-child(2) {
+        //height: 70% !important;
       }
     }
   }

@@ -35,7 +35,7 @@ defineProps([
         </div>
       </div>
       <div class="roomCreated__block">
-        <AppButton class="roomCreated__btn" :color="isStarted?'green':'red'">{{
+        <AppButton @click="$router.push('/game=D389N')" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
             isStarted? 'Перейти к игре':'Присоединиться'
                                                                              }}
         </AppButton>

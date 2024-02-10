@@ -1,0 +1,125 @@
+.select {
+    position: relative;
+}
+
+.select._focus .select__input {
+    /*border-color: bisque;*/
+}
+
+.select._error .select__input {
+    border-color: red;
+}
+
+.select._open .select__dropdown {
+    display: block;
+}
+
+.select._open .select__input{
+    border-bottom: 1px solid transparent;
+}
+
+.select._open .select__input:after {
+    transform: rotate(45deg);
+    right: 10px;
+}
+
+.select._open .select__input:before {
+    transform: rotate(-45deg);
+    right: calc(10px + 0.61em)
+}
+
+.select__input {
+    cursor: pointer;
+}
+
+.select__input span {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.6em;
+    position: relative;
+    padding-right: 3em;
+    pointer-events: none;
+}
+
+.select__input:after {
+    content: "";
+    position: absolute;
+    width: 1em;
+    height: 0.2em;
+    transform: rotate(-45deg) translateY(-50%);
+    background-color: #aeaeae;
+    right: 10px;
+    top: 50%;
+    transition: transform 0.2s ease 0s;
+}
+
+.select__input:before {
+    content: "";
+    position: absolute;
+    width: 1em;
+    height: 0.2em;
+    transform: rotate(45deg) translateY(-50%);
+    background-color: #aeaeae;
+    right: calc(10px + 0.72em);
+    top: 50%;
+    transition: transform 0.2s ease 0s;
+}
+
+.select__dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+    background: black;
+    z-index: 999;
+}
+
+.select__item {
+    padding: 0.7em 0.7em;
+    transition: color 0.15s ease 0s;
+    background: transparent;
+    color: #b4b4b4;
+}
+
+@media (any-hover: hover) {
+    .select__item:hover {
+        color: white;
+        cursor: pointer;
+    }
+    .select__input:hover span {
+        background: linear-gradient(90deg, rgb(249, 211, 91), rgb(217, 102, 19) 100%);
+        background-clip: border-box;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .select__input:hover::before,.select__input:hover::after {
+        background: linear-gradient(90deg, rgb(249, 211, 91), rgb(217, 102, 19) 100%);
+    }
+}
+
+.select__item:last-child {
+    border: none;
+}
+
+.select__item._selected {
+    color: white;
+}
+
+/*========================================================================================================================================================*/
+.selectBlock.profile {
+    width: 100%;
+}
+.selectBlock.profile .select__input {
+    background: #60606030;
+    width: 100%;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: white;
+}
+.selectBlock.profile .select__input:hover {
+    color: white;
+}
