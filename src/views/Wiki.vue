@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="wiki paddingTop">
+  <main class="wiki paddingTop">
     <div class="wiki__container ">
       <h1 class="wiki__title titleH1">Добро пожаловать на Bunker Online вики!</h1>
       <div class="wiki__body">
@@ -32,7 +32,7 @@
         </ul>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">

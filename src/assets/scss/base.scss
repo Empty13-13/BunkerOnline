@@ -15,8 +15,8 @@ $redColorHover: #ff3838;
 $greenColor: #328925;
 $greenColorHover: #4ace36;
 
-$whiteGrayColor: linear-gradient(90.00deg, rgb(191, 191, 191),rgb(136, 136, 136) 53.646%,rgb(201, 201, 201) 100%);
-$whiteGrayColorHover: linear-gradient(90.00deg, rgb(191, 191, 191),rgb(136, 136, 136) 53.646%,rgb(201, 201, 201) 100%);
+$whiteGrayColor: linear-gradient(90.00deg, rgb(191, 191, 191),rgb(136, 136, 136) 53.646%, rgb(201, 201, 201) 100%);
+$whiteGrayColorHover: linear-gradient(90.00deg, rgb(136, 136, 136),rgb(201, 201, 201) 53.646%,rgb(191, 191, 191) 100%);
 
 $whiteBlueColor: #1289C4;
 $whiteBlueHover: #2ebaff;
@@ -30,3 +30,36 @@ $buttonBorderWidth: 2px;
 //Border Width
 $BorderWidthBold: 6px;
 $BorderWidthLighter: 2px;
+
+
+.goldTextColor {
+  background: linear-gradient(180deg, #F9D35B, #D96613);
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+%goldTextColor {
+  background: linear-gradient(180deg, #F9D35B, #D96613);
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.silverTextColor {
+  background: $whiteGrayColor;
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+%silverTextColor {
+  background: $whiteGrayColor;
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.redTextColor {
+  $redColor: #B52626;
+}

@@ -1,10 +1,16 @@
 <script setup>
 import AppButton from "@/components/AppButton.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import router from "@/router/index.js";
+import { useAccessStore } from "@/stores/counter.js";
+
+const access = useAccessStore()
+
 
 const isOpen = ref(false)
-const isAuth = ref(false)
+const isAuth = computed(()=>{
+  return access.level!=='noreg'
+})
 
 </script>
 
@@ -40,6 +46,9 @@ const isAuth = ref(false)
                 <li class="menu__item">
                   <router-link @click="isOpen=false" to="/contacts" class="menu__link">Контакты</router-link>
                 </li>
+                <li class="menu__item">
+                  <router-link @click="isOpen=false" to="/updates" class="menu__link">Обновления</router-link>
+                </li>
               </ul>
               <div class="header__socials socials-header">
                 <a target="_blank" href="" class="socials-header__item discord">
@@ -53,16 +62,17 @@ const isAuth = ref(false)
                 </a>
               </div>
               <div v-if="isAuth" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
-                <router-link to="/profile" class="authorization-header__img">
+                <router-link @click="isOpen=false" :to='`/profile=${access.id}`' class="authorization-header__img">
                   <img src="/img/icons/man.svg" alt="">
                 </router-link>
-                <div class="authorization-header__name" title="Иванов Иван Иванович">
+                <router-link @click="isOpen=false" :to='`/profile=${access.id}`' class="authorization-header__name" title="Иванов Иван Иванович">
                   Иванов Иван Иванович
-                </div>
+                </router-link>
                 <AppButton class="authorization-header__exit" icon-name="door.svg"></AppButton>
               </div>
-              <div v-else v-adaptive="['.menu__body',992,0]" class="header__login login-header">
-                <AppButton class="login-header__btn" @click="router.push('/login')" color="gold">Вход | Регистрация
+              <div v-else @click="isOpen=false" v-adaptive="['.menu__body',992,0]" class="header__login login-header">
+                <AppButton class="login-header__btn" @click="router.push('/login')" color="gold">
+                  Вход | Регистрация
                 </AppButton>
               </div>
             </nav>
@@ -125,7 +135,7 @@ const isAuth = ref(false)
 .header__block.right {
   display: flex;
   align-items: center;
-  flex: 0 1 65%;
+  flex: 0 1 75%;
   justify-content: inherit;
   gap: 15px;
 
@@ -145,6 +155,9 @@ const isAuth = ref(false)
     flex: 1 1 100%;
     justify-content: space-around;
     gap: 40px;
+    @media (max-width: $pc) {
+      gap: 30px;
+    }
 
     @media (max-width: $tablet) {
       position: fixed;
@@ -209,6 +222,7 @@ const isAuth = ref(false)
     background: $fontColor;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    white-space: nowrap;
     //transition: background 0.3s ease 0s,-webkit-background-clip 0.3s ease 0s;
 
     @media (max-width: $tablet) {

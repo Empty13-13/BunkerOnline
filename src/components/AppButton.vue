@@ -2,7 +2,8 @@
 defineProps([
   'iconName',
   'color',
-  'border'
+  'border',
+  'disabled'
 ]);
 
 
@@ -17,6 +18,7 @@ defineProps([
           {square:!$slots.default && iconName},
           {textIcon:$slots.default && iconName},
       ]"
+      :disabled="disabled"
   >
 
     <!--Если есть и иконка и текст-->
@@ -143,10 +145,119 @@ defineProps([
   }
 
   &.whiteGray {
+
     background: $whiteGrayColor;
+    color: black;
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0px 5px 30px rgba(162, 162, 162, 0.6);
+
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: $whiteGrayColorHover;
+      border-radius: 6px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
 
     &:hover {
-      background: $whiteGrayColorHover;
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &.border {
+      box-shadow: none;
+    }
+  }
+
+  &.grayGold {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.2);
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0 5px 30px 0 rgba(217, 102, 19, 0.6);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: $goldColorHover;
+      border-radius: 6px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    &:hover {
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &.border {
+      box-shadow: none;
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+
+    &.gold {
+      background: linear-gradient(180deg, #2d2711, #2d1504);
+      color: $bodyColor;
+      transition: box-shadow 0.2s ease;
+      box-shadow: none;
+
+      &:hover {
+        &::before {
+          opacity: 0;
+        }
+      }
+
+      &.border {
+        box-shadow: none;
+      }
+    }
+
+    &.purple {
+      background: #171b3f;
+
+      &:hover {
+        background: #171b3f;
+      }
+    }
+
+    &.red {
+      background: #3d0d0d;
+
+      &:hover {
+        background: #3d0d0d;
+      }
+    }
+
+    &.green {
+      background: #102d0c;
+
+      &:hover {
+        background: #102d0c;
+      }
+    }
+
+    &.whiteGray {
+      background: $whiteGrayColor;
+
+      &:hover {
+        background: $whiteGrayColor;
+      }
     }
   }
 }

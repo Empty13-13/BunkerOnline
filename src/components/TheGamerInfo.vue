@@ -1,7 +1,7 @@
 <script setup="">
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
-defineProps(['specItems'])
+defineProps(['specItems','isReg'])
 
 const itemsName = [
   ['Пол', 'sex'],
@@ -101,7 +101,7 @@ import AppButton from "@/components/AppButton.vue";
                 <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
                 <AppSmallInfo v-if="features[itemsName[index - 1][1]].info"
                               :text="features[itemsName[index - 1][1]].info" />
-                <button v-if="features[itemsName[index-1][1]].isReload" class="item-gamerInfo__reload">
+                <button v-if="features[itemsName[index-1][1]].isReload && isReg" class="item-gamerInfo__reload">
                   <img src="/img/icons/reload.png" alt="">
                 </button>
                 <button v-if="features[itemsName[index-1][1]].isLocked" class="item-gamerInfo__open">
@@ -127,7 +127,7 @@ import AppButton from "@/components/AppButton.vue";
                 <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
                 <AppSmallInfo v-if="features[itemsName[index + 4][1]].info"
                               :text="features[itemsName[index + 4][1]].info" />
-                <button class="item-gamerInfo__reload">
+                <button v-if="isReg" class="item-gamerInfo__reload">
                   <img v-if="features[itemsName[index+4][1]].isReload" src="/img/icons/reload.png" alt="">
                 </button>
                 <button v-if="features[itemsName[index+4][1]].isLocked" class="item-gamerInfo__open">
@@ -170,7 +170,7 @@ import AppButton from "@/components/AppButton.vue";
             </div>
             <div class="item-gamerInfo__description">
               <p class="item-gamerInfo__text">{{ specItems[item - 1].title }}</p>
-              <button class="item-gamerInfo__reload">
+              <button v-if="isReg" class="item-gamerInfo__reload">
                 <img v-if="specItems[item - 1].isReload" src="/img/icons/reload.png" alt="">
               </button>
               <button v-if="specItems[item-1].isLocked" class="item-gamerInfo__open">

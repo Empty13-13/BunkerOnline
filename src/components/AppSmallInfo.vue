@@ -1,7 +1,15 @@
 <script setup="">
 import { onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
 
-defineProps(['text', 'coords'])
+defineProps({
+  text:String,
+  isDown: {
+    type: Boolean,
+    required: false,
+    default: false,
+  }
+})
+
 const mainBlock = ref()
 const img = ref()
 const block = ref()
@@ -37,7 +45,10 @@ function showWindow() {
 <template>
   <div class="smallInfo" ref="mainBlock">
     <div class="smallInfo__img" ref="img">i</div>
-    <div class="smallInfo__block linear-border white" ref="block">
+    <div class="smallInfo__block linear-border white"
+         ref="block"
+         :class="{isDown}"
+    >
       <p>{{ text }}</p>
     </div>
   </div>
@@ -63,10 +74,10 @@ function showWindow() {
     align-items: center;
     pointer-events: none;
     color: white;
+    z-index: -1;
   }
 
   &__block {
-    padding: 13px 16px;
     background: #333333;
     display: flex;
     justify-content: center;
@@ -76,18 +87,38 @@ function showWindow() {
     position: absolute !important;
     left: 50%;
     bottom: 50%;
-    transform: translate(-50%, -20%);
+    transform: translate(-50%, -40%);
     width: 205px;
     text-align: center;
     pointer-events: none;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    z-index: 15;
 
     p {
       width: 100%;
       height: 100%;
+      display: flex;
+      padding: 13px 16px;
     }
 
     &._active {
       opacity: 1;
+    }
+
+    &::after {
+      content: '';
+
+    }
+
+    &.isDown {
+      bottom: -100%;
+      transform: translate(-50%, 60%);
+
+      p {
+        height: auto;
+      }
     }
   }
 }

@@ -3,14 +3,25 @@ import AppButton from "@/components/AppButton.vue";
 import AppBackground from "@/components/AppBackground.vue";
 import { computed, nextTick, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
+import { useAccessStore } from "@/stores/counter.js";
+import router from "@/router/index.js";
+import AppPopup from "@/components/AppPopup.vue";
+import AppAvatar from "@/components/AppAvatar.vue";
+import { getClassForAccess } from "@/plugins/functions.js";
 
-const myId = 312
-const myAccess = 'admin'
+const access = useAccessStore()
+
+const getId = computed(() => {
+  return +router.currentRoute.value.path.split('=')[1]
+})
+
+const myId = access.id
+const myAccess = access.level
 const data = reactive({
-  id: 313,
+  id: getId,
   isBlocked: false,
-  name: 'NickNick',
-  access: {title: 'vip', date: new Date()},
+  name: 'Никнейм',
+  access: {title: access.level, date: new Date()},
   dateRegistration: new Date(),
   birthday: {date: new Date(), isHidden: false},
   isMale: false,
@@ -62,6 +73,11 @@ onMounted(() => {
 onBeforeUnmount(() => {
   destroyAll()
 })
+
+const isPopupOpen = ref(false)
+const vipValueInput = ref('')
+const mvpValueInput = ref('')
+
 </script>
 
 <template>
@@ -72,12 +88,11 @@ onBeforeUnmount(() => {
         <div class="profileBlock__block linear-border gold">
           <div class="profileBlock__top" :class="isMyProfile?'':'center'">
             <div class="profileBlock__naming naming-profileBlock">
-              <div class="naming-profileBlock__img">
-                <img src="/img/backgrounds/mainClear.jpg" alt="">
-              </div>
-              <div class="naming-profileBlock__name">
-                {{ isMyProfile? "Привет, ":'' }}<span>{{ data.name }}</span>
-                <button v-if="myAccess === 'admin'"
+              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg" :color="myAccess"/>
+              <div class="naming-profileBlock__name"
+              >
+                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(myAccess)">{{ data.name }}</span>
+                <button v-if="myAccess === 'admin' && getId!==myId"
                         class="naming-profileBlock__blockBtn btn"
                         ref="blockBtn"
                         @mouseover="changeBlocked" @mouseout="changeBlocked"
@@ -86,7 +101,9 @@ onBeforeUnmount(() => {
                   <img :src="'/img/icons/'+getBlockButtonImg" alt="">
                 </button>
               </div>
-              <div class="naming-profileBlock__access">{{ data.access.title }}</div>
+              <div class="naming-profileBlock__access"
+                   :class="getClassForAccess(myAccess)"
+              >{{ data.access.title }}</div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
               <div class="packs-profileBlock__block linear-border white">
@@ -193,8 +210,8 @@ onBeforeUnmount(() => {
                 <div v-if="isMyProfile" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Ваш текущий статус</div>
                   <div class="subscribe-bottom__body">
-                    <div class="subscribe-bottom__access">{{ data.access.title }}</div>
-                    <div class="subscribe-bottom__raise">Повысить статус</div>
+                    <div class="subscribe-bottom__access" :class="getClassForAccess(myAccess)">{{ data.access.title }}</div>
+                    <div @click="isPopupOpen=true" class="subscribe-bottom__raise">Повысить статус</div>
                   </div>
                 </div>
                 <div v-if="isMyProfile" class="subscribe-bottom__column _right">
@@ -216,6 +233,57 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+    <AppPopup v-model="isPopupOpen">
+      <template v-slot:title>
+        Оплата подписки
+      </template>
+      <div class="subscribeBlock">
+        <div class="subscribeBlock__block linear-border white">
+          <div class="subscribeBlock__title silverTextColor">VIP</div>
+          <p class="subscribeBlock__text">
+            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+          </p>
+          <div class="subscribeBlock__days">
+            <label for="dayVip">Срок действия</label>
+            <select v-model="vipValueInput" name="dayVip" id="dayVip" class="profile">
+              <option value="500">1 месяц</option>
+              <option value="3000">6 месяцев</option>
+              <option value="6000">12 месяцев</option>
+            </select>
+          </div>
+          <div class="price-subscribeBlock">
+            <div class="price-subscribeBlock__price silverTextColor">{{vipValueInput}} ₽</div>
+            <div class="price-subscribeBlock__oldPrice silverTextColor">{{+vipValueInput+209}} ₽</div>
+            <div class="price-subscribeBlock__discount">Скидка 33%</div>
+          </div>
+          <div class="">
+            <AppButton class="subscribeBlock__btn" color="whiteGray">Перейти к оплате</AppButton>
+          </div>
+        </div>
+        <div class="subscribeBlock__block linear-border gold">
+          <div class="subscribeBlock__title goldTextColor">MVP</div>
+          <p class="subscribeBlock__text">
+            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+          </p>
+          <div class="subscribeBlock__days">
+            <label for="dayMvp">Срок действия</label>
+            <select v-model="mvpValueInput" name="dayMvp" id="dayMvp" class="profile">
+              <option value="1000">1 месяц</option>
+              <option value="6000">6 месяцев</option>
+              <option value="12000">12 месяцев</option>
+            </select>
+          </div>
+          <div class="price-subscribeBlock">
+            <div class="price-subscribeBlock__price goldTextColor">{{mvpValueInput}} ₽</div>
+          </div>
+          <div class="">
+            <AppButton class="subscribeBlock__btn" color="gold">Перейти к оплате</AppButton>
+          </div>
+        </div>
+      </div>
+    </AppPopup>
   </main>
 </template>
 
@@ -308,7 +376,7 @@ onBeforeUnmount(() => {
       }
 
       @media (max-width: 580px) {
-        .subscribe-bottom,.statistic-bottom {
+        .subscribe-bottom, .statistic-bottom {
           width: 100%;
         }
 
@@ -339,21 +407,7 @@ onBeforeUnmount(() => {
   &__img {
     width: 120px;
     height: 120px;
-    border-radius: 50%;
-    overflow: hidden;
-    position: relative;
-
-
-    img {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      margin-bottom: 30px;
-    }
+    margin-bottom: 30px;
   }
 
   &__name {
@@ -677,4 +731,96 @@ onBeforeUnmount(() => {
   }
 }
 
+</style>
+<style lang="scss">
+@import "@/assets/scss/style";
+@import "@/assets/scss/base";
+
+.subscribeBlock {
+  display: flex;
+  gap: 30px;
+
+  @media (max-width:$tablet){
+    gap: 15px;
+  }
+
+  @media (max-width:$mobile){
+    flex-direction: column;
+  }
+
+  &__block {
+    padding: 26px 20px;
+
+    @media (max-width: $tablet) {
+      padding: 26px 15px;
+    }
+  }
+
+  &__title {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  &__text {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    opacity: 40%;
+    text-align: center;
+  }
+
+  &__days {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 4 !important;
+
+    label {
+      font-size: 9px;
+      font-weight: 600;
+      opacity: 60%;
+      margin-bottom: 10px;
+    }
+  }
+
+  &__btn {
+    width: 100%;
+    display: flex;
+    padding: 14px 25px;
+  }
+}
+
+.price-subscribeBlock {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+
+  @media (max-width: $mobile) {
+
+  }
+
+  &__price {
+    font-weight: 700;
+    font-size: 30px;
+  }
+
+  &__oldPrice {
+    font-weight: 400;
+    font-size: 20px;
+    text-decoration-line: line-through;
+  }
+
+  &__discount {
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    background: #328925;
+    border-radius: 15px;
+    padding: 5px 8px;
+  }
+}
 </style>

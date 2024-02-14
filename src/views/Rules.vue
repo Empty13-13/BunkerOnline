@@ -18,7 +18,7 @@ const titles = [
 </script>
 
 <template>
-  <div class="rules">
+  <main class="rules">
     <AppBackground img-name="await.jpg" />
     <div class="rules__container">
       <div class="rules__body">
@@ -342,7 +342,7 @@ const titles = [
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">
@@ -406,6 +406,7 @@ const titles = [
   display: flex;
   flex-direction: column;
   overflow: auto;
+  padding: 5px;
 
   @media (max-width: $mobile) {
     flex: 0 0 48%;
@@ -419,8 +420,9 @@ const titles = [
     width: 100%;
     height: 100%;
     background: #000000;
-    opacity: 0.7;
-    filter: blur(55.5px);
+    opacity: 0.4;
+    border-radius: 6px;
+    filter: blur(110.5px);
     z-index: -1;
   }
 
@@ -480,9 +482,9 @@ const titles = [
             margin-bottom: 6px;
           }
 
-          &::before {
-            content: '- ';
-          }
+          //&::before {
+          //  content: '- ';
+          //}
         }
       }
     }

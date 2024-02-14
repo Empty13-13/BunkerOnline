@@ -8,12 +8,18 @@ import Rules from "@/views/Rules.vue";
 import Wiki from "@/views/Wiki.vue";
 import Updates from "@/views/Updates.vue";
 import Contacts from "@/views/Contacts.vue";
+import Pagination from "@/views/Pagination.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
+      name: 'pagination',
+      component: Pagination
+    },
+    {
+      path: '/home',
       name: 'home',
       component: Home
     },
@@ -28,7 +34,7 @@ const router = createRouter({
       component: Login
     },
     {
-      path: '/profile',
+      path: '/profile=:id',
       name: 'profile',
       component: Profile
     },

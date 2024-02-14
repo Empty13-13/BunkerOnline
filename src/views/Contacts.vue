@@ -3,7 +3,7 @@
 </script>
 
 <template>
-  <div class="contacts paddingTop">
+  <main class="contacts paddingTop">
     <div class="contacts__container">
       <h1 class="contacts__title titleH1">Контакты</h1>
       <div class="contacts__body">
@@ -36,7 +36,7 @@
         </a>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">

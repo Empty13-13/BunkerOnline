@@ -1,11 +1,14 @@
 <script setup="">
+import { useAccessStore } from "@/stores/counter.js";
+
+const access = useAccessStore()
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 </script>
 
 <template>
-  <div class="authBlock">
+  <main class="authBlock">
     <AppBackground class="backgroundAuth" img-name="profile.jpg" />
     <div class="authBlock__container">
       <h1 class="authBlock__title">Вход и регистрация</h1>
@@ -23,7 +26,7 @@ import AppButton from "@/components/AppButton.vue";
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>
-              <AppButton @click="$router.push('/profile')" color="gold">Войти</AppButton>
+              <AppButton @click="$router.push(`/profile=${access.id}`)" color="gold">Войти</AppButton>
             </form>
           </div>
         </div>
@@ -42,13 +45,13 @@ import AppButton from "@/components/AppButton.vue";
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>
-              <AppButton @click="$router.push('/profile')" color="gold">Регистрация</AppButton>
+              <AppButton @click="$router.push(`/profile=${access.id}`)" color="gold">Регистрация</AppButton>
             </form>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss">

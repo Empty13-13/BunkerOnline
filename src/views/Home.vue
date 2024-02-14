@@ -1,4 +1,7 @@
 <script setup>
+
+import { useAccessStore } from "@/stores/counter.js";
+
 const gamersData = [
   {name:'nickname228', link:'/game=D389N'},
   {name:'nickname228', link:'/game=D389N'},
@@ -11,13 +14,16 @@ const gamersData = [
   {name:'nickname228', link:'/game=D389N'},
   {name:'nickname228', link:'/game=D389N'},
 ]
-
 const streamersData = [
   {name:'nickname228'},
   {name:'nickname228'},
   {name:'nickname228'},
 ]
 
+const access = useAccessStore()
+const inputId = ref('')
+
+const isOpenHowToPlay = ref(false)
 
 function openGallery(e) {
   let imgDiv = e.target.parentNode.parentNode.querySelector('.interface__img')
@@ -25,11 +31,19 @@ function openGallery(e) {
   const oldStyle = imgDiv.style
 }
 
+function letsGo() {
+  access.isStarted = false;
+  router.push('/game=D389N')
+}
+
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
+import router from "@/router/index.js";
+import { ref } from "vue";
+import AppPopup from "@/components/AppPopup.vue";
 </script>
 
 <template>
@@ -52,9 +66,11 @@ import TheList from "@/components/TheList.vue";
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <AppButton class="create-room__btn create" color="gold">Создать игру</AppButton>
+              <input v-model="inputId" type="text" placeholder="Введите id игры">
+              <AppButton @click="letsGo" v-if="access.level==='noreg'" class="create-room__btn join" color="gold" :disabled="inputId.length<4">Присоединиться</AppButton>
+              <AppButton @click="letsGo" v-if="access.level!=='noreg'" class="create-room__btn create" color="gold">Создать игру</AppButton>
               <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
-              <AppButton class="create-room__btn howToPlay" color="gold" :border="true">Как играть?</AppButton>
+              <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">Как играть?</AppButton>
             </div>
           </div>
           <div class="room__list list-room">
@@ -77,7 +93,7 @@ import TheList from "@/components/TheList.vue";
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
           <TheList :data="gamersData" title="Активные игры" class="activeGame__game" />
-          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />
+<!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
       </div>
     </div>
@@ -112,6 +128,21 @@ import TheList from "@/components/TheList.vue";
         </div>
       </div>
     </div>
+    <AppPopup v-model="isOpenHowToPlay">
+      <template v-slot:title>
+        Как играть?
+      </template>
+      1) Нажать на кнопку "Создать игру!" (после создания комнаты вы автоматически становитесь ведущим игры).<br>
+      <br>
+      2) На следующей странице вы получите ссылку на игровую комнату. Разошлите эту ссылку людям, с которыми вы хотите играть.<br>
+      <br>
+      3) Ждем, когда все желающие присоединятся. Вы, как ведущий игры, будете видеть кто уже зашел.<br>
+      <br>
+      4) Как только зайдут все желающие, вы должны начать игру, нажав на кнопку "Начать игру!".<br>
+      <br>
+      Как найти игроков?<br>
+      Все очень просто! Присоединяйтесь к нашему <a target="_blank" href="">Discord</a> каналу, где вы всегда найдете людей, с которыми отлично проведете время!<br>
+    </AppPopup>
   </main>
 </template>
 

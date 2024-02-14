@@ -1,5 +1,9 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
+import router from "@/router/index.js";
+import { useAccessStore } from "@/stores/counter.js";
+
+const access = useAccessStore()
 
 defineProps([
   'gamersNum',
@@ -7,6 +11,10 @@ defineProps([
   'datetime',
 ])
 
+function letsGo(isStarted) {
+  access.isStarted = !!isStarted;
+  router.push('/game=D389N')
+}
 
 </script>
 
@@ -35,9 +43,9 @@ defineProps([
         </div>
       </div>
       <div class="roomCreated__block">
-        <AppButton @click="$router.push('/game=D389N')" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
+        <AppButton @click="letsGo(isStarted)" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
             isStarted? 'Перейти к игре':'Присоединиться'
-                                                                             }}
+                                                                                                                  }}
         </AppButton>
       </div>
     </div>
@@ -61,7 +69,7 @@ defineProps([
     position: relative;
     z-index: 3;
 
-    @media (max-width:690px){
+    @media (max-width: 690px) {
       grid-template-columns: 1fr;
       grid-template-rows: 1fr 1fr;
       gap: 15px;
@@ -74,7 +82,7 @@ defineProps([
       display: grid;
       grid-template-columns: 0.8fr 1.5fr 1fr;
       flex: 0 1 55%;
-      @media (max-width:690px){
+      @media (max-width: 690px) {
         grid-template-columns: 0.8fr 1.2fr 1.2fr;
       }
     }
@@ -102,7 +110,7 @@ defineProps([
     align-items: center;
     margin-left: auto;
 
-    @media (max-width:690px){
+    @media (max-width: 690px) {
       margin: 0;
       width: 100%;
     }

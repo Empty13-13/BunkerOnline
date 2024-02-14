@@ -125,6 +125,7 @@ class Select {
     this.$el.querySelector(`[data-id="${this.selectedId}"]`).classList.add('_selected')
     
     this.$originalEl.selectedIndex = this.selectedIndex
+    this.$originalEl.dispatchEvent(new Event('change'))
     this.options.onSelect? this.options.onSelect(this.current):null
   }
   
@@ -180,7 +181,6 @@ class Select {
   }
   
   destroy() {
-    console.log(this.$selectBlock)
     this.$selectBlock.parentNode.append(this.$originalEl)
     this.$originalEl.hidden = false
     

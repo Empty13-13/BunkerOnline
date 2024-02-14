@@ -329,7 +329,7 @@ import AppButton from "@/components/AppButton.vue";
 </script>
 
 <template>
-  <div class="updates paddingTop">
+  <main class="updates paddingTop">
     <AppBackground img-name="updates.jpg" />
 
     <div class="updates__container">
@@ -356,7 +356,7 @@ import AppButton from "@/components/AppButton.vue";
         </AppButton>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">

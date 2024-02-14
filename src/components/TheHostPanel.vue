@@ -47,11 +47,11 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
           </div>
         </div>
         <div class="hostPanel__buttons buttons-hostPanel">
-          <button class="buttons-hostPanel__btn">Изменить катаклизм</button>
-          <button class="buttons-hostPanel__btn">Изменить бункер</button>
-          <button class="buttons-hostPanel__btn">Начать голосование</button>
-          <button class="buttons-hostPanel__btn">Аннулировать всем специальность</button>
-          <button class="buttons-hostPanel__btn">Специальности по часовой стрелке</button>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить катаклизм</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить бункер</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Начать голосование</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Аннулировать всем специальность</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Специальности по часовой стрелке</AppButton>
         </div>
         <div class="hostPanel__space space-hostPanel">
           <div class="space-hostPanel__title">Мест в бункере</div>
@@ -471,29 +471,31 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
   margin-bottom: 20px;
 
   &__btn {
-    background: transparent;
+    margin-bottom: 13px;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
     padding: 12px 10px;
-    gap: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    font-weight: 700;
-    text-align: center;
-    color: #FFFFFF;
-    margin-bottom: 13px;
-    flex: 1 1 auto;
-    transition: border-color 0.2s ease 0s;
 
-    &:hover {
-      border-color: white;
-    }
 
-    &:last-child {
-      margin-bottom: 0;
-    }
+    //background: transparent;
+    width: 100%;
+    //gap: 10px;
+    ////border: 1px solid rgba(255, 255, 255, 0.2);
+    //border-radius: 6px;
+    //font-weight: 700;
+    //text-align: center;
+    //color: #FFFFFF;
+    //flex: 1 1 auto;
+    //transition: border-color 0.2s ease 0s;
+    //
+    //&:hover {
+    //  border-color: white;
+    //}
+    //
+    //&:last-child {
+    //  margin-bottom: 0;
+    //}
 
   }
 }
@@ -568,7 +570,6 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
     padding: 12px;
   }
 }
-
 
 .hostButton {
   background: transparent;

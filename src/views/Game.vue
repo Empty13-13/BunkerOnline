@@ -1,31 +1,33 @@
 <script setup="">
 import { computed, reactive, ref } from "vue";
 
+const access = useAccessStore()
+
 const capacity = ref(3)
 
 const firstItem = ['№ Имя', 'num']
 
-const myId = 123
+const myId = access.id
 const myAccess = 'mpv'
 const gameData = reactive({
-  isStarted: true,
-  hostId: 123,
+  isStarted: access.isStarted,
+  hostId: 313,
   gamers: [
-    {id: 123, nickname: '123456789012345'},
-    {id: 234, nickname: 'NickNick1'},
-    {id: 345, nickname: 'NickNick2'},
-    {id: 456, nickname: 'NickNick3'},
-    {id: 567, nickname: 'NickNick4'},
-    {id: 678, nickname: 'NickNick5'},
-    {id: 678, nickname: 'NickNick6'},
-    {id: 678, nickname: 'NickNick7'},
-    {id: 678, nickname: 'NickNick8'},
-    {id: 678, nickname: 'NickNick9'},
-    {id: 678, nickname: 'NickNick10'},
-    {id: 678, nickname: 'NickNick11'},
-    {id: 678, nickname: 'NickNick12'},
-    {id: 678, nickname: 'NickNick13'},
-    {id: 678, nickname: 'NickNick14'},
+    {id: 323, nickname: '123456789012345'},
+    {id: 234, nickname: 'Никнейм1'},
+    {id: 345, nickname: 'Никнейм2'},
+    {id: 456, nickname: 'Никнейм3'},
+    {id: 567, nickname: 'Никнейм4'},
+    {id: 678, nickname: 'Никнейм5'},
+    {id: 678, nickname: 'Никнейм6'},
+    {id: 678, nickname: 'Никнейм7'},
+    {id: 678, nickname: 'Никнейм8'},
+    {id: 678, nickname: 'Никнейм9'},
+    {id: 678, nickname: 'Никнейм10'},
+    {id: 678, nickname: 'Никнейм11'},
+    {id: 678, nickname: 'Никнейм12'},
+    {id: 678, nickname: 'Никнейм13'},
+    {id: 678, nickname: 'Никнейм14'},
   ]
 })
 const itemsName = [
@@ -50,7 +52,7 @@ const itemsName = [
 ]
 const gamerData = [
   {
-    nickname: 'NickNick1234567', imgLink: '', access: 'vip', isDead: false, id: 1,
+    nickname: 'Никнейм1234567', imgLink: '', access: 'vip', isDead: false, id: 1,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -63,7 +65,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'mvp', isDead: false, id: 2,
+    nickname: 'Никнейм', imgLink: '', access: 'mvp', isDead: false, id: 2,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -76,7 +78,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'admin', isDead: false, id: 3,
+    nickname: 'Никнейм', imgLink: '', access: 'admin', isDead: false, id: 3,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -89,7 +91,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'default', isDead: false, id: 4,
+    nickname: 'Никнейм', imgLink: '', access: 'default', isDead: false, id: 4,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -102,7 +104,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'noreg', isDead: false, id: 5,
+    nickname: 'Никнейм', imgLink: '', access: 'noreg', isDead: false, id: 5,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -115,7 +117,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 6,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 6,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -128,7 +130,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 7,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 7,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -141,7 +143,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 8,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 8,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -154,7 +156,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 9,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 9,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -167,7 +169,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 10,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 10,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -180,7 +182,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 11,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 11,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -193,7 +195,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 12,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 12,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -206,7 +208,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 13,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 13,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -219,7 +221,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 14,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 14,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -232,7 +234,7 @@ const gamerData = [
     addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
   },
   {
-    nickname: 'NickNick', imgLink: '', access: 'vip', isDead: true, id: 15,
+    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 15,
     sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
     physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
     trait: {title: "Брезгливый", isReload: true, isLocked: true},
@@ -267,26 +269,69 @@ const isHost = computed(() => {
 const mayStartGame = computed(() => {
   return gameData.gamers.length>5
 })
+const isReg = computed(() => {
+  return access.level!=='noreg'
+})
+
+function getAccessStr(access) {
+  if (access==='default') {
+    return 'Пользователь'
+  }
+  if (access==='noreg') {
+    return 'Гость'
+  }
+  return access
+}
 
 function changeVote() {
   console.log(isActive.value)
   // isActive.value = true
   console.log(isActive.value)
 }
+
 function getPercent(vote) {
   return (vote.whoVote.length / votedData.allVoteNum * 100).toFixed(2)
 }
+
 function voteCalc() {
   console.log(isActive.value)
 }
-function removeGamer(index) {
-  gameData.gamers.splice(index,1)
-}
 
+function removeGamer(index) {
+  gameData.gamers.splice(index, 1)
+}
 
 const getURL = computed(() => {
   return window.location.href
 })
+
+function goToBlock(e) {
+  let id = `#${e.target.parentNode.id.replace('BB', '')}`
+  console.log(id)
+  const el = document.querySelector(id)
+
+  let scroll = new SmoothScroll()
+  scroll.animateScroll(el, 'ease', {
+    header: 'header'
+  })
+}
+
+const navBlock = ref()
+let navTimout = setTimeout(() => {
+  closeOpen()
+}, 2000)
+
+function closeOpen() {
+  navBlock.value.classList.remove('_active')
+}
+
+function openNavigation(e) {
+  navBlock.value.classList.add('_active')
+  clearTimeout(navTimout)
+  navTimout = setTimeout(() => {
+    closeOpen()
+  }, 2000)
+}
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -294,15 +339,49 @@ import TheGamerInfo from "@/components/TheGamerInfo.vue";
 import TheVoteBlock from "@/components/TheVoteBlock.vue";
 import TheHostPanel from "@/components/TheHostPanel.vue";
 import router from "../router/index.js";
+import { useAccessStore } from "@/stores/counter.js";
+import AppSmallInfo from "@/components/AppSmallInfo.vue";
+import AppAvatar from "@/components/AppAvatar.vue";
+import TheAdminPanel from "@/components/TheLogs.vue";
 </script>
 
 <template>
   <main v-if="gameData.isStarted" class="game">
     <Teleport to="#app">
-      <TheHostPanel />
+      <div @click="openNavigation" v-if="gameData.isStarted" class="navigation">
+        <div class="navigation__block linear-border white" ref="navBlock">
+          <ul class="navigation__list">
+            <li id="welcomeBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">1</a>
+              <div class="navigation__window">Катаклизм</div>
+            </li>
+            <li id="bunkerBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">2</a>
+              <div class="navigation__window">Бункер</div>
+            </li>
+            <li id="gamerInfoBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">3</a>
+              <div class="navigation__window">Информация обо мне</div>
+            </li>
+            <li id="gamerListBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">4</a>
+              <div class="navigation__window">Желающие попасть внутрь</div>
+            </li>
+            <li id="specBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">5</a>
+              <div class="navigation__window">Таблица со спец возможностями</div>
+            </li>
+            <li id="notesBB" class="navigation__item">
+              <a @click="goToBlock" class="navigation__text">6</a>
+              <div class="navigation__window">Заметки</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <TheHostPanel v-if="isHost" />
     </Teleport>
 
-    <div class="welcome">
+    <div id="welcome" class="welcome">
       <AppBackground img-name="cataclysm.jpg" />
       <div class="welcome__container">
         <div class="welcome__body">
@@ -323,7 +402,7 @@ import router from "../router/index.js";
         </div>
       </div>
     </div>
-    <div class="bunker">
+    <div id="bunker" class="bunker">
       <div class="bunker__container">
         <div class="bunker__block linear-border white">
           <h2 class="bunker__title titleH2">Бункер</h2>
@@ -483,8 +562,8 @@ import router from "../router/index.js";
         </div>
       </div>
     </div>
-    <TheGamerInfo :specItems="specItems" />
-    <div class="listGamer">
+    <TheGamerInfo id="gamerInfo" :specItems="specItems" :isReg="isReg" />
+    <div id="gamerList" class="listGamer">
       <div class="listGamer__container">
         <h2 class="listGamer__title titleH2">
           Желающие попасть в бункер:
@@ -502,23 +581,23 @@ import router from "../router/index.js";
                   class="table-listGamer__column"
               >
                 {{ item[0] }}
+                <AppSmallInfo v-if="item.length>2" :text="item[2]" :is-down="true" />
               </div>
             </div>
-            <div
-                v-for="(gamer,index ) in gamerData"
-                :key="gamer.id"
-                class="table-listGamer__row"
-                :class="[gamer.access,{dead:gamer.isDead}]"
+            <div class="table-listGamer__row"
+                 v-for="(gamer,index ) in gamerData"
+                 :key="gamer.id"
+                 :class="[gamer.access,{dead:gamer.isDead}]"
             >
               <!--Блок с профилем-->
               <div class="table-listGamer__column profile-column" :class="gamer.access">
                 <div class="profile-column__num">{{ index + 1 }}</div>
-                <div class="profile-column__img">
-                  <img src="/img/backgrounds/mainClear.jpg" alt="">
-                </div>
+                <AppAvatar class="profile-column__img" filename="backgrounds/mainClear.jpg" :color="gamer.access" />
                 <div class="profile-column__texts texts-profile-column">
-                  <div class="texts-profile-column__nickname" :title="gamer.nickname">{{ gamer.nickname }}</div>
-                  <div class="texts-profile-column__access">{{ gamer.access }}</div>
+                  <div class="texts-profile-column__nickname" :title="gamer.nickname">
+                    {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
+                  </div>
+                  <div class="texts-profile-column__access">{{ getAccessStr(gamer.access) }}</div>
                   <div class="texts-profile-column__banish" :class="{dead:gamer.isDead}">
                     {{ gamer.isDead? 'вернуть':'изгнать' }}
                   </div>
@@ -526,12 +605,12 @@ import router from "../router/index.js";
               </div>
 
               <!--Остальные характеристики-->
-              <div
-                  v-for="item in itemsName"
-                  :key="item[1]"
-                  class="table-listGamer__column"
+              <div class="table-listGamer__column"
+                   v-for="item in itemsName"
+                   :key="item[1]"
               >
                 {{ gamer[item[1]].title }}
+                <AppSmallInfo v-if="gamer[item[1]].info" :text="gamer[item[1]].info" />
               </div>
             </div>
           </div>
@@ -590,7 +669,7 @@ import router from "../router/index.js";
         </div>
       </div>
     </div>
-    <div class="listGamer">
+    <div id="spec" class="listGamer">
       <div class="listGamer__container">
         <h2 class="listGamer__title titleH2">
           Таблица спец. возможностей
@@ -619,11 +698,15 @@ import router from "../router/index.js";
               <div class="table-listGamer__column profile-column" :class="gamer.access">
                 <div class="profile-column__num">{{ index + 1 }}</div>
                 <div class="profile-column__img">
-                  <img src="/img/backgrounds/mainClear.jpg" alt="">
+                  <img v-if="gamer.access==='default'" src="/img/icons/defaultPhoto.png" alt="" class="_noPhoto">
+                  <img v-else-if="gamer.access!=='noreg'" src="/img/backgrounds/mainClear.jpg" alt="">
+                  <img v-else src="/img/icons/noregPhoto.png" alt="" class="_noPhoto">
                 </div>
                 <div class="profile-column__texts texts-profile-column">
-                  <div class="texts-profile-column__nickname" :title="gamer.nickname">{{ gamer.nickname }}</div>
-                  <div class="texts-profile-column__access">{{ gamer.access }}</div>
+                  <div class="texts-profile-column__nickname" :title="gamer.nickname">
+                    {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
+                  </div>
+                  <div class="texts-profile-column__access">{{ getAccessStr(gamer.access) }}</div>
                 </div>
               </div>
 
@@ -640,7 +723,7 @@ import router from "../router/index.js";
         </div>
       </div>
     </div>
-    <div class="notes">
+    <div id="notes" class="notes">
       <div class="notes__container">
         <div class="notes__block linear-border white">
           <h2 class="notes__title titleH2">Заметки</h2>
@@ -651,8 +734,9 @@ import router from "../router/index.js";
         </div>
       </div>
     </div>
+    <TheAdminPanel />
   </main>
-  <main v-else class="">
+  <main v-else>
     <div class="awaitRoom">
       <AppBackground img-name="await.jpg" />
       <div class="awaitRoom__container">
@@ -685,19 +769,23 @@ import router from "../router/index.js";
 </svg>
             </span>
               </div>
-              <div v-if="isHost" class="info-awaitRoom__min">Чтобы начать игру нужно как минимум 6 человек.
-                                                             ({{ gameData.gamers.length }}/15)
-              </div>
 
               <p v-if="!isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
-              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>
+              <div class="info-awaitRoom__min">
+                {{ isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
+                ({{ gameData.gamers.length }}/15)
+              </div>
+
+              <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
               <p v-if="!isHost" class="info-awaitRoom__text">
                 Минимальное количество игроков: 6<br>
                 Максимальное количество игроков: 15
               </p>
 
+
               <div v-if="isHost" class="info-awaitRoom__buttons">
-                <AppButton @click="$router.push('/')" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату</AppButton>
+                <AppButton @click="$router.push('/')" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
+                </AppButton>
                 <button :disabled="!mayStartGame"
                         class="info-awaitRoom__btn startBtn"
                         :class="mayStartGame?'btn green':''"
@@ -745,6 +833,7 @@ import router from "../router/index.js";
   </main>
 </template>
 
+<!--Страница с игрой-->
 <style lang="scss">
 @import "@/assets/scss/style";
 
@@ -945,7 +1034,6 @@ import router from "../router/index.js";
 
 .wrapper-listGamer {
   overflow-x: auto;
-
 }
 
 .table-listGamer {
@@ -957,6 +1045,14 @@ import router from "../router/index.js";
     grid-template-columns: 13fr 10.1fr 8.5fr 9.24fr 8.29fr 8fr 8.21fr 9.8fr 7.6fr 7.9fr 9.4fr;
 
     &._main {
+
+      .table-listGamer__column {
+        .smallInfo {
+          position: absolute;
+          right: 4px;
+          top: 4px;
+        }
+      }
     }
 
     &.admin {
@@ -1050,6 +1146,7 @@ import router from "../router/index.js";
       .profile-column__img {
         border: none;
         position: relative;
+        min-width: 29px;
         width: 29px;
         height: 29px;
         margin-right: 16px;
@@ -1078,7 +1175,6 @@ import router from "../router/index.js";
           z-index: 1;
           box-shadow: 0px 4px 10px 0px rgba(255, 26, 26, 0.21);
         }
-
       }
 
       .texts-profile-column__nickname {
@@ -1156,9 +1252,21 @@ import router from "../router/index.js";
     padding: 13px 3px 13px 15px;
     font-size: 11px;
     font-weight: 600;
+    position: relative;
 
     &:first-child {
       border-left: 1px solid #323232;
+    }
+
+    &.profile-column {
+      padding-right: 5px;
+    }
+
+    .smallInfo {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      z-index: 3;
     }
   }
 
@@ -1194,6 +1302,12 @@ import router from "../router/index.js";
     img {
       border-radius: 50%;
       overflow: hidden;
+
+
+      &._noPhoto {
+        width: 11px;
+        height: 12px;
+      }
     }
   }
 
@@ -1211,7 +1325,7 @@ import router from "../router/index.js";
   &__nickname {
     font-size: 10px;
     font-weight: 600;
-    width: 46px;
+    width: 100%;
     word-wrap: anywhere;
 
     //white-space: nowrap;
@@ -1439,6 +1553,7 @@ import router from "../router/index.js";
 
 </style>
 
+<!--Комната ожидания-->
 <style lang="scss">
 
 .awaitRoom {
@@ -1616,6 +1731,85 @@ import router from "../router/index.js";
 
   &__removeBtn {
     cursor: pointer;
+  }
+}
+
+</style>
+
+<!--Навигация-->
+<style lang="scss">
+@import "@/assets/scss/style";
+
+.navigation {
+  position: fixed;
+  left: 10px;
+  top: 0;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  font-size: 11px;
+  font-weight: 600;
+
+  &__block {
+    padding: 32px 15px;
+    transition: transform 0.2s ease;
+
+    @media (max-width: $pc) {
+      padding: 30px 13px;
+    }
+    @media (max-width: $tablet) {
+      padding: 25px 12px;
+    }
+    @media (max-width: $mobile) {
+      padding: 20px 9px;
+      transform: translateX(-100%);
+    }
+    @media (max-width: $mobileSmall) {
+      padding: 20px 5px;
+    }
+
+    &._active {
+      transform: translateX(0);
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__item {
+    position: relative;
+    margin-bottom: 25px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__text {
+    cursor: pointer;
+    padding: 10px;
+
+    &:hover {
+      text-decoration: underline;
+
+      & + .navigation__window {
+        opacity: 1;
+      }
+    }
+  }
+
+  &__window {
+    position: absolute;
+    left: calc(100% + 20px);
+    top: 0;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.1s ease;
   }
 }
 
