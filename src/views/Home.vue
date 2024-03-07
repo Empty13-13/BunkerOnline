@@ -66,7 +66,7 @@ import AppPopup from "@/components/AppPopup.vue";
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <input v-model="inputId" type="text" placeholder="Введите id игры">
+              <input v-model="inputId" type="text" placeholder="Введите ID игры для присоединения">
               <AppButton @click="letsGo" v-if="access.level==='noreg'" class="create-room__btn join" color="gold" :disabled="inputId.length<4">Присоединиться</AppButton>
               <AppButton @click="letsGo" v-if="access.level!=='noreg'" class="create-room__btn create" color="gold">Создать игру</AppButton>
               <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
@@ -281,11 +281,26 @@ import AppPopup from "@/components/AppPopup.vue";
     gap: 30px;
     font-size: 11px;
 
-    @media (max-width: 570px) {
+    @media (max-width: 840px) {
       flex-direction: column;
       width: 100%;
       gap: 20px;
     }
+
+    input {
+      min-width: 250px;
+
+      @media (max-width:840px){
+        width: 380px;
+        min-width: 0;
+        text-align: center;
+      }
+
+      @media (max-width:570px){
+        width: 100%;
+      }
+    }
+
   }
 
   &__btn {
@@ -304,6 +319,10 @@ import AppPopup from "@/components/AppPopup.vue";
 
     &.howToPlay {
 
+    }
+
+    @media (max-width:840px){
+      width: 380px;
     }
 
     @media (max-width: 570px) {

@@ -1,3 +1,4 @@
+// Вспомогательные модули плавного раскрытия и закрытия объекта ======================================================================================================================================================================
 export let slideDown = (target, duration = 500, showmore = 0) => {
   if (!target.classList.contains('_slide')) {
     target.classList.add('_slide');
@@ -66,7 +67,16 @@ export let slideUp = (target, duration = 500, showmore = 0) => {
     }, duration);
   }
 }
+export let slideToggle = (target, duration = 500) => {
+  if (target.hidden) {
+    return slideDown(target, duration);
+  } else {
+    return slideUp(target, duration);
+  }
+}
 
+
+//Функция взятия нужного цвета для определенного уровня доступа
 export function getClassForAccess(access) {
   switch(access) {
     case 'mvp':

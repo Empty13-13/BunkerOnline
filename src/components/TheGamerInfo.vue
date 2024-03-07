@@ -216,12 +216,20 @@ import AppButton from "@/components/AppButton.vue";
 
   &__title {
     padding-top: 60px;
+    margin-right: 20px;
+    margin-left: 20px;
 
     @media (max-width: $tablet) {
       margin-top: 50px;
     }
     @media (max-width: $mobile) {
       margin-top: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    @media (max-width: $mobileSmall) {
+      font-size: 20px;
     }
   }
 

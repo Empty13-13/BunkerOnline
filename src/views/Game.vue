@@ -42,7 +42,7 @@ const itemsName = [
   ['Пол', 'sex'],
   ['Телосложение', 'physique'],
   ['Человеческая черта', 'trait'],
-  ['Профессия', 'profession', "Какое то всплывающее окно"],
+  ['Профессия', 'profession', "Какое то всплывающее окно с очень очень большим количеством текста прям ну очень много текста здесь будет, максимально много. Это нужно для проверки"],
   ['Здоровье', 'health'],
   ['Хобби / Увлечения', 'hobbies', "Какое то всплывающее окно"],
   ['Фобия / Страх', 'phobia'],
@@ -342,7 +342,7 @@ import router from "../router/index.js";
 import { useAccessStore } from "@/stores/counter.js";
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
-import TheAdminPanel from "@/components/TheLogs.vue";
+import TheLogs from "@/components/TheLogs.vue";
 </script>
 
 <template>
@@ -734,7 +734,7 @@ import TheAdminPanel from "@/components/TheLogs.vue";
         </div>
       </div>
     </div>
-    <TheAdminPanel />
+    <TheLogs />
   </main>
   <main v-else>
     <div class="awaitRoom">
@@ -1029,6 +1029,14 @@ import TheAdminPanel from "@/components/TheLogs.vue";
   }
 
   &__title {
+    @media (max-width: $mobileSmall) {
+      margin-right: 15px;
+      margin-left: 15px;
+      font-size: 20px !important;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
   }
 }
 
@@ -1743,14 +1751,15 @@ import TheAdminPanel from "@/components/TheLogs.vue";
 .navigation {
   position: fixed;
   left: 10px;
-  top: 0;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
   font-size: 11px;
   font-weight: 600;
+  top: 50%;
+  transform: translate(0,-50%);
+  padding: 20px 0;
 
   &__block {
     padding: 32px 15px;
@@ -1810,6 +1819,7 @@ import TheAdminPanel from "@/components/TheLogs.vue";
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.1s ease;
+    pointer-events: none;
   }
 }
 

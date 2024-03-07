@@ -465,7 +465,7 @@ const titles = [
   }
 
   ul {
-    li {
+    & > li {
       margin-bottom: 50px;
       overflow-x: auto;
 
@@ -474,17 +474,18 @@ const titles = [
       }
 
 
-      ul {
+      & > ul {
         li {
           margin-bottom: 6px;
+          overflow-x: inherit;
 
           &:last-child {
             margin-bottom: 6px;
           }
 
-          //&::before {
-          //  content: '- ';
-          //}
+          &::before {
+            content: '- ';
+          }
         }
       }
     }

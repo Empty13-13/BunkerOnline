@@ -1,21 +1,43 @@
 <script setup>
 import AppButton from "@/components/AppButton.vue";
-import { computed, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import router from "@/router/index.js";
 import { useAccessStore } from "@/stores/counter.js";
 
 const access = useAccessStore()
 
-
 const isOpen = ref(false)
-const isAuth = computed(()=>{
+const isAuth = computed(() => {
   return access.level!=='noreg'
 })
+const header = ref(null)
+let oldScrollY = 0
 
+onMounted(() => {
+
+
+  window.addEventListener('scroll', headerScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', headerScroll)
+})
+
+function headerScroll() {
+  const contentHide = () => header.value.classList.contains('_hide')
+
+  if (scrollY>oldScrollY && !contentHide() && scrollY>300) {
+    header.value.classList.add('_hide')
+  }
+  else if (scrollY<oldScrollY && contentHide()) {
+    header.value.classList.remove('_hide')
+  }
+  oldScrollY = scrollY
+}
 </script>
 
 <template>
-  <header class="header">
+  <header ref="header" class="header">
     <div class="header__container">
       <div class="header__body">
         <div class="header__block">
@@ -62,10 +84,11 @@ const isAuth = computed(()=>{
                 </a>
               </div>
               <div v-if="isAuth" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
-                <router-link @click="isOpen=false" :to='`/profile=${access.id}`' class="authorization-header__img">
+                <router-link @click="isOpen=false" :to="`/profile=${access.id}`" class="authorization-header__img">
                   <img src="/img/icons/man.svg" alt="">
                 </router-link>
-                <router-link @click="isOpen=false" :to='`/profile=${access.id}`' class="authorization-header__name" title="Иванов Иван Иванович">
+                <router-link @click="isOpen=false" :to="`/profile=${access.id}`" class="authorization-header__name"
+                             title="Иванов Иван Иванович">
                   Иванов Иван Иванович
                 </router-link>
                 <AppButton class="authorization-header__exit" icon-name="door.svg"></AppButton>
@@ -81,7 +104,6 @@ const isAuth = computed(()=>{
       </div>
     </div>
   </header>
-
 </template>
 
 <style lang="scss">
@@ -94,10 +116,23 @@ const isAuth = computed(()=>{
   width: 100%;
   max-height: 100px;
   z-index: 15;
+  background-color: rgba(0, 0, 0, 0.5);
 
-  @media (min-width:$tablet){
-    background-color: rgba(0,0,0,0.5);
+  @media (min-width: $tablet) {
     backdrop-filter: blur(10px);
+  }
+
+  @media (max-width: $tablet) {
+    transition: top 0.3s ease;
+
+    &._hide {
+      top: -100%;
+
+      .icon-menu {
+        top: -100%;
+      }
+
+    }
   }
 
   &__body {
@@ -108,8 +143,7 @@ const isAuth = computed(()=>{
     max-height: 38px;
 
     @media (max-width: $tablet) {
-      margin: 20px 0;
-      margin-bottom: 0;
+      margin: 15px 0;
     }
 
   }
@@ -235,7 +269,7 @@ const isAuth = computed(()=>{
       -webkit-background-clip: text;
     }
 
-    &:hover{
+    &:hover {
       background: $goldColorHover;
       -webkit-background-clip: text;
     }
@@ -363,6 +397,8 @@ const isAuth = computed(()=>{
     cursor: pointer;
     background: inherit;
     z-index: 5;
+    transition: top 0.3s ease;
+
     span,
     &::before,
     &::after {

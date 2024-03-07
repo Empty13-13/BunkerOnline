@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, onUnmounted, ref } from "vue";
 
 defineProps({
-  text:String,
+  text: String,
   isDown: {
     type: Boolean,
     required: false,
@@ -22,22 +22,49 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mainBlock.value.removeEventListener('mouseover', mouseover)
   mainBlock.value.removeEventListener('mouseout', mouseout)
-  console.log('unmounted')
 })
 
 function mouseover(e) {
   timer = setTimeout(() => {
-    showWindow()
+    showWindow(e)
   }, 500)
 }
 
 function mouseout() {
   clearTimeout(timer)
-  block.value.classList.remove('_active')
+  block.value.style.cssText += "opacity:0;"
+  block.value.style.cssText += "left:auto;"
+  block.value.style.cssText += "right:auto;"
 }
 
-function showWindow() {
-  block.value.classList.add('_active')
+function showWindow(e) {
+  console.log((document.documentElement.offsetWidth - (e.x + img.value.offsetWidth)) - block.value.offsetWidth / 2)
+
+  let left = e.x - block.value.offsetWidth / 2
+  let right = (document.documentElement.offsetWidth - (e.x + img.value.offsetWidth)) - block.value.offsetWidth / 2
+  let top = img.value.getBoundingClientRect().top - block.value.offsetHeight
+  let fivePercent = document.documentElement.offsetWidth / 100 * 5
+  let positionX = ""
+
+  if (left<right) {
+    positionX = 'left:'
+    positionX += (left<fivePercent? fivePercent:left) + "px;"
+  }
+  else {
+    positionX = 'right:'
+    positionX += (right<fivePercent? fivePercent:right) + "px;"
+  }
+
+  if (top<document.querySelector('header').offsetHeight + 10) {
+    top = document.querySelector('header').offsetHeight + 15
+  }
+
+  block.value.style.cssText += `
+  position:fixed;
+  ${positionX}
+  top:${top}px;
+  opacity: 1;
+  `
 }
 
 </script>
@@ -55,14 +82,17 @@ function showWindow() {
 </template>
 
 <style lang="scss">
+@import "@/assets/scss/style";
+
 .smallInfo {
   border-radius: 50%;
   width: 20px;
   height: 20px;
   cursor: pointer;
-  display: flex;
+  display: inline-block;
   margin-left: 5px !important;
   position: relative;
+  z-index: 5;
 
   &__img {
     border-radius: 50%;
@@ -79,26 +109,27 @@ function showWindow() {
 
   &__block {
     background: #333333;
-    display: flex;
+    display: inline-block;
     justify-content: center;
     align-items: center;
     border-radius: 6px;
     opacity: 0;
-    position: absolute !important;
-    left: 50%;
-    bottom: 50%;
-    transform: translate(-50%, -40%);
-    width: 205px;
+    position: fixed;
     text-align: center;
     pointer-events: none;
     font-size: 11px;
     font-weight: 600;
     color: white;
-    z-index: 15;
+    z-index: 999;
+    max-width: 330px;
+    width: max-content;
+
+    @media (max-width: $mobileSmall) {
+      max-width: 90vw;
+    }
 
     p {
       width: 100%;
-      height: 100%;
       display: flex;
       padding: 13px 16px;
     }
@@ -107,19 +138,14 @@ function showWindow() {
       opacity: 1;
     }
 
-    &::after {
-      content: '';
-
-    }
-
-    &.isDown {
-      bottom: -100%;
-      transform: translate(-50%, 60%);
-
-      p {
-        height: auto;
-      }
-    }
+    //&.isDown {
+    //  bottom: -100%;
+    //  transform: translate(-50%, 60%);
+    //
+    //  p {
+    //    //height: auto;
+    //  }
+    //}
   }
 }
 </style>

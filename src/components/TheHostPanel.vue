@@ -231,8 +231,11 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
           <div class="settings-hostPanel__dice dice-settings">
             <div class="dice-settings__title">Бросить кубик</div>
             <div class="dice-settings__body">
-              <button class="hostButton">С 6 гранями</button>
-              <button class="hostButton">С 20 гранями</button>
+              <button class="hostButton btn grayGold border">
+                <span class="text">С 6 гранями</span></button>
+              <button class="hostButton btn grayGold border">
+                <span class="text">С 20 гранями</span>
+              </button>
             </div>
           </div>
 
@@ -409,7 +412,7 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
     }
   }
 
-  span {
+  & > span {
     content: '';
     position: fixed;
     left: 0;
@@ -572,19 +575,20 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
 }
 
 .hostButton {
-  background: transparent;
+  //background: transparent;
   width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  //align-items: center;
+  //border: 1px solid rgba(255, 255, 255, 0.2);
+  //border-radius: 6px;
   color: #FFFFFF;
   padding: 12px 20px;
-  transition: border-color 0.2s ease;
-
-  &:hover {
-    border-color: white;
-  }
+  position: relative;
+  //transition: border-color 0.2s ease;
+  //
+  //&:hover {
+  //  border-color: white;
+  //}
 }
 </style>
