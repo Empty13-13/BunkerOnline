@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth.js";
+import router from "@/router/index.js";
 
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const axiosInstance = axios.create({
@@ -16,11 +17,8 @@ axiosInstance.interceptors.request.use((config) => {
 })
 
 axiosInstance.interceptors.response.use((response) => {
-  console.log('AXIOS RESPONSE: ', response)
   return response
 }, async function(error) {
-  console.log('AXIOS ERROR: ', Promise.reject(error))
-  
   const authStore = useAuthStore()
   const originalRequest = error.config
   
@@ -41,6 +39,8 @@ axiosInstance.interceptors.response.use((response) => {
       }))
     } catch(e) {
       console.log(e)
+      authStore.clearUserInfo()
+      await router.push('/login')
     }
   }
   

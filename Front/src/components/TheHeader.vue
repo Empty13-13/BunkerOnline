@@ -94,7 +94,7 @@ function headerScroll() {
                              title="Иванов Иван Иванович">
                   Иванов Иван Иванович
                 </router-link>
-                <AppButton class="authorization-header__exit" icon-name="door.svg"></AppButton>
+                <AppButton @click="authStore.logoutUser()" class="authorization-header__exit" icon-name="door.svg"></AppButton>
               </div>
               <div v-else @click="isOpen=false" v-adaptive="['.menu__body',992,0]" class="header__login login-header">
                 <AppButton class="login-header__btn" @click="router.push('/login')" color="gold">

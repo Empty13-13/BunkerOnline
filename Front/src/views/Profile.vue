@@ -8,6 +8,9 @@ import router from "@/router/index.js";
 import AppPopup from "@/components/AppPopup.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import { getClassForAccess } from "@/plugins/functions.js";
+import { useAuthStore } from "@/stores/auth.js";
+
+const authStore = useAuthStore()
 
 const access = useAccessStore()
 
@@ -52,7 +55,7 @@ const selectModel = ref(null)
 const blockBtn = ref(null)
 
 const isMyProfile = computed(() => {
-  return myId===data.id
+  return authStore.userInfo.userId===data.id
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {

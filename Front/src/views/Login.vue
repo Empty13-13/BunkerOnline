@@ -47,7 +47,7 @@ async function loginHandler(e) {
   clearError(password.value)
 
   let data = {
-    nickname: loginInput.value.value.trim(),
+    login: loginInput.value.value.trim(),
     password: password.value.value,
   }
   console.log("LOGIN DATA:",data)
@@ -63,7 +63,10 @@ async function loginHandler(e) {
   if (objIsEmpty(errors)) {
     await useAuthStore().auth(data, 'login')
     if (useAuthStore().errors.message) {
-      setErrorForInput(useAuthStore().errors.input,useAuthStore().errors.message)
+      if (!useAuthStore().errors.input) {
+        useAuthStore().errors.input = 'nickname'
+      }
+      setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
     }
     else {
       await router.push(`/profile=${useAuthStore().userInfo.userId}`)

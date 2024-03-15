@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from '../api.js'
+import router from "@/router/index.js";
 
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 
@@ -8,9 +9,8 @@ export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref({
     token: '',
     refreshToken: '',
-    expiresIn: '',
-    email: '',
     userId: '',
+    nickname: ''
   })
   const errors = ref({
     message: '',
@@ -25,7 +25,6 @@ export const useAuthStore = defineStore('auth', () => {
       message: '',
       input: '',
     }
-    console.log('LINK: ', apiLink)
     
     try {
       let response = await axiosInstance.post(`/${stringUrl}`, {
@@ -34,7 +33,6 @@ export const useAuthStore = defineStore('auth', () => {
       userInfo.value = {
         token: response.data.accessToken,
         refreshToken: response.data.refreshToken,
-        email: response.data.user.email,
         userId: response.data.user.id,
         nickname: response.data.user.nickname,
       }
@@ -42,17 +40,36 @@ export const useAuthStore = defineStore('auth', () => {
         token: userInfo.value.token,
         refreshToken: userInfo.value.refreshToken,
       }))
-      
-      console.log(response)
     } catch(e) {
       console.log('Auth error: ',e)
       errors.value.message = e.response.data.message
       errors.value.input = e.response.data.errors[0].input
-      console.log('Error value:', errors.value)
-      console.log("Error message: ", errors.value.message)
     } finally {
       isLoader.value = false
     }
   }
-  return {auth, userInfo, errors, isLoader}
+  
+  async function logoutUser() {
+    try {
+      let response = axiosInstance.post('/logout', {
+        refreshToken: userInfo.value.refreshToken
+      })
+    } catch(e) {
+      console.log('Error logout: ',e.message)
+    }
+    
+    clearUserInfo()
+    await router.push('/login')
+  }
+  
+  function clearUserInfo() {
+    userInfo.value.token = ''
+    userInfo.value.refreshToken = ''
+    userInfo.value.userId = ''
+    userInfo.value.nickname = ''
+    
+    localStorage.removeItem('userTokens')
+  }
+  
+  return {auth, userInfo, errors, isLoader, logoutUser,clearUserInfo}
 })
