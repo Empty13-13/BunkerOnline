@@ -9,17 +9,18 @@ import Wiki from "@/views/Wiki.vue";
 import Updates from "@/views/Updates.vue";
 import Contacts from "@/views/Contacts.vue";
 import Pagination from "@/views/Pagination.vue";
+import { useAuthStore } from "@/stores/auth.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // {
+    //   path: '/',
+    //   name: 'pagination',
+    //   component: Pagination
+    // },
     {
       path: '/',
-      name: 'pagination',
-      component: Pagination
-    },
-    {
-      path: '/home',
       name: 'home',
       component: Home
     },
@@ -67,6 +68,16 @@ const router = createRouter({
     //   component: () => import('../views/AboutView.vue')
     // }
   ]
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  if (to.name==="login" && authStore.userInfo.token) {
+    next('/')
+    return
+  }
+  next()
 })
 
 export default router

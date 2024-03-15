@@ -2,6 +2,7 @@ import '@/assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import './api.js'
 
 
 import App from './App.vue'

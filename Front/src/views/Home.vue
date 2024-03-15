@@ -1,6 +1,9 @@
 <script setup>
 
 import { useAccessStore } from "@/stores/counter.js";
+import { useAuthStore } from "@/stores/auth.js";
+
+const authStore = useAuthStore()
 
 const gamersData = [
   {name:'nickname228', link:'/game=D389N'},
@@ -66,9 +69,9 @@ import AppPopup from "@/components/AppPopup.vue";
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <input v-model="inputId" type="text" placeholder="Введите ID игры для присоединения">
-              <AppButton @click="letsGo" v-if="access.level==='noreg'" class="create-room__btn join" color="gold" :disabled="inputId.length<4">Присоединиться</AppButton>
-              <AppButton @click="letsGo" v-if="access.level!=='noreg'" class="create-room__btn create" color="gold">Создать игру</AppButton>
+              <input v-if="!authStore.userInfo.token" v-model="inputId" type="text" placeholder="Введите ID игры для присоединения">
+              <AppButton @click="letsGo" v-if="!authStore.userInfo.token" class="create-room__btn join" color="gold" :disabled="inputId.length<4">Присоединиться</AppButton>
+              <AppButton @click="letsGo" v-if="authStore.userInfo.token" class="create-room__btn create" color="gold">Создать игру</AppButton>
               <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
               <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">Как играть?</AppButton>
             </div>

@@ -3,6 +3,9 @@ import AppButton from "@/components/AppButton.vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import router from "@/router/index.js";
 import { useAccessStore } from "@/stores/counter.js";
+import { useAuthStore } from "@/stores/auth.js";
+
+const authStore = useAuthStore()
 
 const access = useAccessStore()
 
@@ -83,7 +86,7 @@ function headerScroll() {
                   <img src="/img/icons/vk.svg" alt="">
                 </a>
               </div>
-              <div v-if="isAuth" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
+              <div v-if="authStore.userInfo.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
                 <router-link @click="isOpen=false" :to="`/profile=${access.id}`" class="authorization-header__img">
                   <img src="/img/icons/man.svg" alt="">
                 </router-link>

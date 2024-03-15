@@ -1,10 +1,104 @@
 <script setup="">
-import { useAccessStore } from "@/stores/counter.js";
+import { useAuthStore } from "@/stores/auth.js";
+import { validationRegistration, testNicknameKey, clearError } from '@/plugins/auth.js'
 
-const access = useAccessStore()
+const nicknameReg = ref()
+const emailReg = ref()
+const passwordReg = ref()
+const passwordRepeatReg = ref()
+
+async function registrationHandler(e) {
+  e.preventDefault()
+  clearError(nicknameReg.value)
+  clearError(emailReg.value)
+  clearError(passwordReg.value)
+  clearError(passwordRepeatReg.value)
+
+  let data = {
+    email: emailReg.value.value.trim(),
+    nickname: nicknameReg.value.value.trim(),
+    password: passwordReg.value.value,
+    passwordRepeat: passwordRepeatReg.value.value
+  }
+  let errors = validationRegistration(data)
+
+  for (let key in errors) {
+    setErrorForInput(key + 'Reg',errors[key])
+  }
+
+  if (objIsEmpty(errors)) {
+    await useAuthStore().auth(data, 'signUp')
+    if (useAuthStore().errors.message) {
+      console.log(useAuthStore().errors.input)
+      setErrorForInput((useAuthStore().errors.input + 'Reg'),useAuthStore().errors.message)
+    }
+    else {
+      await router.push(`/profile=${useAuthStore().userInfo.userId}`)
+    }
+  }
+}
+
+const loginInput = ref()
+const password = ref()
+
+async function loginHandler(e) {
+  e.preventDefault()
+  clearError(loginInput.value)
+  clearError(password.value)
+
+  let data = {
+    nickname: loginInput.value.value.trim(),
+    password: password.value.value,
+  }
+  console.log("LOGIN DATA:",data)
+  let errors = {}
+
+  for(let key in data) {
+    if(!data[key]) {
+      errors[key] = 'Поле не должно быть пустым'
+      setErrorForInput(key,'Поле не должно быть пустым')
+    }
+  }
+
+  if (objIsEmpty(errors)) {
+    await useAuthStore().auth(data, 'login')
+    if (useAuthStore().errors.message) {
+      setErrorForInput(useAuthStore().errors.input,useAuthStore().errors.message)
+    }
+    else {
+      await router.push(`/profile=${useAuthStore().userInfo.userId}`)
+    }
+  }
+}
+
+function keyDownNickname(e) {
+  if (!testNicknameKey(e.key)) {
+    e.preventDefault()
+  }
+}
+
+function focusInInput(e) {
+  clearError(e.target)
+}
+
+
+//========================================================================================================================================================
+function setErrorForInput(inputName, textSmall) {
+  console.log(inputName)
+  let input = document.querySelector(`[name=${inputName}]`)
+  let small = input.parentNode.querySelector('small')
+
+  input.classList.add('_error')
+  small.textContent = textSmall
+  small.style.opacity = "1"
+}
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
+import { ref } from "vue";
+import { objIsEmpty } from "@/plugins/functions.js";
+import router from "@/router/index.js";
+import AppLoader from "@/components/AppLoader.vue";
 </script>
 
 <template>
@@ -16,9 +110,15 @@ import AppButton from "@/components/AppButton.vue";
         <div class="authBlock__login login-authBlock linear-border gold">
           <div class="login-authBlock__body">
             <h2 class="login-authBlock__title">Вход</h2>
-            <form action="" class="login-authBlock__form authBlock-form">
-              <input placeholder="Ваш ник" type="text" name="nickname" maxlength="15">
-              <input placeholder="Пароль" type="password" name="password">
+            <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text" name="nickname" maxlength="15">
+                <small>Какой то текст с ошибкой</small>
+              </div>
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
+                <small>Какой то текст с ошибкой</small>
+              </div>
               <div>
                 <p>Войти с помощью</p>
                 <span>
@@ -26,18 +126,37 @@ import AppButton from "@/components/AppButton.vue";
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>
-              <AppButton @click="$router.push(`/profile=${access.id}`)" color="gold">Войти</AppButton>
+              <AppLoader v-if="useAuthStore().isLoader" />
+              <AppButton v-else color="gold">Войти</AppButton>
             </form>
           </div>
         </div>
         <div class="authBlock__reg login-authBlock linear-border gold">
           <div class="login-authBlock__body">
             <h2 class="login-authBlock__title">Регистрация</h2>
-            <form action="" class="login-authBlock__form authBlock-form">
-              <input placeholder="Ваш ник" type="text" name="nickname" maxlength="15">
-              <input placeholder="Электронная почта" type="email" name="nickname" maxlength="15">
-              <input placeholder="Пароль" type="password" name="password">
-              <input placeholder="Подтвердите пароль" type="password" name="passwordRepeat">
+            <form novalidate @submit="registrationHandler" class="login-authBlock__form authBlock-form">
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" @keydown="keyDownNickname" ref="nicknameReg" placeholder="Ваш ник"
+                       type="text"
+                       name="nicknameReg"
+                       maxlength="15">
+                <small>Какой то текст с ошибкой</small>
+              </div>
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" ref="emailReg" placeholder="Электронная почта" type="email"
+                       name="emailReg">
+                <small>Какой то текст с ошибкой</small>
+              </div>
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
+                <small>Какой то текст с ошибкой</small>
+              </div>
+              <div class="authBlock-form__input">
+                <input @focus="focusInInput" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
+                       name="passwordRepeatReg">
+                <small>Какой то текст с ошибкой</small>
+              </div>
+
               <div>
                 <p>Войти с помощью</p>
                 <span>
@@ -45,7 +164,8 @@ import AppButton from "@/components/AppButton.vue";
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>
-              <AppButton @click="$router.push(`/profile=${access.id}`)" color="gold">Регистрация</AppButton>
+              <AppLoader v-if="useAuthStore().isLoader" />
+              <AppButton v-else color="gold">Регистрация</AppButton>
             </form>
           </div>
         </div>
@@ -77,6 +197,7 @@ import AppButton from "@/components/AppButton.vue";
   }
 
   &__container {
+    width: 100%;
   }
 
   &__title {
@@ -110,12 +231,13 @@ import AppButton from "@/components/AppButton.vue";
   &__body {
     display: flex;
     align-items: flex-start;
+    justify-content: space-around;
     gap: 30px;
     width: 100%;
 
-    @media (max-width:$tablet){
+    @media (max-width: $tablet) {
       flex-direction: column;
-      align-items:center;
+      align-items: center;
     }
   }
 }
@@ -123,18 +245,19 @@ import AppButton from "@/components/AppButton.vue";
 .login-authBlock {
   padding: 35px 80px;
   max-width: 511px;
-  
+  flex: 0 1 50%;
+
   @media (max-width: $pc) {
     padding: 35px 60px;
   }
-  @media (max-width:$tablet){
-     padding: 35px 50px;
+  @media (max-width: $tablet) {
+    padding: 35px 50px;
   }
   @media (max-width: $mobile) {
-     padding: 35px 30px;
+    padding: 35px 30px;
   }
   @media (max-width: $mobileSmall) {
-     padding: 35px 20px;
+    padding: 35px 20px;
   }
 
   &__body {
@@ -153,6 +276,19 @@ import AppButton from "@/components/AppButton.vue";
 }
 
 .authBlock-form {
+  &__input {
+    position: relative;
+    width: 100%;
+
+    small {
+      position: absolute;
+      left: 0;
+      top: -20px;
+      opacity: 0;
+      transition: opacity 0.1s ease;
+    }
+  }
+
   input {
     padding: 14px 15px;
     background: #60606065;
@@ -160,6 +296,12 @@ import AppButton from "@/components/AppButton.vue";
     border-radius: 5px;
     margin-bottom: 15px;
     width: 100%;
+    border: 1px solid transparent;
+    transition: border-color 0.3s ease;
+
+    &._error {
+      border: 1px solid red;
+    }
   }
 
   div {
@@ -202,5 +344,9 @@ import AppButton from "@/components/AppButton.vue";
   }
 }
 
-
+.loader {
+  width: 42px;
+  height: 42px;
+  margin: 20px auto !important;
+}
 </style>

@@ -1,5 +1,8 @@
 <script setup="">
 import { computed, reactive, ref } from "vue";
+import { useAuthStore } from "@/stores/auth.js";
+
+const authStore = useAuthStore()
 
 const access = useAccessStore()
 
@@ -264,7 +267,7 @@ const votedData = {
 let isActive = ref(null)
 
 const isHost = computed(() => {
-  return myId===gameData.hostId
+  return authStore.userInfo.token && myId===gameData.hostId
 })
 const mayStartGame = computed(() => {
   return gameData.gamers.length>5

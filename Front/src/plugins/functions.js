@@ -70,7 +70,8 @@ export let slideUp = (target, duration = 500, showmore = 0) => {
 export let slideToggle = (target, duration = 500) => {
   if (target.hidden) {
     return slideDown(target, duration);
-  } else {
+  }
+  else {
     return slideUp(target, duration);
   }
 }
@@ -86,4 +87,15 @@ export function getClassForAccess(access) {
     case 'admin':
       return 'redTextColor';
   }
+}
+
+export function emailTest(value) {
+  return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(value);
+}
+
+export function objIsEmpty(obj) {
+  for (let key in obj) {
+    return false;
+  }
+  return true;
 }

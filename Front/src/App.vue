@@ -1,4 +1,17 @@
 <script setup>
+import { useAuthStore } from "@/stores/auth.js";
+
+const authStore = useAuthStore()
+
+const checkUser = () => {
+  const tokens = JSON.parse( localStorage.getItem('userTokens'))
+  if(tokens) {
+    authStore.userInfo.token = tokens.token
+    authStore.userInfo.refreshToken = tokens.refreshToken
+  }
+}
+
+checkUser()
 
 import { RouterLink, RouterView } from 'vue-router'
 import TheHeader from "@/components/TheHeader.vue";
@@ -9,9 +22,9 @@ import { onMounted, onUpdated, ref } from "vue";
 </script>
 
 <template>
-  <TheHeader v-show="$route.path.split('/')[1].length"></TheHeader>
+  <TheHeader></TheHeader>
   <RouterView/>
-  <TheFooter v-if="$route.path.split('/')[1].length"></TheFooter>
+  <TheFooter></TheFooter>
   <AppUpButton/>
 </template>
 
