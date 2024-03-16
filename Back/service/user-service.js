@@ -5,6 +5,8 @@ const UserModel = require('../model/models')
 const tokenService = require('./token-service')
 const UserDto = require('../dtos/user-dto')
 const ApiError = require('../exceptions/api-error')
+const axios = require('axios')
+require('dotenv').config()
 
 class UserService {
   async registration(nickname, email, password) {
@@ -46,7 +48,7 @@ class UserService {
     const user = await UserModel.User.findOne({where: {activationLink}})
     if (!user) {
       throw ApiError.BadRerquest('Error link')
-    }
+    } 
     user.isActivated = 1
     await user.save()
   }
@@ -108,12 +110,65 @@ class UserService {
     const users = await UserModel.User.findAll()
     return users
   }
+  async connectionDiscord(code){
+    const resp = await axios.post('https://discord.com/api/oauth2/token',
+          new URLSearchParams({
+            'client_id': process.env.CLIENT_ID,
+            'client_secret': process.env.CLIENT_SECRET,
+            'grant_type': 'authorization_code',
+            'redirect_uri': process.env.REDIRECT_URI,
+            'code': code
+          }),
+          {
+            headers:
+              {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+          })
+        // res.send('Logged In: ' + JSON.stringify(resp.data));
+        
+    
+        console.log()
+        const access_token = resp.data['access_token']
+        const token_type = resp.data['token_type']
+        console.log(access_token, token_type)
+        const user = await axios.get('https://discord.com/api/v10/users/@me', {
+          headers:
+            {
+              'Authorization': `Bearer ${access_token}`,
+            }
+        })
+        const userId = user.data['id']
+        const username = user.data['username']
+        const email = user.data['email']
+        const avatar = user.data['avatar']
+        const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
+        if(!candidate){
+          const candidateUser = await UserModel.User.findOne({where:{email: email}})
+          if(!candidateUser){
+            const password = gen_password(16)
+            const hashPassword = await bcrypt.hash(password, 3)
+            const user = await UserModel.User.create({nickname: username,email,password:hashPassword})
+            const userDto = new UserDto(user)
+            await UserModel.DiscordAuthId.create({id:userDto.id,discordId:userId})
+          }
+        }
+        return user.data
+  }
   
 }
 
 function emailTest(value) {
   console.log(value)
   return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(value);
+}
+function gen_password(len){
+    var password = "";
+    var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!№;%:?*()_+=";
+    for (var i = 0; i < len; i++){
+        password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+    }
+    return password;
 }
 
 

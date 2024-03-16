@@ -16,15 +16,21 @@ const Token = sequelize.define('token', {
   refreshToken: {type: DataTypes.STRING, required: true}
 })
 
+const DiscordAuthId = sequelize.define('discordAuthId', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  discordId: {type: DataTypes.STRING}
+})
+
 const BlackListWords = sequelize.define('BlackListWords', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   word: {type: DataTypes.STRING, required: true}
 })
 User.hasOne(Token)
-
+User.hasOne(DiscordAuthId)
 
 module.exports = {
   User,
   Token,
-  BlackListWords
+  BlackListWords,
+  DiscordAuthId
 }

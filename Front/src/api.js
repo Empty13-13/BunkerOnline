@@ -25,17 +25,15 @@ axiosInstance.interceptors.response.use((response) => {
   if (error.response.status===401 && !originalRequest._retry) {
     originalRequest._retry = true
     try {
-      const newTokens = await axios.post('/refresh', {
-        refreshToken: JSON.parse(localStorage.getItem('userTokens')).refreshToken
+      const newTokens = await axios.post('/refresh', {},{
+        withCredentials: true
       })
       console.log("New tokens: ", newTokens.data)
       
       authStore.userInfo.token = newTokens.data.token
-      authStore.userInfo.refreshToken = newTokens.data.refreshToken
       
       localStorage.setItem('userTokens', JSON.stringify({
         token: newTokens.data.token,
-        refreshToken: newTokens.data.refreshToken,
       }))
     } catch(e) {
       console.log(e)

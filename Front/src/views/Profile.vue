@@ -8,7 +8,7 @@ import router from "@/router/index.js";
 import AppPopup from "@/components/AppPopup.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import { getClassForAccess } from "@/plugins/functions.js";
-import { useAuthStore } from "@/stores/auth.js";
+import { useAuthStore } from "@/stores/auth.js"
 
 const authStore = useAuthStore()
 

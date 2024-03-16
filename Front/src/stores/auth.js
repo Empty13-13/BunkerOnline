@@ -8,7 +8,6 @@ const apiLink = import.meta.env.VITE_SERVER_API_LINK
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref({
     token: '',
-    refreshToken: '',
     userId: '',
     nickname: ''
   })
@@ -27,21 +26,20 @@ export const useAuthStore = defineStore('auth', () => {
     }
     
     try {
-      let response = await axiosInstance.post(`/${stringUrl}`, {
-        ...payload
-      })
+      let response = await axiosInstance.post(`/${stringUrl}`, {...payload},
+        {
+          withCredentials: true
+        })
       userInfo.value = {
         token: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
         userId: response.data.user.id,
         nickname: response.data.user.nickname,
       }
       localStorage.setItem('userTokens', JSON.stringify({
         token: userInfo.value.token,
-        refreshToken: userInfo.value.refreshToken,
       }))
+      
     } catch(e) {
-      console.log('Auth error: ',e)
       errors.value.message = e.response.data.message
       errors.value.input = e.response.data.errors[0].input
     } finally {
@@ -51,11 +49,11 @@ export const useAuthStore = defineStore('auth', () => {
   
   async function logoutUser() {
     try {
-      let response = axiosInstance.post('/logout', {
-        refreshToken: userInfo.value.refreshToken
+      let response = axiosInstance.post('/logout', {}, {
+        withCredentials: true
       })
     } catch(e) {
-      console.log('Error logout: ',e.message)
+      console.log('Error logout: ', e.message)
     }
     
     clearUserInfo()
@@ -71,5 +69,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('userTokens')
   }
   
-  return {auth, userInfo, errors, isLoader, logoutUser,clearUserInfo}
+  return {auth, userInfo, errors, isLoader, logoutUser, clearUserInfo}
 })

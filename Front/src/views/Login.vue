@@ -23,20 +23,21 @@ async function registrationHandler(e) {
   let errors = validationRegistration(data)
 
   for (let key in errors) {
-    setErrorForInput(key + 'Reg',errors[key])
+    setErrorForInput(key + 'Reg', errors[key])
   }
 
   if (objIsEmpty(errors)) {
     await useAuthStore().auth(data, 'signUp')
     if (useAuthStore().errors.message) {
       console.log(useAuthStore().errors.input)
-      setErrorForInput((useAuthStore().errors.input + 'Reg'),useAuthStore().errors.message)
+      setErrorForInput((useAuthStore().errors.input + 'Reg'), useAuthStore().errors.message)
     }
     else {
       await router.push(`/profile=${useAuthStore().userInfo.userId}`)
     }
   }
 }
+
 
 const loginInput = ref()
 const password = ref()
@@ -50,18 +51,25 @@ async function loginHandler(e) {
     login: loginInput.value.value.trim(),
     password: password.value.value,
   }
-  console.log("LOGIN DATA:",data)
+  console.log("LOGIN DATA:", data)
   let errors = {}
 
-  for(let key in data) {
-    if(!data[key]) {
+  for (let key in data) {
+    if (!data[key]) {
       errors[key] = 'Поле не должно быть пустым'
-      setErrorForInput(key,'Поле не должно быть пустым')
+
+      if (key==='login') {
+        setErrorForInput("nickname", 'Поле не должно быть пустым')
+      }
+      else {
+        setErrorForInput(key, 'Поле не должно быть пустым')
+      }
     }
   }
 
   if (objIsEmpty(errors)) {
     await useAuthStore().auth(data, 'login')
+
     if (useAuthStore().errors.message) {
       if (!useAuthStore().errors.input) {
         useAuthStore().errors.input = 'nickname'
@@ -84,6 +92,19 @@ function focusInInput(e) {
   clearError(e.target)
 }
 
+
+function linkTo(href, isState = false) {
+  console.log('start link')
+  let resultHref = href
+  if(isState) {
+    const randomString = Math.random().toString();
+    localStorage.setItem('oauth-state', randomString);
+
+    resultHref+='?&state='+btoa(randomString)
+  }
+
+  window.location.href = resultHref
+}
 
 //========================================================================================================================================================
 function setErrorForInput(inputName, textSmall) {
@@ -115,7 +136,8 @@ import AppLoader from "@/components/AppLoader.vue";
             <h2 class="login-authBlock__title">Вход</h2>
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
-                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text" name="nickname" maxlength="15">
+                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
+                       name="nickname" maxlength="15">
                 <small>Какой то текст с ошибкой</small>
               </div>
               <div class="authBlock-form__input">
@@ -161,9 +183,10 @@ import AppLoader from "@/components/AppLoader.vue";
               </div>
 
               <div>
-                <p>Войти с помощью</p>
+                <p>Зарегистрироваться с помощью</p>
                 <span>
-                  <AppButton color="purple" icon-name="discord.png" />
+                  <AppButton @click="linkTo('http://localhost:5000/api/loginDiscord',true)" color="purple"
+                             icon-name="discord.png" />
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>
