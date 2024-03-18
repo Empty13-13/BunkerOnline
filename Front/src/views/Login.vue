@@ -147,7 +147,7 @@ import AppLoader from "@/components/AppLoader.vue";
               <div>
                 <p>Войти с помощью</p>
                 <span>
-                  <AppButton color="purple" icon-name="discord.png" />
+                  <AppButton @click="linkTo('http://localhost:5000/api/loginDiscord')" color="purple" icon-name="discord.png" />
                   <AppButton icon-name="vk.png" />
                 </span>
               </div>

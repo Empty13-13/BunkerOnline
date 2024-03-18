@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from '../api.js'
 import router from "@/router/index.js";
+import axios from "axios";
 
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 
@@ -47,6 +48,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
+  async function refreshToken() {
+    try {
+      const newTokens = await axiosInstance.post('/refresh', {}, {
+        withCredentials: true
+      })
+      console.log("New tokens: ", newTokens.data)
+      
+      userInfo.value.token = newTokens.data.accessToken
+      
+      localStorage.setItem('userTokens', JSON.stringify({
+        token: newTokens.data.accessToken,
+      }))
+    } catch(e) {
+      console.log("Refresh Error: ",e)
+      clearUserInfo()
+      await router.push('/login')
+    }
+  }
+  
   async function logoutUser() {
     try {
       let response = axiosInstance.post('/logout', {}, {
@@ -69,5 +89,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('userTokens')
   }
   
-  return {auth, userInfo, errors, isLoader, logoutUser, clearUserInfo}
+  return {auth, userInfo, errors, isLoader, logoutUser, clearUserInfo, refreshToken}
 })

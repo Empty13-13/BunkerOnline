@@ -15,7 +15,7 @@ class UserController {
       const {nickname, email, password} = req.body
       const userData = await userService.registration(nickname, email, password)
       res.cookie('refreshToken', userData.refreshToken,
-        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
       return res.json(userData)
       
@@ -37,7 +37,7 @@ class UserController {
       const {login, password} = req.body
       const userData = await userService.login(login, password)
       res.cookie('refreshToken', userData.refreshToken,
-        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
       return res.json(userData)
     } catch(e) {
@@ -50,7 +50,7 @@ class UserController {
       console.log(req)
       const {refreshToken} = req.cookies
       const token = await userService.logout(refreshToken)
-      res.clearCookie('refreshToken', {httpOnly: true, sameSite: 'strict'})
+      res.clearCookie('refreshToken', {httpOnly: true, sameSite: 'Lax'})
       console.log(token)
       return res.json(token)
     } catch(e) {
@@ -73,7 +73,7 @@ class UserController {
       const {refreshToken} = req.cookies
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken,
-        {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+        {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
       return res.json(userData)
       
@@ -101,11 +101,14 @@ class UserController {
     console.log(req.query)
     
     const code = req.query['code']
-    const user = await userService.connectionDiscord(code)
-    console.log(user)
-    res.send('Logged In: ' + JSON.stringify(user.data));
-    //const redirect_url = `localhost:5173/profileLogin`
-   // res.redirect(redirect_url)
+    const userData = await userService.connectionDiscord(code)
+    console.log(userData)
+    res.cookie('refreshToken', userData.refreshToken,
+      {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+    delete userData.refreshToken
+    //console.log(userData.user.id)
+    const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
+    res.redirect(redirect_url)
   }
   
   
