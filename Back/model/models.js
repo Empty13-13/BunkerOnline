@@ -6,16 +6,16 @@ const User = sequelize.define('user', {
   email: {type: DataTypes.STRING, required: true},
   nickname: {type: DataTypes.STRING, required: true},
   password: {type: DataTypes.STRING, required: true},
-  isActivated: {type: DataTypes.TINYINT, default: 0},
+  isActivated: {type: DataTypes.TINYINT, defaultValue: 0},
   activationLink: {type: DataTypes.STRING,},
-  sex: {type: DataTypes.STRING,default: 'Male'},
-  avatar: {type: DataTypes.STRING,default: ''},
-  text: {type: DataTypes.STRING,default: ''},
-  accsessLevel: {type: DataTypes.STRING,default: 'Default'},
+  sex: {type: DataTypes.STRING,defaultValue: "male"},
+  avatar: {type: DataTypes.STRING,defaultValue: ""},
+  text: {type: DataTypes.STRING,defaultValue: ""},
+  accsessLevel: {type: DataTypes.STRING,defaultValue: "default"},
   birthday: {type: DataTypes.DATE},
-  numGame: {type: DataTypes.INTEGER,default: 0},
-  numWinGame: {type: DataTypes.INTEGER,default: 0},
-  hiddenBirthday: {type: DataTypes.TINYINT,default: 0}
+  numGame: {type: DataTypes.INTEGER,defaultValue: 0},
+  numWinGame: {type: DataTypes.INTEGER,defaultValue: 0},
+  hiddenBirthday: {type: DataTypes.TINYINT,defaultValue: 0}
 })
 
 const Token = sequelize.define('token', {

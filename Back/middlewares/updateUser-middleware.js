@@ -21,16 +21,17 @@ module.exports = function (accsessLevel) {
             if (!id) {
                 return next(ApiError.UnauthorizedError())
             }
-            const user = await UserModel.User.findOne({where:{id:id.id}})
+            const user = await UserModel.User.findOne({where:{id:id.dataValues.userId}})
 
             const userData = tokenService.validateAccessToken(accessToken)
             if (!userData) {
+                console.log('ERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERROR')
                 return next(ApiError.UnauthorizedError())
             }
-
-            console.log(userId,id.id,user.accsessLevel,accsessLevel)
-            if (userId.toString() !== id.id.toString() ) {
-                if(user.accsessLevel !== accsessLevel)
+            
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ID: ',user)
+            if (userId.toString() !== id.dataValues.userId.toString() ) {
+                if(user.dataValues.accsessLevel !== accsessLevel)
                     {
                         return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
                     }

@@ -1,3 +1,5 @@
+import { mapGetters } from "pinia";
+
 const getTemplate = (data = [], placeholder, classList = "") => {
   let resultElement = document.createElement('div')
   resultElement.classList.add('select')
@@ -79,7 +81,7 @@ class Select {
     this.$el.addEventListener('click', this.clickHandler)
     
     //Устанавливаем первый элемент, если нет placeholder
-    if (!placeholder) {
+    if (!placeholder && !this.selectedId) {
       this.selectedId = data[0].id
     }
     //Если элемент выбрали в html, то выбираем его
@@ -251,9 +253,7 @@ fieldsInit() {
         else {
           option.value = id
         }
-        
-        if (option.getAttribute('selected')==="" ||
-          option.getAttribute('selected')) {
+        if (option.selected) {
           selectedId = id
         }
         value = option.textContent

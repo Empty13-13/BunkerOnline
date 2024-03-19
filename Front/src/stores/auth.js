@@ -9,15 +9,15 @@ const apiLink = import.meta.env.VITE_SERVER_API_LINK
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref({
     token: '',
-    userId: '',
-    nickname: ''
+    userId: 0,
+    nickname: 'Загрузка...',
+    access: 'noreg',
   })
   const errors = ref({
     message: '',
     input: '',
   })
   const isLoader = ref(false)
-  
   const auth = async (payload, type) => {
     const stringUrl = type==='signUp'? 'registration':'login'
     isLoader.value = true
@@ -35,10 +35,13 @@ export const useAuthStore = defineStore('auth', () => {
         token: response.data.accessToken,
         userId: response.data.user.id,
         nickname: response.data.user.nickname,
+        access: response.data.accsessLevel
       }
+      
       localStorage.setItem('userTokens', JSON.stringify({
         token: userInfo.value.token,
       }))
+      localStorage.setItem('userId', userInfo.value.userId.toString())
       
     } catch(e) {
       errors.value.message = e.response.data.message
@@ -61,7 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
         token: newTokens.data.accessToken,
       }))
     } catch(e) {
-      console.log("Refresh Error: ",e)
+      console.log("Refresh Error: ", e)
       clearUserInfo()
       await router.push('/login')
     }
@@ -83,11 +86,62 @@ export const useAuthStore = defineStore('auth', () => {
   function clearUserInfo() {
     userInfo.value.token = ''
     userInfo.value.refreshToken = ''
-    userInfo.value.userId = ''
+    userInfo.value.userId = 0
     userInfo.value.nickname = ''
+    userInfo.value.access = 'noreg'
     
-    localStorage.removeItem('userTokens')
+    localStorage.clear()
   }
   
-  return {auth, userInfo, errors, isLoader, logoutUser, clearUserInfo, refreshToken}
+  //========================================================================================================================================================
+  
+  async function getUserInfo(id) {
+    try {
+      let response = await axiosInstance.get(`/user=${id}`)
+      console.log('GetUserInfo: ', response)
+      return response
+    } catch(e) {
+      console.log(e.message)
+    }
+    
+  }
+  
+  async function setMyProfileInfo() {
+    if (userInfo.value.userId) {
+      try {
+        console.log(userInfo.value.userId)
+        let response = await getUserInfo(userInfo.value.userId)
+        userInfo.value.nickname = response.data.nickname
+        userInfo.value.access = response.data.accsessLevel
+      } catch(e) {
+        console.log(e.message)
+        await logoutUser()
+      }
+    } else {
+      await clearUserInfo()
+    }
+  }
+  
+  async function updateProfileInfo(id,payload) {
+    let response = await axiosInstance.post(`/updateUser=${id}`, {...payload},
+      {
+        withCredentials: true
+      })
+    console.log(response)
+    return response
+  }
+  
+  
+  return {
+    auth,
+    userInfo,
+    errors,
+    isLoader,
+    logoutUser,
+    clearUserInfo,
+    refreshToken,
+    getUserInfo,
+    setMyProfileInfo,
+    updateProfileInfo
+  }
 })

@@ -12,11 +12,11 @@ router.post('/registration',
   userController.registration);
 router.post('/login',
   body('login').notEmpty(),
-  userController.login);
+  userController.login); 
 router.post('/logout', userController.logout);
 router.get('/activate/:link', userController.activate);
 router.post('/refresh', userController.refresh);
-router.post('/updateUser=:id',updateUserMiddleware('Admin'), userController.updateUser);
+router.post('/updateUser=:id',updateUserMiddleware('admin'), userController.updateUser);
 router.get('/users',authMiddleware, userController.getUsers);
 router.get('/user=:id', userController.getUser);
 router.get('/loginDiscord',userController.loginDiscord);

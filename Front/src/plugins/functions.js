@@ -79,7 +79,12 @@ export let slideToggle = (target, duration = 500) => {
 
 //Функция взятия нужного цвета для определенного уровня доступа
 export function getClassForAccess(access) {
+  access = access.toLowerCase()
   switch(access) {
+    case 'noreg':
+      return 'noreg';
+    case 'default':
+      return 'default';
     case 'mvp':
       return 'goldTextColor';
     case 'vip':
@@ -87,6 +92,23 @@ export function getClassForAccess(access) {
     case 'admin':
       return 'redTextColor';
   }
+}
+
+export function getDisplayNameForAccess(access) {
+  switch(access) {
+    case 'default':
+      return 'Standart';
+    case 'mvp':
+      return 'mvp';
+    case 'vip':
+      return 'vip';
+    case 'admin':
+      return 'Админ';
+  }
+}
+
+export function getInsideNameForAccess(access = null) {
+
 }
 
 export function emailTest(value) {

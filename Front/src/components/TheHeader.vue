@@ -53,7 +53,6 @@ function headerScroll() {
           </router-link>
         </div>
         <div class="header__block right">
-
           <div class="header__menu menu">
             <button type="button" class="menu__icon icon-menu"
                     @click="isOpen=!isOpen" :class="{'menu-open':isOpen}"
@@ -87,12 +86,12 @@ function headerScroll() {
                 </a>
               </div>
               <div v-if="authStore.userInfo.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
-                <router-link @click="isOpen=false" :to="`/profile=${access.id}`" class="authorization-header__img">
+                <router-link @click="isOpen=false" :to="`/profile=${authStore.userInfo.userId}`" class="authorization-header__img">
                   <img src="/img/icons/man.svg" alt="">
                 </router-link>
-                <router-link @click="isOpen=false" :to="`/profile=${access.id}`" class="authorization-header__name"
-                             title="Иванов Иван Иванович">
-                  Иванов Иван Иванович
+                <router-link @click="isOpen=false" :to="`/profile=${authStore.userInfo.userId}`" class="authorization-header__name"
+                             :title="authStore.userInfo.nickname">
+                  {{authStore.userInfo.nickname}}
                 </router-link>
                 <AppButton @click="authStore.logoutUser()" class="authorization-header__exit" icon-name="door.svg"></AppButton>
               </div>
@@ -365,6 +364,7 @@ function headerScroll() {
     text-align: left;
     margin-right: 15px;
     max-width: 90px;
+    line-height: 1.2;
 
     display: -webkit-box;
     -webkit-line-clamp: 2; // количество строк
@@ -375,6 +375,7 @@ function headerScroll() {
   &__exit {
     width: 35px;
     height: 35px;
+    max-width: 35px;
   }
 }
 

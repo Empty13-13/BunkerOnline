@@ -61,5 +61,8 @@ $BorderWidthLighter: 2px;
 }
 
 .redTextColor {
-  $redColor: #B52626;
+  background: linear-gradient(90.00deg, #e33030,#B52626 100%);
+  background-clip: border-box;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

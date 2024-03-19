@@ -71,6 +71,7 @@ class UserController {
   async refresh(req, res, next) {
     try {
       const {refreshToken} = req.cookies
+      console.log(req.cookies)
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
@@ -88,7 +89,7 @@ class UserController {
       const data  = req.body
       const {refreshToken} = req.cookies
       const resultData = userService.updateUser(data,refreshToken,userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
-      const status = {status:'Okay'}
+      const status = {status:200,statusText: 'OK'}
       res.json(status)
 
 

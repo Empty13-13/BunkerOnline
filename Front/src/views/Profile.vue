@@ -3,34 +3,31 @@ import AppButton from "@/components/AppButton.vue";
 import AppBackground from "@/components/AppBackground.vue";
 import { computed, nextTick, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
-import { useAccessStore } from "@/stores/counter.js";
 import router from "@/router/index.js";
 import AppPopup from "@/components/AppPopup.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
-import { getClassForAccess, getLinkParams } from "@/plugins/functions.js";
+import { getClassForAccess, getDisplayNameForAccess, getLinkParams } from "@/plugins/functions.js";
 import { useAuthStore } from "@/stores/auth.js"
+import { usePreloaderStore } from "@/stores/preloader.js";
+import AppLoader from "@/components/AppLoader.vue";
 
 const authStore = useAuthStore()
-
-const access = useAccessStore()
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
 })
 
-const myId = access.id
-const myAccess = access.level
 const data = reactive({
   id: getId,
   isBlocked: false,
-  name: 'Никнейм',
-  access: {title: access.level, date: new Date()},
+  name: 'Загружаем...',
+  access: {title: 'Загружаем...', date: new Date()},
   dateRegistration: new Date(),
   birthday: {date: new Date(), isHidden: false},
-  isMale: false,
-  about: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Consequuntur ex inventore molestias nostrum quia sapiente! Architecto, aspernatur at doloribus dolorum fuga iste libero nihil officiis, optio placeat sapiente soluta, suscipit ut vero voluptatibus? Aperiam maiores nostrum reprehenderit? Architecto eveniet facere fuga hic. Ab alias aut consequatur deserunt, dicta dolores, in iusto nulla odio odit perspiciatis vitae? Accusamus adipisci autem consequuntur corporis ducimus ea eaque eos error eveniet id in inventore labore magni maiores modi, molestias natus odio odit placeat quidem repellendus similique suscipit vero. Accusamus adipisci commodi dolor, doloribus hic nam nemo obcaecati quod rerum sint tempore, unde voluptas, voluptates!',
-  gameNum: 125,
-  survivalRate: 68,
+  isMale: 0,
+  about: '',
+  gameNum: 0,
+  survivalRate: 0,
   packs: {
     basic: [
       {title: 'Пак 1', id: 311},
@@ -49,13 +46,13 @@ const data = reactive({
     ]
   }
 })
-const options = ['Мужчина', 'Женщина']
-
-const selectModel = ref(null)
 const blockBtn = ref(null)
 
 const isMyProfile = computed(() => {
   return authStore.userInfo.userId===data.id
+})
+const imAnAdmin = computed(() => {
+  return authStore.userInfo.access === 'admin'
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {
@@ -66,17 +63,47 @@ const getBlockButtonImg = computed(() => {
   }
 })
 
+let birthdayInput = ref()
+let isHiddenBirthdayInput = ref()
+let isMaleSelect = ref()
+let aboutInput = ref()
+let saveBtnText = ref('Сохранить')
+
 function changeBlocked() {
   data.isBlocked = !data.isBlocked
 }
 
+onBeforeMount(() => {
+  usePreloaderStore().activate()
+})
 onMounted(async () => {
-  let params = getLinkParams()
-  if(params['account'] && params['account']==="connected") {
-    await authStore.refreshToken()
+  let userInfo = await authStore.getUserInfo(getId.value)
+  data.access.title =userInfo.data.accsessLevel.toLowerCase() || 'default'
+  data.access.date = new Date(userInfo.data.accsessDate) || '∞'
+  data.name = userInfo.data.nickname
+  data.dateRegistration = new Date(userInfo.data.createdAt)
+  data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
+  if (data.birthday.date && birthdayInput.value) {
+    birthdayInput.value.valueAsDate = data.birthday.date
   }
+  data.birthday.isHidden = userInfo.data.hiddenBirthday || false
+  if (isHiddenBirthdayInput.value) {
+    isHiddenBirthdayInput.value.checked = !!data.birthday.isHidden
+  }
+  data.isMale = userInfo.data.sex || 0
+  if (isMaleSelect.value) {
+    isMaleSelect.value.value = data.isMale
+  }
+  data.about = userInfo.data.text || ''
+  if (aboutInput.value) {
+    aboutInput.value = data.about
+  }
+  data.gameNum = userInfo.data.numGame || 0
+  data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(userInfo.data.numWinGame / userInfo.data.numGame * 100):0
+
 
   fieldsInit()
+  usePreloaderStore().deactivate()
 })
 onBeforeUnmount(() => {
   destroyAll()
@@ -85,22 +112,52 @@ onBeforeUnmount(() => {
 const isPopupOpen = ref(false)
 const vipValueInput = ref('')
 const mvpValueInput = ref('')
+const isSaveLoader = ref(false)
+
+async function saveProfileInfoHandler(e) {
+  e.preventDefault()
+  isSaveLoader.value = true
+  let body = {}
+  if (data.birthday.date!==birthdayInput.value) {
+    body.birthday = new Date(birthdayInput.value.value)
+  }
+  if (!!isHiddenBirthdayInput.value!== !!data.hiddenBirthday) {
+    body.hiddenBirthday = !!isHiddenBirthdayInput.value.value
+  }
+  if (+isMaleSelect.value!==data.sex) {
+    body.sex = +isMaleSelect.value.value
+  }
+  if (aboutInput.value!==data.text) {
+    body.text = aboutInput.value.value
+  }
+  console.log(body)
+
+  let response = await authStore.updateProfileInfo(getId.value, body)
+  if (response.status===200) {
+    saveBtnText.value='Сохранили!'
+  } else {
+    saveBtnText.value='Ошибка!'
+  }
+  setTimeout(() => {
+    saveBtnText.value='Сохранить'
+  },3400)
+  isSaveLoader.value = false
+}
 
 </script>
 
 <template>
-  <main class="profileBlock">
+  <main v-cloak class="profileBlock">
     <AppBackground img-name="profile.jpg"></AppBackground>
     <div class="">
       <div class="profileBlock__container">
         <div class="profileBlock__block linear-border gold">
           <div class="profileBlock__top" :class="isMyProfile?'':'center'">
             <div class="profileBlock__naming naming-profileBlock">
-              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg" :color="myAccess"/>
-              <div class="naming-profileBlock__name"
-              >
-                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(myAccess)">{{ data.name }}</span>
-                <button v-if="myAccess === 'admin' && getId!==myId"
+              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg" :color="data.access.title" />
+              <div class="naming-profileBlock__name">
+                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(data.access.title)">{{ data.name }}</span>
+                <button v-if="imAnAdmin && !isMyProfile"
                         class="naming-profileBlock__blockBtn btn"
                         ref="blockBtn"
                         @mouseover="changeBlocked" @mouseout="changeBlocked"
@@ -110,8 +167,9 @@ const mvpValueInput = ref('')
                 </button>
               </div>
               <div class="naming-profileBlock__access"
-                   :class="getClassForAccess(myAccess)"
-              >{{ data.access.title }}</div>
+                   :class="getClassForAccess(data.access.title)"
+              >{{ data.access.title }}
+              </div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
               <div class="packs-profileBlock__block linear-border white">
@@ -152,14 +210,16 @@ const mvpValueInput = ref('')
               </div>
             </div>
           </div>
-          <div class="middle-profileBlock" :class="isMyProfile?'':'center'">
+          <form @submit="saveProfileInfoHandler" class="middle-profileBlock" :class="isMyProfile?'':'center'">
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Дата регистрации {{ data.dateRegistration.toLocaleDateString() }}</span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
-              <span>Дата рождения: {{
-                  data.birthday.date.toLocaleDateString()
-                    }} ({{ (new Date()).getFullYear() - data.birthday.date.getFullYear() }} лет)</span>
+              <span>Дата рождения:
+                    {{ data.birthday.date? data.birthday.date.toLocaleDateString():"Не установлено" }}
+                    {{
+                  data.birthday.date? "(" + (new Date()).getFullYear() - data.birthday.date.getFullYear() + ")":""
+                    }}</span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Пол: {{ data.isMale? "Мужской":"Женский" }}</span>
@@ -172,12 +232,10 @@ const mvpValueInput = ref('')
 
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="birthday">Дата рождения</label>
-              <input type="date" name="birthday" id="birthday">
+              <input ref="birthdayInput" type="date" name="birthday" id="birthday">
               <div class="middle-profileBlock__hideBrith">
-                <!--              <input type="checkbox" name="hideBirth" id="hideBirth">-->
-                <!--              <label for="hideBirth">Скрыть дату рождения</label>-->
                 <div class="checkbox">
-                  <input id="hideBirth" class="checkbox__input" type="checkbox" value="1">
+                  <input ref="isHiddenBirthdayInput" id="hideBirth" class="checkbox__input" type="checkbox" value="1">
                   <label for="hideBirth" class="checkbox__label"><span
                       class="checkbox__text">Скрыть дату рождения</span></label>
                 </div>
@@ -185,19 +243,20 @@ const mvpValueInput = ref('')
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
-              <select class="profile" name="sex" id="sex">
-                <option value="0">Женский</option>
-                <option value="1" selected>Мужской</option>
+              <select ref="isMaleSelect" class="profile" name="sex" id="sex">
+                <option value="0" :selected="!data.isMale">Женский</option>
+                <option value="1" :selected="!!data.isMale">Мужской</option>
               </select>
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="about">О себе</label>
-              <textarea name="about" id="about" placeholder="Текст о себе"></textarea>
+              <textarea ref="aboutInput" name="about" id="about" placeholder="Текст о себе">{{data.about}}</textarea>
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
-              <AppButton color="gold" border="true">Сохранить</AppButton>
+              <AppLoader v-if="isSaveLoader" />
+              <AppButton v-else color="gold" border="true">{{ saveBtnText }}</AppButton>
             </div>
-          </div>
+          </form>
           <div class="profileBlock__bottom" :class="isMyProfile?'':'center'">
             <div class="statistic-bottom">
               <div v-if="isMyProfile" class="statistic-bottom__title">Статистика по играм</div>
@@ -218,21 +277,24 @@ const mvpValueInput = ref('')
                 <div v-if="isMyProfile" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Ваш текущий статус</div>
                   <div class="subscribe-bottom__body">
-                    <div class="subscribe-bottom__access" :class="getClassForAccess(myAccess)">{{ data.access.title }}</div>
-                    <div @click="isPopupOpen=true" class="subscribe-bottom__raise">Повысить статус</div>
+                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">{{
+                        data.access.title
+                                                                                               }}
+                    </div>
+                    <div v-if="!(imAnAdmin && isMyProfile) && !(data.access.title === 'mvp')" @click="isPopupOpen=true" class="subscribe-bottom__raise">Повысить статус</div>
                   </div>
                 </div>
-                <div v-if="isMyProfile" class="subscribe-bottom__column _right">
+                <div v-if="isMyProfile && data.access.title !== 'admin'" class="subscribe-bottom__column _right">
                   <div class="subscribe-bottom__date">Действует до<br>{{ data.access.date.toLocaleDateString() }}</div>
                   <div class="subscribe-bottom__extend">
                     <AppButton color="gold">Продлить</AppButton>
                   </div>
                 </div>
 
-                <div v-else class="subscribe-bottom__column">
+                <div v-if="!isMyProfile" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Статус пользователя</div>
                   <div class="subscribe-bottom__body">
-                    <div class="subscribe-bottom__access">{{ data.access.title }}</div>
+                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">{{ data.access.title }}</div>
                   </div>
                 </div>
               </div>
@@ -261,8 +323,8 @@ const mvpValueInput = ref('')
             </select>
           </div>
           <div class="price-subscribeBlock">
-            <div class="price-subscribeBlock__price silverTextColor">{{vipValueInput}} ₽</div>
-            <div class="price-subscribeBlock__oldPrice silverTextColor">{{+vipValueInput+209}} ₽</div>
+            <div class="price-subscribeBlock__price silverTextColor">{{ vipValueInput }} ₽</div>
+            <div class="price-subscribeBlock__oldPrice silverTextColor">{{ +vipValueInput + 209 }} ₽</div>
             <div class="price-subscribeBlock__discount">Скидка 33%</div>
           </div>
           <div class="">
@@ -284,7 +346,7 @@ const mvpValueInput = ref('')
             </select>
           </div>
           <div class="price-subscribeBlock">
-            <div class="price-subscribeBlock__price goldTextColor">{{mvpValueInput}} ₽</div>
+            <div class="price-subscribeBlock__price goldTextColor">{{ mvpValueInput }} ₽</div>
           </div>
           <div class="">
             <AppButton class="subscribeBlock__btn" color="gold">Перейти к оплате</AppButton>
@@ -297,6 +359,11 @@ const mvpValueInput = ref('')
 
 <style lang="scss">
 @import "@/assets/scss/style";
+@import "@/assets/scss/base";
+
+[v-cloak] {
+  display: none;
+}
 
 .profileBlock {
   position: relative;
@@ -444,7 +511,7 @@ const mvpValueInput = ref('')
 
   &__access {
     text-transform: uppercase;
-    background: linear-gradient(90deg, rgb(191, 191, 191), rgb(136, 136, 136) 53.646%, rgb(201, 201, 201) 100%);
+    background: white;
     background-clip: border-box;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -708,7 +775,7 @@ const mvpValueInput = ref('')
 
   &__access {
     text-transform: uppercase;
-    background: $whiteGrayColor;
+    background: white;
     background-clip: border-box;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -748,11 +815,11 @@ const mvpValueInput = ref('')
   display: flex;
   gap: 30px;
 
-  @media (max-width:$tablet){
+  @media (max-width: $tablet) {
     gap: 15px;
   }
 
-  @media (max-width:$mobile){
+  @media (max-width: $mobile) {
     flex-direction: column;
   }
 

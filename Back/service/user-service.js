@@ -117,6 +117,9 @@ class UserService {
 
   async getUser(userId) {
     const users = await UserModel.User.findOne({where:{id:userId}})
+    if(!users){
+            throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
+    }
     return users
   }
   
@@ -190,9 +193,11 @@ class UserService {
     if(!id){
       throw ApiError.UnauthorizedError()
     }
-    const user = await UserModel.User.findOne({where:{id:id.id}})
+    const user = await UserModel.User.findOne({where:{id:id.dataValues.userId}})
+    console.log(id.dataValues.userId)
+    console.log('Проверка',id.id)
     for (let key in data){
-
+    
       user[key]=data[key]
 
     }
