@@ -114,6 +114,11 @@ class UserService {
     const users = await UserModel.User.findAll()
     return users
   }
+
+  async getUser(userId) {
+    const users = await UserModel.User.findOne({where:{id:userId}})
+    return users
+  }
   
   async connectionDiscord(code) {
     const resp = await axios.post('https://discord.com/api/oauth2/token',
@@ -178,6 +183,23 @@ class UserService {
       ...tokens,
       user: userDto1
     }
+
+  }
+  async updateUser(data,refreshToken){
+    const id = await UserModel.Token.findOne({where:{refreshToken:refreshToken}})
+    if(!id){
+      throw ApiError.UnauthorizedError()
+    }
+    const user = await UserModel.User.findOne({where:{id:id.id}})
+    for (let key in data){
+
+      user[key]=data[key]
+
+    }
+    const newUser =await user.save()
+    console.log(newUser)
+    return user
+
 
   }
   

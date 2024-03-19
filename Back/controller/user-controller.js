@@ -81,6 +81,21 @@ class UserController {
       next(e)
     }
   }
+
+  async updateUser(req, res, next) {
+    try {
+      const userId = req.params.id
+      const data  = req.body
+      const {refreshToken} = req.cookies
+      const resultData = userService.updateUser(data,refreshToken,userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
+      const status = {status:'Okay'}
+      res.json(status)
+
+
+    } catch(e) {
+      next(e)
+    }
+  }
   
   async getUsers(req, res, next) {
     try {
@@ -109,6 +124,18 @@ class UserController {
     //console.log(userData.user.id)
     const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
     res.redirect(redirect_url)
+  }
+
+  async getUser(req, res, next) {
+    try {
+      const userId = req.params.id
+      const id = req.headers
+      const user = await userService.getUser(userId)
+
+      return res.json(user)
+    } catch(e) {
+      next(e)
+    }
   }
   
   
