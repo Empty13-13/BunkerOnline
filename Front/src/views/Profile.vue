@@ -52,7 +52,7 @@ const isMyProfile = computed(() => {
   return authStore.userInfo.userId===data.id
 })
 const imAnAdmin = computed(() => {
-  return authStore.userInfo.access === 'admin'
+  return authStore.userInfo.access==='admin'
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {
@@ -78,7 +78,7 @@ onBeforeMount(() => {
 })
 onMounted(async () => {
   let userInfo = await authStore.getUserInfo(getId.value)
-  data.access.title =userInfo.data.accsessLevel.toLowerCase() || 'default'
+  data.access.title = userInfo.data.accsessLevel.toLowerCase() || 'default'
   data.access.date = new Date(userInfo.data.accsessDate) || '∞'
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
@@ -88,7 +88,8 @@ onMounted(async () => {
   }
   data.birthday.isHidden = userInfo.data.hiddenBirthday || false
   if (isHiddenBirthdayInput.value) {
-    isHiddenBirthdayInput.value.checked = !!data.birthday.isHidden
+    console.log(isHiddenBirthdayInput.value)
+    isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
   data.isMale = userInfo.data.sex || 0
   if (isMaleSelect.value) {
@@ -99,7 +100,8 @@ onMounted(async () => {
     aboutInput.value = data.about
   }
   data.gameNum = userInfo.data.numGame || 0
-  data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(userInfo.data.numWinGame / userInfo.data.numGame * 100):0
+  data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(
+      userInfo.data.numWinGame / userInfo.data.numGame * 100):0
 
 
   fieldsInit()
@@ -121,8 +123,8 @@ async function saveProfileInfoHandler(e) {
   if (data.birthday.date!==birthdayInput.value) {
     body.birthday = new Date(birthdayInput.value.value)
   }
-  if (!!isHiddenBirthdayInput.value!== !!data.hiddenBirthday) {
-    body.hiddenBirthday = !!isHiddenBirthdayInput.value.value
+  if (isHiddenBirthdayInput.value.checked!==data.hiddenBirthday) {
+    body.hiddenBirthday = isHiddenBirthdayInput.value.checked
   }
   if (+isMaleSelect.value!==data.sex) {
     body.sex = +isMaleSelect.value.value
@@ -134,13 +136,14 @@ async function saveProfileInfoHandler(e) {
 
   let response = await authStore.updateProfileInfo(getId.value, body)
   if (response.status===200) {
-    saveBtnText.value='Сохранили!'
-  } else {
-    saveBtnText.value='Ошибка!'
+    saveBtnText.value = 'Сохранили!'
+  }
+  else {
+    saveBtnText.value = 'Ошибка!'
   }
   setTimeout(() => {
-    saveBtnText.value='Сохранить'
-  },3400)
+    saveBtnText.value = 'Сохранить'
+  }, 3400)
   isSaveLoader.value = false
 }
 
@@ -154,9 +157,12 @@ async function saveProfileInfoHandler(e) {
         <div class="profileBlock__block linear-border gold">
           <div class="profileBlock__top" :class="isMyProfile?'':'center'">
             <div class="profileBlock__naming naming-profileBlock">
-              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg" :color="data.access.title" />
+              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg"
+                         :color="data.access.title" />
               <div class="naming-profileBlock__name">
-                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(data.access.title)">{{ data.name }}</span>
+                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(data.access.title)">{{
+                  data.name
+                                                                                                    }}</span>
                 <button v-if="imAnAdmin && !isMyProfile"
                         class="naming-profileBlock__blockBtn btn"
                         ref="blockBtn"
@@ -214,11 +220,11 @@ async function saveProfileInfoHandler(e) {
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Дата регистрации {{ data.dateRegistration.toLocaleDateString() }}</span>
             </div>
-            <div v-if="!isMyProfile" class="middle-profileBlock__column">
+            <div v-if="!isMyProfile && !data.birthday.isHidden" class="middle-profileBlock__column">
               <span>Дата рождения:
                     {{ data.birthday.date? data.birthday.date.toLocaleDateString():"Не установлено" }}
                     {{
-                  data.birthday.date? "(" + (new Date()).getFullYear() - data.birthday.date.getFullYear() + ")":""
+                  data.birthday.date? "(" + ((new Date()).getFullYear() - data.birthday.date.getFullYear()) + ")":""
                     }}</span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
@@ -279,9 +285,11 @@ async function saveProfileInfoHandler(e) {
                   <div class="subscribe-bottom__body">
                     <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">{{
                         data.access.title
-                                                                                               }}
+                                                                                                        }}
                     </div>
-                    <div v-if="!(imAnAdmin && isMyProfile) && !(data.access.title === 'mvp')" @click="isPopupOpen=true" class="subscribe-bottom__raise">Повысить статус</div>
+                    <div v-if="!(imAnAdmin && isMyProfile) && !(data.access.title === 'mvp')" @click="isPopupOpen=true"
+                         class="subscribe-bottom__raise">Повысить статус
+                    </div>
                   </div>
                 </div>
                 <div v-if="isMyProfile && data.access.title !== 'admin'" class="subscribe-bottom__column _right">
@@ -294,7 +302,9 @@ async function saveProfileInfoHandler(e) {
                 <div v-if="!isMyProfile" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Статус пользователя</div>
                   <div class="subscribe-bottom__body">
-                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">{{ data.access.title }}</div>
+                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">
+                      {{ data.access.title }}
+                    </div>
                   </div>
                 </div>
               </div>

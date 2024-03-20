@@ -1,28 +1,63 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 defineProps({
   filename: String,
   color: String,
 })
 
+let fileInput = ref()
+let ownImage = ref()
+let defaultAvatar = ref(false)
+
+function editAvatar(e) {
+  fileInput.value.click()
+}
+
+function changeFileInput(e) {
+  let file = e.target.files[0]
+
+  // проверяем тип файла
+  if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+    alert('Разрешены только изображения.');
+    e.target.value = '';
+    return
+  }
+  // проверим размер файла   (<4 Мб)
+  if (file.size>4 * 1024 * 1024) {
+    alert('Файл должен быть менее 4 МБ.');
+    return
+  }
+
+  let reader = new FileReader()
+  reader.onload = (e) => {
+    ownImage.value.src = e.target.result
+  }
+  reader.onerror = () => {
+    alert('Произошла ошибка')
+  }
+  reader.readAsDataURL(file)
+  defaultAvatar.value=false
+}
 
 </script>
 
 <template>
-  <div class="avatar" :class="color">
-    <div class="avatar__img" :class="color">
+  <div class="avatar" :class="defaultAvatar?'default':color">
+    <div class="avatar__img" :class="defaultAvatar?'default':color">
       <img v-if="color==='default'" src="/img/icons/defaultPhoto.png" alt="">
-      <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.png" alt="">
-      <img v-else :src="'/img/'+filename" alt="">
+      <img v-else-if="color==='noreg' || defaultAvatar" src="/img/icons/noregPhoto.png" alt="">
+      <img ref="ownImage" v-else :src="'/img/'+filename" alt="">
 
 
-      <div class="profileEdit-avatar">
-        <div class="profileEdit-avatar__img _edit">
+      <div v-if="color!=='default'" class="profileEdit-avatar">
+        <div @click="editAvatar" class="profileEdit-avatar__img _edit">
           <img src="/img/icons/pencil.png" alt="">
+          <input accept=".jpg, .png, .gif, .jpeg" @change="changeFileInput" ref="fileInput" hidden style="display: none"
+                 type="file" name="photo">
         </div>
-        <div class="profileEdit-avatar__img _delete">
+        <div @click="defaultAvatar=true" class="profileEdit-avatar__img _delete">
           <img src="/img/icons/trash.png" alt="">
         </div>
       </div>
@@ -100,6 +135,7 @@ defineProps({
       background: #3B3B3B;
     }
   }
+
   &.noreg {
     &::before {
       background: #3B3B3B;
@@ -121,7 +157,7 @@ defineProps({
     }
   }
 
-  &.default,&.noreg {
+  &.default, &.noreg {
     .avatar__img {
       display: flex;
       justify-content: center;
