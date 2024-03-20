@@ -1,8 +1,12 @@
 // Вспомогательные модули плавного раскрытия и закрытия объекта ======================================================================================================================================================================
 export let slideDown = (target, duration = 500, showmore = 0) => {
+  console.log('HIDDEN',target.hidden)
+  
   if (!target.classList.contains('_slide')) {
     target.classList.add('_slide');
+    console.log('HIDDEN',target.hidden)
     target.hidden = target.hidden? false:null;
+    console.log('HIDDEN',target.hidden)
     showmore? target.style.removeProperty('height'):null;
     let height = target.offsetHeight;
     target.style.overflow = 'hidden';

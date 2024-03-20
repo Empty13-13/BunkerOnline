@@ -26,22 +26,34 @@ export const useAuthStore = defineStore('auth', () => {
       input: '',
     }
     
+    function isLogin() {
+      return type==='login'
+    }
+    
     try {
       let response = await axiosInstance.post(`/${stringUrl}`, {...payload},
         {
-          withCredentials: true
+          withCredentials: isLogin()
         })
-      userInfo.value = {
-        token: response.data.accessToken,
-        userId: response.data.user.id,
-        nickname: response.data.user.nickname,
-        access: response.data.accsessLevel
-      }
+      console.log(response)
       
-      localStorage.setItem('userTokens', JSON.stringify({
-        token: userInfo.value.token,
-      }))
-      localStorage.setItem('userId', userInfo.value.userId.toString())
+      if (isLogin()) {
+        userInfo.value = {
+          token: response.data.accessToken,
+          userId: response.data.user.id,
+          nickname: response.data.user.nickname,
+          access: response.data.accsessLevel
+        }
+        
+        localStorage.setItem('userTokens', JSON.stringify({
+          token: userInfo.value.token,
+        }))
+        
+        localStorage.setItem('userId', userInfo.value.userId.toString())
+      }
+      else {
+        return response.data.message
+      }
       
     } catch(e) {
       errors.value.message = e.response.data.message
@@ -56,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
       const newTokens = await axiosInstance.post('/refresh', {}, {
         withCredentials: true
       })
-      console.log("New tokens: ", newTokens.data)
+      console.log("Обратились за новым токеном: ", newTokens.data)
       
       userInfo.value.token = newTokens.data.accessToken
       
@@ -98,7 +110,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function getUserInfo(id) {
     try {
       let response = await axiosInstance.get(`/user=${id}`)
-      console.log('GetUserInfo: ', response)
       return response
     } catch(e) {
       console.log(e.message)
@@ -109,20 +120,21 @@ export const useAuthStore = defineStore('auth', () => {
   async function setMyProfileInfo() {
     if (userInfo.value.userId) {
       try {
-        console.log(userInfo.value.userId)
         let response = await getUserInfo(userInfo.value.userId)
+        console.log('setMyProfileInfo: ', response)
         userInfo.value.nickname = response.data.nickname
         userInfo.value.access = response.data.accsessLevel
       } catch(e) {
         console.log(e.message)
         await logoutUser()
       }
-    } else {
+    }
+    else {
       await clearUserInfo()
     }
   }
   
-  async function updateProfileInfo(id,payload) {
+  async function updateProfileInfo(id, payload) {
     let response = await axiosInstance.post(`/updateUser=${id}`, {...payload},
       {
         withCredentials: true

@@ -1,7 +1,9 @@
-import { emailTest } from "@/plugins/functions.js";
+import { emailTest, slideUp } from "@/plugins/functions.js";
 
 const forbiddenCharacters = [
-  '&', '=', '+', '<', '>', ',', "'", '"', '`', '..', '--', ':'
+  '&', '=', '+', '<', '>', ',', "'", '"', '`', '..', '--', ':',
+  '{', '}', '$', '#', '@', '!', '%', '^', '*', '(', ')', '?', '/',
+  '\\','[',']',';','~', '  '
 ]
 
 export function validationRegistration({email, nickname, password, passwordRepeat}) {
@@ -22,8 +24,16 @@ export function validationRegistration({email, nickname, password, passwordRepea
     if (!nickname.length>15) {
       errors['nickname'] = 'Длина ника должна быть меньше 15 символов'
     }
-    if (!testInputNickname(nickname)) {
-      errors['nickname'] = 'В поле содержатся недопустимые символы'
+    let forbiddenNotChecked = forbiddenInputNickname(nickname)
+    if (forbiddenNotChecked) {
+      errors['nickname'] = `В поле содержатся недопустимые символы`
+      console.log(forbiddenNotChecked.toString()!=='true')
+      if (forbiddenNotChecked.toString()!=='true') {
+        if(forbiddenNotChecked==='  '){
+          forbiddenNotChecked = 'Двойной пробел'
+        }
+        errors['nickname'] += ' ( '+ forbiddenNotChecked + ' )'
+      }
     }
   }
   
@@ -54,19 +64,34 @@ export function testNicknameKey(key) {
     /[а-яА-Я]/.test(key) ||
     /[0-9]/.test(key) ||
     key==="Backspace" ||
-    key==="_"
+    key==="_" ||
+    key==="." ||
+    key===" "
 }
 
-export function testInputNickname(value) {
+export function forbiddenInputNickname(value) {
   for (let i = 0; i<value.length; i++) {
     if (!testNicknameKey(value[i])) {
-      return false
+      return true
     }
   }
-  return true
+  for (let i = 0; i<forbiddenCharacters.length; i++) {
+    console.log(forbiddenCharacters[i], value.toString().includes(forbiddenCharacters[i]))
+    if (value.toString().includes(forbiddenCharacters[i])) {
+      return forbiddenCharacters[i]
+    }
+  }
+  for (let char in forbiddenCharacters) {
+  
+  }
+  return false
 }
 
 export function clearError(el) {
-  let small = el.parentNode.querySelector('small').style.opacity = "0"
+  let small = el.parentNode.querySelector('small')
   el.classList.remove('_error')
+  // slideUp(small,200)
+  
+  small.style.height = '0'
+  small.style.opacity = "0"
 }

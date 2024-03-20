@@ -2,6 +2,8 @@
 import { useAuthStore } from "@/stores/auth.js";
 import { validationRegistration, testNicknameKey, clearError } from '@/plugins/auth.js'
 
+const showPopup = ref(false)
+
 const nicknameReg = ref()
 const emailReg = ref()
 const passwordReg = ref()
@@ -27,13 +29,14 @@ async function registrationHandler(e) {
   }
 
   if (objIsEmpty(errors)) {
-    await useAuthStore().auth(data, 'signUp')
+    let message = await useAuthStore().auth(data, 'signUp')
     if (useAuthStore().errors.message) {
       console.log(useAuthStore().errors.input)
       setErrorForInput((useAuthStore().errors.input + 'Reg'), useAuthStore().errors.message)
     }
     else {
-      await router.push(`/profile=${useAuthStore().userInfo.userId}`)
+      showPopup.value = true
+      // await router.push(`/profile=${useAuthStore().userInfo.userId}`)
     }
   }
 }
@@ -96,11 +99,11 @@ function focusInInput(e) {
 function linkTo(href, isState = false) {
   console.log('start link')
   let resultHref = href
-  if(isState) {
+  if (isState) {
     const randomString = Math.random().toString();
     localStorage.setItem('oauth-state', randomString);
 
-    resultHref+='?&state='+btoa(randomString)
+    resultHref += '?&state=' + btoa(randomString)
   }
 
   window.location.href = resultHref
@@ -115,14 +118,17 @@ function setErrorForInput(inputName, textSmall) {
   input.classList.add('_error')
   small.textContent = textSmall
   small.style.opacity = "1"
+  small.style.height = small.offsetHeight.toString() + 'px'
+  // slideDown(small,200)
 }
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import { ref } from "vue";
-import { objIsEmpty } from "@/plugins/functions.js";
+import { objIsEmpty, slideDown, slideToggle } from "@/plugins/functions.js";
 import router from "@/router/index.js";
 import AppLoader from "@/components/AppLoader.vue";
+import AppPopup from "@/components/AppPopup.vue";
 </script>
 
 <template>
@@ -136,19 +142,24 @@ import AppLoader from "@/components/AppLoader.vue";
             <h2 class="login-authBlock__title">Вход</h2>
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
-                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
-                       name="nickname" maxlength="15">
                 <small>Какой то текст с ошибкой</small>
+                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
+                       name="nickname">
               </div>
               <div class="authBlock-form__input">
-                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
                 <small>Какой то текст с ошибкой</small>
+                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
               </div>
               <div>
                 <p>Войти с помощью</p>
                 <span>
-                  <AppButton @click="linkTo('http://localhost:5000/api/loginDiscord')" color="purple" icon-name="discord.png" />
-                  <AppButton icon-name="vk.png" />
+                  <span @click="linkTo('http://localhost:80/api/loginDiscord')"
+                        class="authBlock-form__connectBtn btn purple">
+                    <span class="img"><img src="/img/icons/discord.png" alt=""></span>
+                  </span>
+                  <span @click="linkTo('http://localhost:80/api/loginVK')" class="authBlock-form__connectBtn btn">
+                    <span class="img"><img src="/img/icons/vk.png" alt=""></span>
+                  </span>
                 </span>
               </div>
               <AppLoader v-if="useAuthStore().isLoader" />
@@ -161,33 +172,37 @@ import AppLoader from "@/components/AppLoader.vue";
             <h2 class="login-authBlock__title">Регистрация</h2>
             <form novalidate @submit="registrationHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
+                <small>Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" @keydown="keyDownNickname" ref="nicknameReg" placeholder="Ваш ник"
                        type="text"
                        name="nicknameReg"
                        maxlength="15">
-                <small>Какой то текст с ошибкой</small>
               </div>
               <div class="authBlock-form__input">
+                <small>Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="emailReg" placeholder="Электронная почта" type="email"
                        name="emailReg">
-                <small>Какой то текст с ошибкой</small>
               </div>
               <div class="authBlock-form__input">
+                <small>Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
-                <small>Какой то текст с ошибкой</small>
               </div>
               <div class="authBlock-form__input">
+                <small>Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
                        name="passwordRepeatReg">
-                <small>Какой то текст с ошибкой</small>
               </div>
 
               <div>
                 <p>Зарегистрироваться с помощью</p>
                 <span>
-                  <AppButton @click="linkTo('http://localhost:5000/api/loginDiscord',true)" color="purple"
-                             icon-name="discord.png" />
-                  <AppButton icon-name="vk.png" />
+                  <span @click="linkTo('http://localhost:80/api/loginDiscord')"
+                        class="authBlock-form__connectBtn btn purple">
+                    <span class="img"><img src="/img/icons/discord.png" alt=""></span>
+                  </span>
+                  <span @click="linkTo('http://localhost:80/api/loginVK')" class="authBlock-form__connectBtn btn">
+                    <span class="img"><img src="/img/icons/vk.png" alt=""></span>
+                  </span>
                 </span>
               </div>
               <AppLoader v-if="useAuthStore().isLoader" />
@@ -197,6 +212,10 @@ import AppLoader from "@/components/AppLoader.vue";
         </div>
       </div>
     </div>
+    <AppPopup v-model="showPopup" color="green">
+      <template v-slot:title>Вы успешно зарегистрировались!</template>
+      Чтобы войти в аккаунт - подтвердите свой профиль через email
+    </AppPopup>
   </main>
 </template>
 
@@ -305,13 +324,15 @@ import AppLoader from "@/components/AppLoader.vue";
   &__input {
     position: relative;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start !important;
 
-    small {
-      position: absolute;
-      left: 0;
-      top: -20px;
+    & > small {
+      margin-bottom: 10px;
       opacity: 0;
-      transition: opacity 0.1s ease;
+      transition: opacity 0.1s ease, height 0.1s ease;
+      font-size: 12px;
     }
   }
 
@@ -324,39 +345,43 @@ import AppLoader from "@/components/AppLoader.vue";
     width: 100%;
     border: 1px solid transparent;
     transition: border-color 0.3s ease;
+    height: 42px;
 
     &._error {
       border: 1px solid red;
     }
   }
 
-  div {
+  & > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 20px 0;
 
-    span {
+    & > span {
       display: flex;
       gap: 15px;
-    }
 
-    button {
-      width: 35px;
-      height: 35px;
-      background: #0077FF;
-
-      &:hover {
-        background: #519df6;
-      }
-
-      .img {
-        display: flex;
+      & > span {
+        padding: 6px;
+        width: 35px;
+        height: 35px;
         justify-content: center;
         align-items: center;
+        gap: 0;
+        background: #0077FF;
+        cursor: pointer;
+
+        &:hover {
+          background: #519df6;
+        }
 
         img {
-          max-width: 18px;
+          max-width: 100%;
+          max-height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
       }
     }

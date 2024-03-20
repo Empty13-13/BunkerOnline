@@ -26,7 +26,14 @@ const Token = sequelize.define('token', {
 
 const DiscordAuthId = sequelize.define('discordAuthId', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  userId: {type: DataTypes.INTEGER},
   discordId: {type: DataTypes.STRING}
+})
+
+const VkAuthId = sequelize.define('vkId', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  userId: {type: DataTypes.INTEGER},
+  vkId: {type: DataTypes.STRING}
 })
 
 const BlackListWords = sequelize.define('BlackListWords', {
@@ -35,10 +42,12 @@ const BlackListWords = sequelize.define('BlackListWords', {
 })
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
+User.hasOne(VkAuthId)
 
 module.exports = {
   User,
   Token,
   BlackListWords,
-  DiscordAuthId
+  DiscordAuthId,
+  VkAuthId
 }

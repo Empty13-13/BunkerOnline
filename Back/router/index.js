@@ -21,5 +21,7 @@ router.get('/users',authMiddleware, userController.getUsers);
 router.get('/user=:id', userController.getUser);
 router.get('/loginDiscord',userController.loginDiscord);
 router.get('/callback',userController.callback);
+router.get('/loginVK',userController.loginVK);
+router.get('/callbackVK',userController.callbackVK);
 
 module.exports = router

@@ -46,8 +46,8 @@ function changeFileInput(e) {
 <template>
   <div class="avatar" :class="defaultAvatar?'default':color">
     <div class="avatar__img" :class="defaultAvatar?'default':color">
-      <img v-if="color==='default'" src="/img/icons/defaultPhoto.png" alt="">
-      <img v-else-if="color==='noreg' || defaultAvatar" src="/img/icons/noregPhoto.png" alt="">
+      <img v-if="color==='default' || defaultAvatar" src="/img/icons/defaultPhoto.png" alt="">
+      <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.png" alt="">
       <img ref="ownImage" v-else :src="'/img/'+filename" alt="">
 
 
