@@ -1,11 +1,18 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
 import { computed, ref } from "vue";
+import { useMyProfileStore,useActionsProfileStore } from "@/stores/profile.js";
+import { getId } from "@/plugins/functions.js";
 
 defineProps({
-  filename: String,
   color: String,
+  blockEdit: Boolean
 })
+
+let href = defineModel('href')
+
+const myProfile = useMyProfileStore()
+const actionsProfile = useActionsProfileStore()
 
 let fileInput = ref()
 let ownImage = ref()
@@ -15,7 +22,7 @@ function editAvatar(e) {
   fileInput.value.click()
 }
 
-function changeFileInput(e) {
+async function changeFileInput(e) {
   let file = e.target.files[0]
 
   // проверяем тип файла
@@ -31,33 +38,40 @@ function changeFileInput(e) {
   }
 
   let reader = new FileReader()
-  reader.onload = (e) => {
-    ownImage.value.src = e.target.result
+  reader.onload = async (e) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    let response = await actionsProfile.uploadAvatar(getId.value,formData)
+    href.value = response.data.link
   }
   reader.onerror = () => {
     alert('Произошла ошибка')
   }
   reader.readAsDataURL(file)
-  defaultAvatar.value=false
+  defaultAvatar.value = false
+}
+
+async function deleteAvatar() {
+  await actionsProfile.deleteAvatar(getId.value)
+  href.value = ''
 }
 
 </script>
 
 <template>
-  <div class="avatar" :class="defaultAvatar?'default':color">
-    <div class="avatar__img" :class="defaultAvatar?'default':color">
-      <img v-if="color==='default' || defaultAvatar" src="/img/icons/defaultPhoto.png" alt="">
-      <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.png" alt="">
-      <img ref="ownImage" v-else :src="'/img/'+filename" alt="">
+  <div class="avatar" :class="color">
+    <div class="avatar__img" :class="color">
+      <img v-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
+      <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.svg" alt="">
+      <img ref="ownImage" v-else :src="'http://localhost/'+href" alt="">
 
-
-      <div v-if="color!=='default'" class="profileEdit-avatar">
+      <div v-if="!blockEdit && (myProfile.isAdmin || myProfile.id === getId)" class="profileEdit-avatar">
         <div @click="editAvatar" class="profileEdit-avatar__img _edit">
           <img src="/img/icons/pencil.png" alt="">
           <input accept=".jpg, .png, .gif, .jpeg" @change="changeFileInput" ref="fileInput" hidden style="display: none"
                  type="file" name="photo">
         </div>
-        <div @click="defaultAvatar=true" class="profileEdit-avatar__img _delete">
+        <div @click="deleteAvatar" class="profileEdit-avatar__img _delete">
           <img src="/img/icons/trash.png" alt="">
         </div>
       </div>
@@ -142,18 +156,22 @@ function changeFileInput(e) {
     }
 
     .avatar__img {
-      &::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: $bodyColor;
-        border-radius: 50%;
-        overflow: hidden;
-        z-index: 2;
-      }
+      width: 30%;
+      height: 38%;
+    }
+
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: $bodyColor;
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 2;
     }
   }
 
@@ -164,8 +182,6 @@ function changeFileInput(e) {
       align-items: center;
 
       & > img {
-        width: 30%;
-        height: 38%;
         position: relative;
         display: flex;
       }

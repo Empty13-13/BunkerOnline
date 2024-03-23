@@ -17,7 +17,7 @@ class UserController {
       //res.cookie('refreshToken', userData.refreshToken,
       //  {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       //delete userData.refreshToken
-      return res.json({message: 'Вы успешно зарегистрировались!',type:'successfully'})
+      return res.json({message: 'Вы успешно зарегистрировались!', type: 'successfully'})
       
       
     } catch(e) {
@@ -31,7 +31,7 @@ class UserController {
       const errors = validationResult(req)
       console.log(req)
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate',[{input: 'nickname', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Error validate', [{input: 'nickname', type: 'Error validate'}]))
       }
       
       const {login, password} = req.body
@@ -66,11 +66,11 @@ class UserController {
       const userData = await userService.activate(activateLink)
       const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
       res.cookie('refreshToken', userData.refreshToken,
-              {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
+        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
-     console.log(userData)
-     res.redirect(redirect_url)
-     
+      console.log(userData)
+      res.redirect(redirect_url)
+
     } catch(e) {
       next(e)
     }
@@ -94,9 +94,11 @@ class UserController {
   async updateUser(req, res, next) {
     try {
       const userId = req.params.id
+
+
       const data = req.body
       const {refreshToken} = req.cookies
-      const resultData = userService.updateUser(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
+      const resultData = await userService.updateUser(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
       const status = {status: 200, statusText: 'OK'}
       res.json(status)
       
@@ -105,6 +107,24 @@ class UserController {
       next(e)
     }
   }
+  
+  async updateNickname(req, res, next) {
+      try {
+        const userId = req.params.id
+  
+  
+        const data = req.body
+        const {refreshToken} = req.cookies
+        const resultData = await userService.updateNickname(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
+        const status = {status: 200, statusText: 'OK'}
+        res.json(status)
+        
+        
+      } catch(e) {
+        next(e)
+      }
+    }
+  
   
   async getUsers(req, res, next) {
     try {
@@ -134,24 +154,24 @@ class UserController {
     const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
     res.redirect(redirect_url)
   }
-  
-  async loginVK(req, res, next) {
-    const redirect_url = `https://oauth.vk.com/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URLVK}&display=page&response_type=code&scope=email&v=5.131'`
-    res.redirect(redirect_url)
-  }
-  
-  async callbackVK(req, res, next) {
-    
-    const code = req.query['code']
-    const userData = await userService.connectionVK(code)
-    res.cookie('refreshToken', userData.refreshToken,
-      {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
-    delete userData.refreshToken
-        console.log(userData.user.id)
-        console.log(userData)
-        const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
-        res.redirect(redirect_url)
-  }
+
+//   async loginVK(req, res, next) {
+//     const redirect_url = `https://oauth.vk.com/authorize?client_id=${process.env.APP_ID}&redirect_uri=${process.env.REDIRECT_URLVK}&display=page&response_type=code&scope=email&v=5.131'`
+//     res.redirect(redirect_url)
+//   }
+
+//   async callbackVK(req, res, next) {
+//
+//     const code = req.query['code']
+//     const userData = await userService.connectionVK(code)
+//     res.cookie('refreshToken', userData.refreshToken,
+//       {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+//     delete userData.refreshToken
+//         console.log(userData.user.id)
+//         console.log(userData)
+//         const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
+//         res.redirect(redirect_url)
+//   }
   
   async getUser(req, res, next) {
     try {
@@ -159,6 +179,42 @@ class UserController {
       const id = req.headers
       const user = await userService.getUser(userId)
       
+      return res.json(user)
+    } catch(e) {
+      next(e)
+    }
+  }
+
+  async uploadAvatar(req, res, next) {
+    try {
+
+     
+      const errors = validationResult(req)
+
+
+      if (!errors.isEmpty()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'avatar', type: 'Error validate'}]))
+      }
+      const file = req.files.file
+       //console.log("ASDASDASDASDA",req.files.file['mimetype'])
+
+      // console.log(file)
+      const userId = req.params.id
+      console.log(userId)
+      const user = await userService.uploadAvatar(file, userId)
+      return res.json({link: user})
+
+
+    } catch(e) {
+      next(e)
+    }
+  }
+
+  async deleteAvatar(req, res, next) {
+    try {
+      const userId = req.params.id
+      const user = await userService.deleteAvatar(userId)
+
       return res.json(user)
     } catch(e) {
       next(e)

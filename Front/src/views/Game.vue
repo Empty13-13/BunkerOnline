@@ -1,8 +1,10 @@
 <script setup="">
 import { computed, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/auth.js";
+import { useMyProfileStore } from "@/stores/profile.js";
 
 const authStore = useAuthStore()
+const myProfile = useMyProfileStore()
 
 const access = useAccessStore()
 
@@ -267,7 +269,7 @@ const votedData = {
 let isActive = ref(null)
 
 const isHost = computed(() => {
-  return authStore.userInfo.token && myId===gameData.hostId
+  return myProfile.token && myId===gameData.hostId
 })
 const mayStartGame = computed(() => {
   return gameData.gamers.length>5
@@ -595,7 +597,7 @@ import TheLogs from "@/components/TheLogs.vue";
               <!--Блок с профилем-->
               <div class="table-listGamer__column profile-column" :class="gamer.access">
                 <div class="profile-column__num">{{ index + 1 }}</div>
-                <AppAvatar class="profile-column__img" filename="backgrounds/mainClear.jpg" :color="gamer.access" />
+                <AppAvatar :block-edit="true" class="profile-column__img" :color="gamer.access" />
                 <div class="profile-column__texts texts-profile-column">
                   <div class="texts-profile-column__nickname" :title="gamer.nickname">
                     {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
@@ -700,11 +702,7 @@ import TheLogs from "@/components/TheLogs.vue";
               <!--Блок с профилем-->
               <div class="table-listGamer__column profile-column" :class="gamer.access">
                 <div class="profile-column__num">{{ index + 1 }}</div>
-                <div class="profile-column__img">
-                  <img v-if="gamer.access==='default'" src="/img/icons/defaultPhoto.png" alt="" class="_noPhoto">
-                  <img v-else-if="gamer.access!=='noreg'" src="/img/backgrounds/mainClear.jpg" alt="">
-                  <img v-else src="/img/icons/noregPhoto.png" alt="" class="_noPhoto">
-                </div>
+                <AppAvatar :block-edit="true" class="profile-column__img" :color="gamer.access" />
                 <div class="profile-column__texts texts-profile-column">
                   <div class="texts-profile-column__nickname" :title="gamer.nickname">
                     {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}

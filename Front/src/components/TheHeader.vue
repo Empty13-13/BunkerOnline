@@ -4,24 +4,19 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import router from "@/router/index.js";
 import { useAccessStore } from "@/stores/counter.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { useMyProfileStore } from "@/stores/profile.js";
 
 const authStore = useAuthStore()
-
+const myProfile = useMyProfileStore()
 const access = useAccessStore()
 
 const isOpen = ref(false)
-const isAuth = computed(() => {
-  return access.level!=='noreg'
-})
 const header = ref(null)
 let oldScrollY = 0
 
 onMounted(() => {
-
-
   window.addEventListener('scroll', headerScroll)
 })
-
 onUnmounted(() => {
   window.removeEventListener('scroll', headerScroll)
 })
@@ -85,13 +80,13 @@ function headerScroll() {
                   <img src="/img/icons/vk.svg" alt="">
                 </a>
               </div>
-              <div v-if="authStore.userInfo.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
-                <router-link @click="isOpen=false" :to="`/profile=${authStore.userInfo.userId}`" class="authorization-header__img">
+              <div v-if="myProfile.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
+                <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__img">
                   <img src="/img/icons/man.svg" alt="">
                 </router-link>
-                <router-link @click="isOpen=false" :to="`/profile=${authStore.userInfo.userId}`" class="authorization-header__name"
-                             :title="authStore.userInfo.nickname">
-                  {{authStore.userInfo.nickname}}
+                <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__name"
+                             :title="myProfile.nickname">
+                  {{myProfile.nickname}}
                 </router-link>
                 <AppButton @click="authStore.logoutUser()" class="authorization-header__exit" icon-name="door.svg"></AppButton>
               </div>

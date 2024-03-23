@@ -1,18 +1,21 @@
 <script setup>
 import { useAuthStore } from "@/stores/auth.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useMyProfileStore } from "@/stores/profile.js";
 
 const authStore = useAuthStore()
+const myProfile = useMyProfileStore()
 
 const checkUser = () => {
   const tokens = JSON.parse( localStorage.getItem('userTokens'))
+  console.log(tokens)
   if(tokens) {
-    authStore.userInfo.token = tokens.token
+    myProfile.token = tokens.token
   }
 
   const userId = JSON.parse(localStorage.getItem('userId'))
   if(userId) {
-    authStore.userInfo.userId = userId
+    myProfile.id = userId
   }
 }
 
@@ -26,12 +29,13 @@ onMounted(async () => {
   let params = getLinkParams()
   if (params['account'] && params['account']==="connected") {
     await authStore.refreshToken()
-    authStore.userInfo.userId = getId.value
-    console.log(authStore.userInfo.userId)
-    localStorage.setItem('userId', authStore.userInfo.userId.toString())
+    if(!localStorage.getItem('userId')) {
+      myProfile.id = getId.value
+      localStorage.setItem('userId', myProfile.id.toString())
+    }
   }
 
-  await authStore.setMyProfileInfo()
+  await myProfile.setMyProfileInfo()
 })
 
 import { RouterLink, RouterView } from 'vue-router'

@@ -32,6 +32,7 @@ import AppLoader from "@/components/AppLoader.vue";
       transition: visibility 1s ease, opacity 1s ease;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
     }
 
     &__body {

@@ -275,4 +275,15 @@ input[type=text] {
   font-size: 11px;
   padding: 13px 14px;
   color: white;
+
+  &._type2 {
+    background: transparent;
+    padding: 0;
+    padding-bottom: 3px;
+    font-size: inherit;
+    border-bottom: 1px solid;
+    border-radius: 0;
+    font-weight: 700;
+    width: 15ch;
+  }
 }

@@ -9,7 +9,7 @@ const User = sequelize.define('user', {
   isActivated: {type: DataTypes.TINYINT, defaultValue: 0},
   activationLink: {type: DataTypes.STRING,},
   sex: {type: DataTypes.STRING,defaultValue: "male"},
-  avatar: {type: DataTypes.STRING,defaultValue: ""},
+  avatar: {type: DataTypes.STRING},
   text: {type: DataTypes.STRING,defaultValue: ""},
   accsessLevel: {type: DataTypes.STRING,defaultValue: "default"},
   birthday: {type: DataTypes.DATE},
@@ -40,14 +40,23 @@ const BlackListWords = sequelize.define('BlackListWords', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   word: {type: DataTypes.STRING, required: true}
 })
+
+const BlackListUsers = sequelize.define('BlackListUsers', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  userId: {type: DataTypes.INTEGER},
+})
+
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
+User.hasOne(BlackListUsers)
 
 module.exports = {
   User,
   Token,
   BlackListWords,
   DiscordAuthId,
-  VkAuthId
+  VkAuthId,
+  BlackListUsers
 }

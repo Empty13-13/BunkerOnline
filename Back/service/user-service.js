@@ -7,7 +7,9 @@ const UserDto = require('../dtos/user-dto')
 const UserDtoDiscord = require('../dtos/user-dtoDiscord')
 const ApiError = require('../exceptions/api-error')
 const axios = require('axios')
+const fs = require('fs')
 require('dotenv').config()
+const path = require('path')
 
 const forbiddenCharacters = [
   '..', '__', '  '
@@ -40,7 +42,7 @@ class UserService {
         [{input: 'nickname', type: 'Already exist'}])
       
     }
-    const candidate = await UserModel.User.findOne({where: {email}}) 
+    const candidate = await UserModel.User.findOne({where: {email}})
     if (candidate) {
       throw ApiError.BadRerquest(`Пользователь с таким e-mail уже существует`,
         [{input: 'email', type: 'Already exist'}])
@@ -48,17 +50,17 @@ class UserService {
     const hashPassword = await bcrypt.hash(password, 3)
     const activationLink = uuid.v4()
     const user = await UserModel.User.create({nickname, email, password: hashPassword, activationLink})
-   // const userData = await UserModel.User.findOne({where: {email}})
+    // const userData = await UserModel.User.findOne({where: {email}})
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
-   // const userDto = new UserDto(user)
-   // const tokens = tokenService.generateTokens({...userDto})
-   // await tokenService.saveToken(userDto.id, tokens.refreshToken)
+    // const userDto = new UserDto(user)
+    // const tokens = tokenService.generateTokens({...userDto})
+    // await tokenService.saveToken(userDto.id, tokens.refreshToken)
     
     //return {
-   //   ...tokens,
-   //   user: userDto
-   // }
+    //   ...tokens,
+    //   user: userDto
+    // }
   }
   
   async activate(activationLink) {
@@ -69,12 +71,12 @@ class UserService {
     user.isActivated = 1
     await user.save()
     const userDto = new UserDto(user)
-        const tokens = tokenService.generateTokens({...userDto})
-        await tokenService.saveToken(userDto.id, tokens.refreshToken)
-        return {
-          ...tokens,
-          user: userDto
-        }
+    const tokens = tokenService.generateTokens({...userDto})
+    await tokenService.saveToken(userDto.id, tokens.refreshToken)
+    return {
+      ...tokens,
+      user: userDto
+    }
   }
   
   
@@ -94,7 +96,10 @@ class UserService {
           [{input: 'nickname', type: 'Missing data'}])
       }
     }
-    
+    const isBlock = await UserModel.BlackListUsers.findOne({where: {userId: user.id}})
+    if (isBlock) {
+      throw ApiError.BadRerquest('Пользователь заблокирован', [{input: 'nickname', type: 'user Blocked'}])
+    }
     console.log(user)
     const isPassEquals = await bcrypt.compare(password, user.password)
     if (!isPassEquals) {
@@ -143,9 +148,15 @@ class UserService {
   
   async getUser(userId) {
     const users = await UserModel.User.findOne({where: {id: userId}})
+    let isBan = false
+    const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: userId}})
+    if (userIsBlock) {
+      isBan = true
+    }
     if (!users) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
+    users.dataValues.isBanned = isBan
     return users
   }
   
@@ -181,7 +192,7 @@ class UserService {
     const userId = user.data['id']
     let nickname = user.data['username']
     const email = user.data['email']
-    const avatar = user.data['avatar']
+    // const avatar = user.data['avatar']
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
@@ -191,12 +202,12 @@ class UserService {
         const password = gen_password(16)
         const hashPassword = await bcrypt.hash(password, 3)
         const user = await UserModel.User.create(
-          { email, password: hashPassword, isActivated: 1, avatar: avatar})
-          if (isNickname) {
-                    nickname += user.id.toString()
-                  }
-                  user.nickname = nickname
-                  user.save()
+          {email, password: hashPassword, isActivated: 1})
+        if (isNickname) {
+          nickname += user.id.toString()
+        }
+        user.nickname = nickname
+        user.save()
         userDto = new UserDto(user)
         
       }
@@ -229,115 +240,219 @@ class UserService {
     }
     
   }
+
+//   async connectionVK(code) {
+//
+//     const resp = await axios.get(
+//       `https://oauth.vk.com/access_token?client_id=${process.env.APP_ID}&client_secret=${process.env.CLIENT_SECRETVK}&redirect_uri=${process.env.REDIRECT_URLVK}&display=page&code=${code}&scope=email&v=5.131`)
+//
+//
+//     const data = await axios.get(
+//       `https://api.vk.com/method/users.get?access_token=${resp.data['access_token']}&user_ids=${resp.data['user_id']}&fields=domain,sex,bdate&v=5.131`)
+//     let email = false
+//     const candidateVK = await UserModel.VkAuthId.findOne({where: {vkId: resp.data['user_id']}})
+//
+//     if (!candidateVK) {
+//       let userDto = null
+//       let candidateEmail
+//       if (resp.data['email']) {
+//         console.log(resp.data['email'], data.data.response[0]['domain'], resp.data['user_id'],
+//           data.data.response[0]['sex'])
+//         candidateEmail = await UserModel.User.findOne({where: {email: resp.data['email']}})
+//         email = true
+//       }
+//       if (!candidateEmail) {
+//         let sex = 2
+//         if (data.data.response[0]['sex']===2) {
+//           sex = 1
+//         }
+//
+//         const password = gen_password(16)
+//         const hashPassword = await bcrypt.hash(password, 3)
+//         let user
+//         let nickname = data.data.response[0]['domain']
+//         const isNickname = await UserModel.User.findOne({where: {nickname: data.data.response[0]['domain']}})
+//
+//         if (email) {
+//           user = await UserModel.User.create(
+//             {
+//               email: resp.data['email'],
+//               password: hashPassword,
+//               isActivated: 1,
+//               sex: sex
+//               //birthday: data.data.response[0]['bdate']
+//             })
+//         }
+//         else {
+//           user = await UserModel.User.create(
+//             {
+//               password: hashPassword,
+//               isActivated: 1,
+//               sex: sex
+//              // birthday: data.data.response[0]['bdate']
+//             })
+//
+//         }
+//         if (isNickname) {
+//           nickname += user.id.toString()
+//         }
+//         user.nickname = nickname
+//         user.save()
+//         userDto = new UserDto(user)
+//
+//       }
+//       else {
+//         userDto = new UserDto(candidateEmail)
+//       }
+//
+//
+//       await UserModel.VkAuthId.create({userId: userDto.id, vkId: resp.data['user_id']})
+//       const tokens = tokenService.generateTokens({...userDto})
+//       await tokenService.saveToken(userDto.id, tokens.refreshToken)
+//
+//       return {
+//         ...tokens,
+//         user: userDto
+//       }
+//
+//     }
+//     const candidateUser = await UserModel.User.findOne({where:{id:candidateVK.userId}})
+//     if (!candidateUser.isActivated) {
+//           candidateUser.isActivated = 1
+//           candidateUser.save()
+//         }
+//
+//         const userDto1 = new UserDto(candidateUser)
+//         const tokens = tokenService.generateTokens({...userDto1})
+//         await tokenService.saveToken(userDto1.id, tokens.refreshToken)
+//         return {
+//           ...tokens,
+//           user: userDto1
+//         }
+//
+//
+//   }
+//
   
-  async connectionVK(code) {
+  async uploadAvatar(file, userId) {
+    const extension = (path.extname(file['name'])).toLowerCase()
+    //const type = file['name'].replace('image/','')
+    console.log(extension)
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    const avatarName = uuid.v4() + `${extension}`
     
-    const resp = await axios.get(
-      `https://oauth.vk.com/access_token?client_id=${process.env.APP_ID}&client_secret=${process.env.CLIENT_SECRETVK}&redirect_uri=${process.env.REDIRECT_URLVK}&display=page&code=${code}&scope=email&v=5.131`)
-    
-    
-    const data = await axios.get(
-      `https://api.vk.com/method/users.get?access_token=${resp.data['access_token']}&user_ids=${resp.data['user_id']}&fields=domain,sex,bdate&v=5.131`)
-    let email = false
-    const candidateVK = await UserModel.VkAuthId.findOne({where: {vkId: resp.data['user_id']}})
-
-    if (!candidateVK) {
-      let userDto = null
-      let candidateEmail
-      if (resp.data['email']) {
-        console.log(resp.data['email'], data.data.response[0]['domain'], resp.data['user_id'],
-          data.data.response[0]['sex'])
-        candidateEmail = await UserModel.User.findOne({where: {email: resp.data['email']}})
-        email = true
-      }
-      if (!candidateEmail) {
-        let sex = 2
-        if (data.data.response[0]['sex']===2) {
-          sex = 1
-        }
-        
-        const password = gen_password(16)
-        const hashPassword = await bcrypt.hash(password, 3)
-        let user
-        let nickname = data.data.response[0]['domain']
-        const isNickname = await UserModel.User.findOne({where: {nickname: data.data.response[0]['domain']}})
-        
-        if (email) {
-          user = await UserModel.User.create(
-            {
-              email: resp.data['email'],
-              password: hashPassword,
-              isActivated: 1,
-              sex: sex
-              //birthday: data.data.response[0]['bdate']
-            })
-        }
-        else {
-          user = await UserModel.User.create(
-            {
-              password: hashPassword,
-              isActivated: 1,
-              sex: sex
-             // birthday: data.data.response[0]['bdate']
-            })
-          
-        }
-        if (isNickname) {
-          nickname += user.id.toString()
-        }
-        user.nickname = nickname
-        user.save()
-        userDto = new UserDto(user)
-        
-      }
-      else {
-        userDto = new UserDto(candidateEmail)
-      }
-
-
-      await UserModel.VkAuthId.create({userId: userDto.id, vkId: resp.data['user_id']})
-      const tokens = tokenService.generateTokens({...userDto})
-      await tokenService.saveToken(userDto.id, tokens.refreshToken)
-
-      return {
-        ...tokens,
-        user: userDto
-      }
-
+    if (!user) {
+      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
-    const candidateUser = await UserModel.User.findOne({where:{id:candidateVK.userId}})
-    if (!candidateUser.isActivated) {
-          candidateUser.isActivated = 1
-          candidateUser.save()
-        }
-        
-        const userDto1 = new UserDto(candidateUser)
-        const tokens = tokenService.generateTokens({...userDto1})
-        await tokenService.saveToken(userDto1.id, tokens.refreshToken)
-        return {
-          ...tokens,
-          user: userDto1
-        }
     
-
+    if (user.avatar) {
+      console.log("LOL")
+      try {
+        fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
+      } catch(e) {
+        console.log(e)
+      }
+      //file.delete(process.env.STATIC_PATH + "\\" + user.avatar)
+    }
+    
+    
+    file.mv(process.env.STATIC_PATH + "\\" + avatarName)
+    console.log(user.avatar)
+    user.avatar = avatarName
+    user.save()
+    console.log(user.avatar)
+    return avatarName
   }
   
   
-  async updateUser(data, refreshToken) {
-    const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
-    if (!id) {
-      throw ApiError.UnauthorizedError()
+  async deleteAvatar(userId) {
+    
+    
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    
+    if (!user) {
+      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
-    const user = await UserModel.User.findOne({where: {id: id.dataValues.userId}})
-    console.log(id.dataValues.userId)
-    console.log('Проверка', id.id)
+    if (user.avatar) {
+      console.log("LOL")
+      try {
+        fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
+      } catch(e) {
+        console.log(e)
+      }
+      user.avatar = null
+      user.save()
+    }
+    return user
+  }
+  
+  async updateUser(data, refreshToken, userId) {
+    if (objIsEmpty(data)) {
+      throw ApiError.BadRerquest('Data missing', [])
+    }
+    console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
+    
+    // const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
+    // if (!id) {
+    //   throw ApiError.UnauthorizedError()
+    // }
+    
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    if (!user) {
+      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
+    }
+    // console.log(id.dataValues.userId)
+    // console.log('Проверка', id.id)
+    let unCorrectInputs = ['nickname', '.password', 'isActivated', 'activationLink', 'accsessLevel', 'numGame', 'numWinGame']
     for (let key in data) {
+      // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
+      if (!unCorrectInputs.toString().includes(key.toString())) {
+        user[key] = data[key]
+      }
+      else {
+        console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
+      }
       
-      user[key] = data[key]
       
     }
     const newUser = await user.save()
-    console.log(newUser)
+    console.log(newUser.nickname)
+    return user
+    
+    
+  }
+  
+  
+  async updateNickname(data, refreshToken, userId) {
+    if (objIsEmpty(data)) {
+      throw ApiError.BadRerquest('Data missing', [])
+    }
+    console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
+    
+    // const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
+    // if (!id) {
+    //   throw ApiError.UnauthorizedError()
+    // }
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    if (!user) {
+      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
+    }
+    // console.log(id.dataValues.userId)
+    // console.log('Проверка', id.id)
+    // let unCorrectInputs = ['nickname','.password','isActivated','activationLink','accsessLevel','numGame','numWinGame']
+    for (let key in data) {
+      // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
+      if ('nickname'===key.toString()) {
+        user[key] = data[key]
+      }
+      else {
+        console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
+      }
+      
+      
+    }
+    const newUser = await user.save()
+    console.log(newUser.nickname)
     return user
     
     
@@ -357,6 +472,13 @@ function gen_password(len) {
     password += symbols.charAt(Math.floor(Math.random() * symbols.length));
   }
   return password;
+}
+
+function objIsEmpty(obj) {
+  for (let key in obj) {
+    return false;
+  }
+  return true;
 }
 
 

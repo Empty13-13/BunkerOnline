@@ -1,7 +1,17 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
 import AppBackground from "@/components/AppBackground.vue";
-import { computed, nextTick, onBeforeMount, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeMount,
+  onBeforeUnmount,
+  onBeforeUpdate,
+  onMounted,
+  onUpdated,
+  reactive,
+  ref
+} from "vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import router from "@/router/index.js";
 import AppPopup from "@/components/AppPopup.vue";
@@ -10,17 +20,26 @@ import { getClassForAccess, getDisplayNameForAccess, getLinkParams } from "@/plu
 import { useAuthStore } from "@/stores/auth.js"
 import { usePreloaderStore } from "@/stores/preloader.js";
 import AppLoader from "@/components/AppLoader.vue";
+import axiosInstance from "@/api.js";
+import { testNicknameKey } from "@/plugins/auth.js";
+import { useMyProfileStore } from "@/stores/profile.js";
+import { useActionsProfileStore } from "@/stores/profile.js";
 
 const authStore = useAuthStore()
+const myProfile = useMyProfileStore()
+const globalPreloader = usePreloaderStore()
+const actionsProfile = useActionsProfileStore()
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
 })
+let oldId = 0
 
 const data = reactive({
   id: getId,
   isBlocked: false,
   name: 'Загружаем...',
+  avatar: '',
   access: {title: 'Загружаем...', date: new Date()},
   dateRegistration: new Date(),
   birthday: {date: new Date(), isHidden: false},
@@ -46,13 +65,9 @@ const data = reactive({
     ]
   }
 })
-const blockBtn = ref(null)
 
 const isMyProfile = computed(() => {
-  return authStore.userInfo.userId===data.id
-})
-const imAnAdmin = computed(() => {
-  return authStore.userInfo.access==='admin'
+  return myProfile.id===data.id
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {
@@ -69,44 +84,73 @@ let isMaleSelect = ref()
 let aboutInput = ref()
 let saveBtnText = ref('Сохранить')
 
+
+let isChangingName = ref(false)
+
 function changeBlocked() {
   data.isBlocked = !data.isBlocked
 }
 
+async function banUser() {
+  data.isBlocked = !data.isBlocked
+
+  await axiosInstance.post(`/blockUser=${data.id}`, {}, {
+    withCredentials: true
+  })
+}
+
+async function changeName() {
+  if (!isChangingName.value) {
+    isChangingName.value = true
+  }
+  else {
+    isChangingName.value = false
+    try {
+      let response = await actionsProfile.updateNickname(data.id, {nickname: data.name})
+      console.log("Смогли поменять ник!", response)
+    } catch(e) {
+      console.log(e.message)
+    }
+  }
+}
+
+async function keyDownNickname(e) {
+  if (myProfile.isAdmin) {
+    return
+  }
+  if (!testNicknameKey(e.key)) {
+    e.preventDefault()
+  }
+}
+
 onBeforeMount(() => {
-  usePreloaderStore().activate()
+  globalPreloader.activate()
+  oldId = getId.value
 })
 onMounted(async () => {
-  let userInfo = await authStore.getUserInfo(getId.value)
-  data.access.title = userInfo.data.accsessLevel.toLowerCase() || 'default'
-  data.access.date = new Date(userInfo.data.accsessDate) || '∞'
-  data.name = userInfo.data.nickname
-  data.dateRegistration = new Date(userInfo.data.createdAt)
-  data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
-  if (data.birthday.date && birthdayInput.value) {
-    birthdayInput.value.valueAsDate = data.birthday.date
-  }
-  data.birthday.isHidden = userInfo.data.hiddenBirthday || false
-  if (isHiddenBirthdayInput.value) {
-    console.log(isHiddenBirthdayInput.value)
-    isHiddenBirthdayInput.value.checked = data.birthday.isHidden
-  }
-  data.isMale = userInfo.data.sex || 0
-  if (isMaleSelect.value) {
-    isMaleSelect.value.value = data.isMale
-  }
-  data.about = userInfo.data.text || ''
-  if (aboutInput.value) {
-    aboutInput.value = data.about
-  }
-  data.gameNum = userInfo.data.numGame || 0
-  data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(
-      userInfo.data.numWinGame / userInfo.data.numGame * 100):0
-
-
+  await updateProfileInfo()
   fieldsInit()
-  usePreloaderStore().deactivate()
+  globalPreloader.deactivate()
 })
+onBeforeUpdate(() => {
+  if (oldId!==getId.value) {
+    destroyAll()
+  }
+})
+onUpdated(async () => {
+  if (oldId!==getId.value) {
+    globalPreloader.activate()
+    oldId = getId.value
+    await updateProfileInfo()
+    fieldsInit()
+
+    if (isMyProfile) {
+      await myProfile.setMyProfileInfo()
+    }
+  }
+  globalPreloader.deactivate()
+})
+
 onBeforeUnmount(() => {
   destroyAll()
 })
@@ -132,10 +176,9 @@ async function saveProfileInfoHandler(e) {
   if (aboutInput.value!==data.text) {
     body.text = aboutInput.value.value
   }
-  console.log(body)
 
   let response = await authStore.updateProfileInfo(getId.value, body)
-  if (response.status===200) {
+  if (response.status && response.status===200) {
     saveBtnText.value = 'Сохранили!'
   }
   else {
@@ -147,6 +190,38 @@ async function saveProfileInfoHandler(e) {
   isSaveLoader.value = false
 }
 
+async function updateProfileInfo() {
+  let userInfo = await actionsProfile.getUserInfo(getId.value)
+  if (!userInfo) {
+    return
+  }
+
+  data.access.title = userInfo.data.accsessLevel.toLowerCase() || 'default'
+  data.access.date = new Date(userInfo.data.accsessDate) || '∞'
+  data.name = userInfo.data.nickname
+  data.dateRegistration = new Date(userInfo.data.createdAt)
+  console.log(myProfile.avatarName)
+  data.avatar = userInfo.data.avatar
+  data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
+  if (data.birthday.date && birthdayInput.value) {
+    birthdayInput.value.valueAsDate = data.birthday.date
+  }
+  data.birthday.isHidden = userInfo.data.hiddenBirthday || false
+  if (isHiddenBirthdayInput.value) {
+    isHiddenBirthdayInput.value.checked = data.birthday.isHidden
+  }
+  data.isMale = userInfo.data.sex || 0
+  if (isMaleSelect.value) {
+    isMaleSelect.value.value = data.isMale
+  }
+  data.about = userInfo.data.text || ''
+  if (aboutInput.value) {
+    aboutInput.value = data.about
+  }
+  data.gameNum = userInfo.data.numGame || 0
+  data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(
+      userInfo.data.numWinGame / userInfo.data.numGame * 100):0
+}
 </script>
 
 <template>
@@ -157,24 +232,47 @@ async function saveProfileInfoHandler(e) {
         <div class="profileBlock__block linear-border gold">
           <div class="profileBlock__top" :class="isMyProfile?'':'center'">
             <div class="profileBlock__naming naming-profileBlock">
-              <AppAvatar class="naming-profileBlock__img" filename="backgrounds/mainClear.jpg"
-                         :color="data.access.title" />
+              <AppAvatar class="naming-profileBlock__img"
+                         filename="backgrounds/mainClear.jpg"
+                         :color="data.access.title"
+                         v-model:href="data.avatar"
+              />
               <div class="naming-profileBlock__name">
-                {{ isMyProfile? "Привет, ":'' }}<span :class="getClassForAccess(data.access.title)">{{
-                  data.name
-                                                                                                    }}</span>
-                <button v-if="imAnAdmin && !isMyProfile"
+                {{ isMyProfile? "Привет, ":'' }}
+                <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
+                  {{ data.name }}
+                </span>
+                <input v-else type="text"
+                       name="nickname"
+                       v-model="data.name"
+                       @keydown="keyDownNickname"
+                       class="_type2"
+                       maxlength="15"
+                       minlength="3"
+                >
+                <button v-if="myProfile.isAdmin && !isMyProfile && data.access.title !== 'admin' && !isChangingName"
                         class="naming-profileBlock__blockBtn btn"
-                        ref="blockBtn"
                         @mouseover="changeBlocked" @mouseout="changeBlocked"
-                        @click="changeBlocked"
+                        @click="banUser"
                 >
                   <img :src="'/img/icons/'+getBlockButtonImg" alt="">
+                </button>
+                <button v-if="(isMyProfile && !myProfile.isDefault) || myProfile.isAdmin"
+                        class="naming-profileBlock__blockBtn btn"
+                        ref="changeNameBtn"
+                        @click="changeName"
+                >
+                  <img v-if="!isChangingName" src="/img/icons/pencil.png" alt="">
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50px" height="50px">
+                    <path stroke="white"
+                          d="M 42.875 8.625 C 42.84375 8.632813 42.8125 8.644531 42.78125 8.65625 C 42.519531 8.722656 42.292969 8.890625 42.15625 9.125 L 21.71875 40.8125 L 7.65625 28.125 C 7.410156 27.8125 7 27.675781 6.613281 27.777344 C 6.226563 27.878906 5.941406 28.203125 5.882813 28.597656 C 5.824219 28.992188 6.003906 29.382813 6.34375 29.59375 L 21.25 43.09375 C 21.46875 43.285156 21.761719 43.371094 22.050781 43.328125 C 22.339844 43.285156 22.59375 43.121094 22.75 42.875 L 43.84375 10.1875 C 44.074219 9.859375 44.085938 9.425781 43.875 9.085938 C 43.664063 8.746094 43.269531 8.566406 42.875 8.625 Z" />
+                  </svg>
                 </button>
               </div>
               <div class="naming-profileBlock__access"
                    :class="getClassForAccess(data.access.title)"
-              >{{ data.access.title }}
+              >
+                {{ getDisplayNameForAccess(data.access.title) }}
               </div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
@@ -225,7 +323,8 @@ async function saveProfileInfoHandler(e) {
                     {{ data.birthday.date? data.birthday.date.toLocaleDateString():"Не установлено" }}
                     {{
                   data.birthday.date? "(" + ((new Date()).getFullYear() - data.birthday.date.getFullYear()) + ")":""
-                    }}</span>
+                    }}
+              </span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Пол: {{ data.isMale? "Мужской":"Женский" }}</span>
@@ -283,11 +382,11 @@ async function saveProfileInfoHandler(e) {
                 <div v-if="isMyProfile" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Ваш текущий статус</div>
                   <div class="subscribe-bottom__body">
-                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">{{
-                        data.access.title
-                                                                                                        }}
+                    <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">
+                      {{ getDisplayNameForAccess(data.access.title) }}
                     </div>
-                    <div v-if="!(imAnAdmin && isMyProfile) && !(data.access.title === 'mvp')" @click="isPopupOpen=true"
+                    <div v-if="!(myProfile.isAdmin && isMyProfile) && !(data.access.title === 'mvp')"
+                         @click="isPopupOpen=true"
                          class="subscribe-bottom__raise">Повысить статус
                     </div>
                   </div>
@@ -303,7 +402,7 @@ async function saveProfileInfoHandler(e) {
                   <div class="subscribe-bottom__blockTitle">Статус пользователя</div>
                   <div class="subscribe-bottom__body">
                     <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">
-                      {{ data.access.title }}
+                      {{ getDisplayNameForAccess(data.access.title) }}
                     </div>
                   </div>
                 </div>
@@ -482,7 +581,7 @@ async function saveProfileInfoHandler(e) {
   font-weight: 700;
   line-height: 1.5;
 
-  @media (max-width: $pc) {
+  @media (max-width: $tablet) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -499,12 +598,16 @@ async function saveProfileInfoHandler(e) {
     margin-bottom: 5px;
 
     span {
-
+      margin-left: 7px;
     }
 
     display: flex;
     justify-content: center;
     align-items: center;
+
+    input {
+
+    }
   }
 
   &__blockBtn {
@@ -516,11 +619,11 @@ async function saveProfileInfoHandler(e) {
 
     img {
       pointer-events: none;
+      max-width: 100%;
     }
   }
 
   &__access {
-    text-transform: uppercase;
     background: white;
     background-clip: border-box;
     -webkit-background-clip: text;
@@ -784,7 +887,6 @@ async function saveProfileInfoHandler(e) {
   }
 
   &__access {
-    text-transform: uppercase;
     background: white;
     background-clip: border-box;
     -webkit-background-clip: text;

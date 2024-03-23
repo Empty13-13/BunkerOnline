@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/Back/controller/admin-controller.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Back/controller/user-controller.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Back/middlewares/admin-middleware.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Back/service/admin-service.js" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Back/service/mail-service.js" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>

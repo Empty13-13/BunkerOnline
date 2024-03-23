@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth.js";
+import { useMyProfileStore } from "@/stores/profile.js";
 import router from "@/router/index.js";
 
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
@@ -8,9 +9,9 @@ const axiosInstance = axios.create({
 })
 
 axiosInstance.interceptors.request.use((config) => {
-  if (useAuthStore().userInfo.token) {
+  if (useMyProfileStore().token) {
     let headers = config.headers
-    headers.Authorization = 'Bearer ' + useAuthStore().userInfo.token
+    headers.Authorization = 'Bearer ' + useMyProfileStore().token
     config.headers = headers
   }
   return config
@@ -19,7 +20,7 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use((response) => {
   return response
 }, async function(error) {
-  const authStore = useAuthStore()
+  const myProfileStore = useMyProfileStore()
   const originalRequest = error.config
   
   if (error.response.status===401 && !originalRequest._retry) {
@@ -30,14 +31,13 @@ axiosInstance.interceptors.response.use((response) => {
       })
       console.log("New tokens: ", newTokens.data)
       
-      authStore.userInfo.token = newTokens.data.token
-      
+      myProfileStore.token = newTokens.data.token
       localStorage.setItem('userTokens', JSON.stringify({
-        token: newTokens.data.token,
+        token: myProfileStore.token,
       }))
     } catch(e) {
       console.log(e)
-      authStore.clearUserInfo()
+      myProfileStore.clearUserInfo()
       await router.push('/login')
     }
   }

@@ -1,12 +1,11 @@
 // Вспомогательные модули плавного раскрытия и закрытия объекта ======================================================================================================================================================================
+import { computed } from "vue";
+import router from "@/router/index.js";
+
 export let slideDown = (target, duration = 500, showmore = 0) => {
-  console.log('HIDDEN',target.hidden)
-  
-  if (!target.classList.contains('_slide')) {
+  if (!target.classList.contains('_slide') && target.hidden) {
     target.classList.add('_slide');
-    console.log('HIDDEN',target.hidden)
     target.hidden = target.hidden? false:null;
-    console.log('HIDDEN',target.hidden)
     showmore? target.style.removeProperty('height'):null;
     let height = target.offsetHeight;
     target.style.overflow = 'hidden';
@@ -101,11 +100,11 @@ export function getClassForAccess(access) {
 export function getDisplayNameForAccess(access) {
   switch(access) {
     case 'default':
-      return 'Standart';
+      return 'Пользователь';
     case 'mvp':
-      return 'mvp';
+      return 'MVP';
     case 'vip':
-      return 'vip';
+      return 'VIP';
     case 'admin':
       return 'Админ';
   }
@@ -142,3 +141,7 @@ export function getLinkParams() {
     );
   
 }
+
+export const getId = computed(() => {
+  return +router.currentRoute.value.path.split('=')[1]
+})

@@ -10,6 +10,7 @@ import Updates from "@/views/Updates.vue";
 import Contacts from "@/views/Contacts.vue";
 import Pagination from "@/views/Pagination.vue";
 import { useAuthStore } from "@/stores/auth.js";
+import { useMyProfileStore } from "@/stores/profile.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,9 +72,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const myProfile = useMyProfileStore()
   
-  if (to.name==="login" && authStore.userInfo.token) {
+  if (to.name==="login" && myProfile.token) {
     next('/')
     return
   }

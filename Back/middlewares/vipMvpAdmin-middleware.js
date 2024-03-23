@@ -1,7 +1,6 @@
 const ApiError = require('../exceptions/api-error')
 const tokenService = require("../service/token-service");
 const UserModel = require("../model/models");
-const adminMiddleware = require('./admin-middleware')
 
 
 module.exports = function(accsessLevel) {
@@ -19,6 +18,8 @@ module.exports = function(accsessLevel) {
       const {refreshToken} = req.cookies
       const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
       if (!id) {
+        console.log(
+          'ERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERROR')
         return next(ApiError.UnauthorizedError())
       }
       const user = await UserModel.User.findOne({where: {id: id.dataValues.userId}})
@@ -33,14 +34,19 @@ module.exports = function(accsessLevel) {
       console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ID: ', user)
       if (userId.toString()!==id.dataValues.userId.toString()) {
         if (user.dataValues.accsessLevel!==accsessLevel) {
-          return next(ApiError.BadRerquest(`РќРµС‚ РґРѕСЃС‚СѓРїР° РјРµРЅСЏС‚СЊ РґР°РЅРЅС‹Рµ`, [{type: 'Inadmissible id'}]))
+          return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
         }
+      }
+      else if (user.dataValues.accsessLevel.toString()==='default') {
+        
+        return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
       }
       
       
-      req.user = userData
       next()
     } catch(e) {
+      console.log(
+        '123')
       return next(ApiError.UnauthorizedError())
     }
   }

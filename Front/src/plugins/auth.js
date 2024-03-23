@@ -90,8 +90,6 @@ export function forbiddenInputNickname(value) {
 export function clearError(el) {
   let small = el.parentNode.querySelector('small')
   el.classList.remove('_error')
-  // slideUp(small,200)
   
-  small.style.height = '0'
   small.style.opacity = "0"
 }

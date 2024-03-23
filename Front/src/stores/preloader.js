@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-export const usePreloaderStore = defineStore('access', () => {
+export const usePreloaderStore = defineStore('preloader', () => {
   const showLoader = ref(false)
   
   function activate() {

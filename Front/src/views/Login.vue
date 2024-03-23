@@ -1,6 +1,9 @@
 <script setup="">
 import { useAuthStore } from "@/stores/auth.js";
 import { validationRegistration, testNicknameKey, clearError } from '@/plugins/auth.js'
+import { useMyProfileStore } from "@/stores/profile.js";
+
+const myProfile = useMyProfileStore()
 
 const showPopup = ref(false)
 
@@ -31,7 +34,6 @@ async function registrationHandler(e) {
   if (objIsEmpty(errors)) {
     let message = await useAuthStore().auth(data, 'signUp')
     if (useAuthStore().errors.message) {
-      console.log(useAuthStore().errors.input)
       setErrorForInput((useAuthStore().errors.input + 'Reg'), useAuthStore().errors.message)
     }
     else {
@@ -40,7 +42,6 @@ async function registrationHandler(e) {
     }
   }
 }
-
 
 const loginInput = ref()
 const password = ref()
@@ -54,7 +55,6 @@ async function loginHandler(e) {
     login: loginInput.value.value.trim(),
     password: password.value.value,
   }
-  console.log("LOGIN DATA:", data)
   let errors = {}
 
   for (let key in data) {
@@ -80,24 +80,24 @@ async function loginHandler(e) {
       setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
     }
     else {
-      await router.push(`/profile=${useAuthStore().userInfo.userId}`)
+      await router.push(`/profile=${myProfile.id}`)
     }
   }
 }
 
 function keyDownNickname(e) {
-  if (!testNicknameKey(e.key)) {
+  if (!testNicknameKey(e.key) && myProfile.isAdmin) {
     e.preventDefault()
   }
 }
 
 function focusInInput(e) {
   clearError(e.target)
+  slideUp(e.target.parentNode.querySelector('small'),200)
 }
 
 
 function linkTo(href, isState = false) {
-  console.log('start link')
   let resultHref = href
   if (isState) {
     const randomString = Math.random().toString();
@@ -111,21 +111,19 @@ function linkTo(href, isState = false) {
 
 //========================================================================================================================================================
 function setErrorForInput(inputName, textSmall) {
-  console.log(inputName)
   let input = document.querySelector(`[name=${inputName}]`)
   let small = input.parentNode.querySelector('small')
 
   input.classList.add('_error')
   small.textContent = textSmall
   small.style.opacity = "1"
-  small.style.height = small.offsetHeight.toString() + 'px'
-  // slideDown(small,200)
+  slideDown(small,200)
 }
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import { ref } from "vue";
-import { objIsEmpty, slideDown, slideToggle } from "@/plugins/functions.js";
+import { objIsEmpty, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
 import router from "@/router/index.js";
 import AppLoader from "@/components/AppLoader.vue";
 import AppPopup from "@/components/AppPopup.vue";
@@ -142,12 +140,12 @@ import AppPopup from "@/components/AppPopup.vue";
             <h2 class="login-authBlock__title">Вход</h2>
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
+                <small hidden="">Какой то текст с ошибкой</small>
+                <input autofocus @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
                        name="nickname">
               </div>
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
+                <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
               </div>
               <div>
@@ -157,9 +155,7 @@ import AppPopup from "@/components/AppPopup.vue";
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
-                  <span @click="linkTo('http://localhost:80/api/loginVK')" class="authBlock-form__connectBtn btn">
-                    <span class="img"><img src="/img/icons/vk.png" alt=""></span>
-                  </span>
+
                 </span>
               </div>
               <AppLoader v-if="useAuthStore().isLoader" />
@@ -172,23 +168,23 @@ import AppPopup from "@/components/AppPopup.vue";
             <h2 class="login-authBlock__title">Регистрация</h2>
             <form novalidate @submit="registrationHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
+                <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" @keydown="keyDownNickname" ref="nicknameReg" placeholder="Ваш ник"
                        type="text"
                        name="nicknameReg"
                        maxlength="15">
               </div>
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
+                <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="emailReg" placeholder="Электронная почта" type="email"
                        name="emailReg">
               </div>
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
+                <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
               </div>
               <div class="authBlock-form__input">
-                <small>Какой то текст с ошибкой</small>
+                <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
                        name="passwordRepeatReg">
               </div>
@@ -200,9 +196,7 @@ import AppPopup from "@/components/AppPopup.vue";
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
-                  <span @click="linkTo('http://localhost:80/api/loginVK')" class="authBlock-form__connectBtn btn">
-                    <span class="img"><img src="/img/icons/vk.png" alt=""></span>
-                  </span>
+
                 </span>
               </div>
               <AppLoader v-if="useAuthStore().isLoader" />
@@ -214,7 +208,7 @@ import AppPopup from "@/components/AppPopup.vue";
     </div>
     <AppPopup v-model="showPopup" color="green">
       <template v-slot:title>Вы успешно зарегистрировались!</template>
-      Чтобы войти в аккаунт - подтвердите свой профиль через email
+      Чтобы войти в аккаунт - подтвердите свой профиль через email, который указали
     </AppPopup>
   </main>
 </template>
