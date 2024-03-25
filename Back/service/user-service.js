@@ -10,6 +10,8 @@ const axios = require('axios')
 const fs = require('fs')
 require('dotenv').config()
 const path = require('path')
+const {Op} = require('sequelize')
+//import { Op } from '@sequelize/core';
 
 const forbiddenCharacters = [
   '..', '__', '  '
@@ -146,17 +148,51 @@ class UserService {
     return users
   }
   
-  async getUser(userId) {
-    const users = await UserModel.User.findOne({where: {id: userId}})
-    let isBan = false
-    const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: userId}})
-    if (userIsBlock) {
-      isBan = true
+  async getUser(userId, refreshToken) {
+    let isAdmin = false
+    let isUser = false
+    if (refreshToken) {
+      const tokenData = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
+      console.log(refreshToken)
+      if (!tokenData) {
+        throw ApiError.UnauthorizedError()
+      }
+      const thisUser = await UserModel.User.findOne({where: {id: tokenData.userId}})
+      console.log(thisUser.id, userId)
+      if (thisUser.id.toString()===userId.toString()) {
+        isUser = true
+      }
+      if (thisUser.accsessLevel.toString()==='admin') {
+        isAdmin = true
+      }
     }
+    
+    const users = await UserModel.User.findOne({where: {id: userId}})
     if (!users) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
+    let isBan = false
+    let isChange = false
+    let isBdayHidden = false
+    if (users.hiddenBirthday===1) {
+      isBdayHidden = true
+    }
+    const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: userId}})
+    const userIsDiscord = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
+    if (userIsDiscord) {
+      if (!userIsDiscord.changeNickname) {
+        isChange = true
+      }
+      users.dataValues.isChange = isChange
+    }
+    if (userIsBlock) {
+      isBan = true
+    }
     users.dataValues.isBanned = isBan
+    console.log(isBdayHidden, isAdmin, isUser)
+    if (isBdayHidden && !isAdmin && !isUser) {
+      delete users.dataValues.birthday
+    }
     return users
   }
   
@@ -213,7 +249,6 @@ class UserService {
       }
       else {
         userDto = new UserDto(candidateUser)
-        
       }
       await UserModel.DiscordAuthId.create({userId: userDto.id, discordId: userId})
       const tokens = tokenService.generateTokens({...userDto})
@@ -224,14 +259,14 @@ class UserService {
         user: userDto
       }
     }
+    const candidateDisUser = await UserModel.User.findOne({where:{id:candidate.userId}})
     
-    
-    if (!candidateUser.isActivated) {
-      candidateUser.isActivated = 1
-      candidateUser.save()
+    if (!candidateDisUser.isActivated) {
+      candidateDisUser.isActivated = 1
+      candidateDisUser.save()
     }
     
-    const userDto1 = new UserDto(candidateUser)
+    const userDto1 = new UserDto(candidateDisUser)
     const tokens = tokenService.generateTokens({...userDto1})
     await tokenService.saveToken(userDto1.id, tokens.refreshToken)
     return {
@@ -437,12 +472,20 @@ class UserService {
     if (!user) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
+    
+    
     // console.log(id.dataValues.userId)
     // console.log('Проверка', id.id)
     // let unCorrectInputs = ['nickname','.password','isActivated','activationLink','accsessLevel','numGame','numWinGame']
     for (let key in data) {
       // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
       if ('nickname'===key.toString()) {
+        const candidateNickName = await UserModel.User.findOne({where: {nickname: data[key]}})
+        if (candidateNickName) {
+          throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
+            [{input: 'nickname', type: 'Already exist'}])
+          
+        }
         user[key] = data[key]
       }
       else {
@@ -453,10 +496,145 @@ class UserService {
     }
     const newUser = await user.save()
     console.log(newUser.nickname)
+    
+    const isChange = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
+    if (isChange) {
+      isChange.changeNickname = 1
+      isChange.save()
+    }
+    
     return user
     
     
   }
+  
+  async resetProfile(refreshToken) {
+    if (refreshToken) {
+      const tokenData = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
+      console.log(refreshToken)
+      if (!tokenData) {
+        throw ApiError.UnauthorizedError()
+      }
+      const thisUser = await UserModel.User.findOne({where: {id: tokenData.userId}})
+      if (!thisUser) {
+        throw ApiError.BadRerquest(`Такого пользователя не существует`,
+          [{input: 'user', type: 'Not'}])
+        
+      }
+      return thisUser
+    }
+    
+    
+  }
+  
+  async reset(email, type) {
+    const candidate = await UserModel.User.findOne({where: {email: email}})
+    if (!candidate) {
+      throw ApiError.BadRerquest(`Пользователя с таким email не существует`,
+        [{input: 'email', type: 'Not valid email'}])
+    }
+    const resetLink = uuid.v4()
+    const tokenLinkExp = Date.now() + 60 * 60000
+    console.log(new Date())
+    
+    console.log("qweqweqwe", tokenLinkExp)
+    const alreadyReset = await UserModel.ResetPassword.findOne(
+      {where: {userId: candidate.id, tokenLinkExp: {[Op.gt]: Date.now()}, isChange: 0, type: type}})
+    console.log(alreadyReset)
+    if (alreadyReset) {
+      if (alreadyReset.type.toString()==='password') {
+        throw ApiError.BadRerquest(
+          `Запрос на смену пароля уже был отправлен, проверьте почту или же запросить ссылку заново`,
+          [{input: 'link', type: 'database'}])
+      }
+      else {
+        throw ApiError.BadRerquest(
+          `Запрос на смену email уже был отправлен, проверьте почту или же запросить ссылку заново`,
+          [{input: 'link', type: 'database'}])
+      }
+      
+      
+    }
+    const reset = await UserModel.ResetPassword.create(
+      {userId: candidate.id, tokenLink: resetLink, tokenLinkExp: tokenLinkExp, type: type})
+    if (!reset) {
+      throw ApiError.BadRerquest(`Ошибка при добавлении в базу данных`,
+        [{input: 'link', type: 'database'}])
+    }
+    try {
+      if (type.toString() ==='password') {
+        await mailService.sendResetPasswordMail(email, `${process.env.API_URL}/api/resetUser/${resetLink}`)
+      }
+      else {
+        await mailService.sendResetEmailMail(email, `${process.env.API_URL}/api/resetUser/${resetLink}`)
+      }
+    } catch(e) {
+      throw ApiError.BadRerquest(`Ошибка при отправке сообщения на почту`,
+        [{input: 'email', type: 'sendEmail'}])
+    }
+    
+    
+  }
+  
+  async validationLinkReset(link) {
+    const isLink = await UserModel.ResetPassword.findOne(
+      {where: {tokenLink: link, tokenLinkExp: {[Op.gt]: Date.now()}, isChange: 0}})
+    if (!isLink) {
+      throw ApiError.BadRerquest(`Данная ссылка неправильная или не действительная`,
+        [{input: 'link', type: 'resetPassword'}])
+    }
+    
+    return isLink
+  }
+  
+  async newPassword(password, userId, idLink) {
+    const hashPassword = await bcrypt.hash(password, 3)
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    if (!user) {
+      throw ApiError.BadRerquest(`Данная ссылка неправильная или не действительная`,
+        [{input: 'userId', type: 'resetPassword'}])
+    }
+    const resetPasswordDb = await UserModel.ResetPassword.findOne({where: {id: idLink, userId: userId}})
+    if (!resetPasswordDb) {
+      throw ApiError.BadRerquest(`Такой ссылки не существует`,
+        [{input: 'userId', type: 'resetPassword'}])
+    }
+    resetPasswordDb.isChange = 1
+    resetPasswordDb.save()
+    user.password = hashPassword
+    user.save()
+    
+    
+  }
+  
+  async newEmail(email, userId, idLink) {
+    
+    const user = await UserModel.User.findOne({where: {id: userId}})
+    const isEmail = await UserModel.User.findOne({where: {email: email}})
+    if (isEmail) {
+      throw ApiError.BadRerquest(`Данный email уже зарегистрирован`,
+        [{input: 'email', type: 'resetEmail'}])
+    }
+    if (!user) {
+      throw ApiError.BadRerquest(`Данная ссылка неправильная или не действительная`,
+        [{input: 'userId', type: 'resetEmail'}])
+    }
+    const resetPasswordDb = await UserModel.ResetPassword.findOne({where: {id: idLink, userId: userId}})
+    if (!resetPasswordDb) {
+      throw ApiError.BadRerquest(`Такой ссылки не существует`,
+        [{input: 'userId', type: 'resetEmail'}])
+    }
+    const activationLink = uuid.v4()
+    resetPasswordDb.isChange = 1
+    resetPasswordDb.save()
+    user.activationLink = activationLink
+    user.email = email
+    user.isActivated = 0
+    user.save()
+    await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
+    
+  }
+  
   
 }
 

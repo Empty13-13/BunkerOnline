@@ -7,21 +7,21 @@ const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 
 const gamersData = [
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
-  {name:'nickname228', link:'/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
+  {name: 'nickname228', link: '/game=D389N'},
 ]
 const streamersData = [
-  {name:'nickname228'},
-  {name:'nickname228'},
-  {name:'nickname228'},
+  {name: 'nickname228'},
+  {name: 'nickname228'},
+  {name: 'nickname228'},
 ]
 
 const access = useAccessStore()
@@ -40,14 +40,25 @@ function letsGo() {
   router.push('/game=D389N')
 }
 
+const showPopup = ref(false)
+
+onBeforeMount(() => {
+  let params = router.currentRoute.value.query
+  if (params['connected'] && (params['connected']==='resetPassword' || params['connected']==='resetEmail')) {
+    showPopup.value = true
+  }
+})
+
 
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
 import router from "@/router/index.js";
-import { ref } from "vue";
+import { onBeforeMount, ref } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
+import TheResetPopup from "@/components/TheResetPopup.vue";
+import AppConfirm from "@/components/AppConfirm.vue";
 </script>
 
 <template>
@@ -70,11 +81,18 @@ import AppPopup from "@/components/AppPopup.vue";
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <input v-if="!myProfile.token" v-model="inputId" type="text" placeholder="Введите ID игры для присоединения">
-              <AppButton @click="letsGo" v-if="!myProfile.token" class="create-room__btn join" color="gold" :disabled="inputId.length<4">Присоединиться</AppButton>
-              <AppButton @click="letsGo" v-if="myProfile.token" class="create-room__btn create" color="gold">Создать игру</AppButton>
+              <input v-if="!myProfile.token" v-model="inputId" type="text"
+                     placeholder="Введите ID игры для присоединения">
+              <AppButton @click="letsGo" v-if="!myProfile.token" class="create-room__btn join" color="gold"
+                         :disabled="inputId.length<4">Присоединиться
+              </AppButton>
+              <AppButton @click="letsGo" v-if="myProfile.token" class="create-room__btn create" color="gold">Создать
+                                                                                                             игру
+              </AppButton>
               <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
-              <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">Как играть?</AppButton>
+              <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">
+                Как играть?
+              </AppButton>
             </div>
           </div>
           <div class="room__list list-room">
@@ -97,7 +115,7 @@ import AppPopup from "@/components/AppPopup.vue";
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
           <TheList :data="gamersData" title="Активные игры" class="activeGame__game" />
-<!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
+          <!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
       </div>
     </div>
@@ -138,15 +156,21 @@ import AppPopup from "@/components/AppPopup.vue";
       </template>
       1) Нажать на кнопку "Создать игру!" (после создания комнаты вы автоматически становитесь ведущим игры).<br>
       <br>
-      2) На следующей странице вы получите ссылку на игровую комнату. Разошлите эту ссылку людям, с которыми вы хотите играть.<br>
+      2) На следующей странице вы получите ссылку на игровую комнату. Разошлите эту ссылку людям, с которыми вы хотите
+      играть.<br>
       <br>
       3) Ждем, когда все желающие присоединятся. Вы, как ведущий игры, будете видеть кто уже зашел.<br>
       <br>
       4) Как только зайдут все желающие, вы должны начать игру, нажав на кнопку "Начать игру!".<br>
       <br>
       Как найти игроков?<br>
-      Все очень просто! Присоединяйтесь к нашему <a target="_blank" href="">Discord</a> каналу, где вы всегда найдете людей, с которыми отлично проведете время!<br>
+      Все очень просто! Присоединяйтесь к нашему <a target="_blank" href="">Discord</a> каналу, где вы всегда найдете
+      людей, с которыми отлично проведете время!<br>
     </AppPopup>
+
+    <teleport to="#app">
+      <TheResetPopup v-if="showPopup" />
+    </teleport>
   </main>
 </template>
 
@@ -294,13 +318,13 @@ import AppPopup from "@/components/AppPopup.vue";
     input {
       min-width: 250px;
 
-      @media (max-width:840px){
+      @media (max-width: 840px) {
         width: 380px;
         min-width: 0;
         text-align: center;
       }
 
-      @media (max-width:570px){
+      @media (max-width: 570px) {
         width: 100%;
       }
     }
@@ -325,7 +349,7 @@ import AppPopup from "@/components/AppPopup.vue";
 
     }
 
-    @media (max-width:840px){
+    @media (max-width: 840px) {
       width: 380px;
     }
 
@@ -382,7 +406,7 @@ import AppPopup from "@/components/AppPopup.vue";
     align-items: flex-start;
     gap: 30px;
 
-    @media (max-width:$tablet){
+    @media (max-width: $tablet) {
       gap: 25px;
       flex-direction: column;
       align-items: center;
@@ -424,7 +448,7 @@ import AppPopup from "@/components/AppPopup.vue";
     gap: 30px;
     justify-content: center;
 
-    @media (max-width:$tablet){
+    @media (max-width: $tablet) {
       gap: 19px;
       grid-template-rows: auto auto;
     }
@@ -447,11 +471,10 @@ import AppPopup from "@/components/AppPopup.vue";
     position: relative;
     display: flex;
 
-    @include adaptiveValue("width", 294, 215,1920,992);
-    @include adaptiveValue("width", 350, 160,991,360);
+    @include adaptiveValue("width", 294, 215, 1920, 992);
+    @include adaptiveValue("width", 350, 160, 991, 360);
 
-    @include adaptiveValue("height", 250, 136,991,360);
-
+    @include adaptiveValue("height", 250, 136, 991, 360);
 
 
     img {

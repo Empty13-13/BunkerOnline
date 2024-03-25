@@ -93,3 +93,9 @@ export function clearError(el) {
   
   small.style.opacity = "0"
 }
+export function clearFormElementsError(form) {
+  let inputs = form.querySelectorAll('input')
+  inputs.forEach(input => {
+    clearError(input)
+  })
+}

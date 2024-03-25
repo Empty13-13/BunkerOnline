@@ -285,5 +285,10 @@ input[type=text] {
     border-radius: 0;
     font-weight: 700;
     width: 15ch;
+    transition: border-color 0.3s ease;
+
+    &._error {
+      border-color: $redColorHover;
+    }
   }
 }

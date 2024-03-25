@@ -11,6 +11,7 @@ import Contacts from "@/views/Contacts.vue";
 import Pagination from "@/views/Pagination.vue";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import { getId, getLinkParams } from "@/plugins/functions.js";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,14 +72,28 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const myProfile = useMyProfileStore()
   
   if (to.name==="login" && myProfile.token) {
-    next('/')
-    return
+    return {name:'profile'}
   }
-  next()
 })
+
+// router.beforeResolve(async (to) => {
+//   console.log(to.name,to.name==='profile',to.query.account==='connected')
+//   if (to.name==='profile' && to.query.account==='connected') {
+//     console.log('start beforeEach')
+//     const authStore = useAuthStore()
+//     const myProfile = useMyProfileStore()
+//     await authStore.refreshToken()
+//
+//     console.log('refresh token ROUTER')
+//     if (!localStorage.getItem('userId')) {
+//       myProfile.id = getId.value
+//       localStorage.setItem('userId', myProfile.id.toString())
+//     }
+//   }
+// })
 
 export default router

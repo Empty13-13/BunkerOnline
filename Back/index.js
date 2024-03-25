@@ -6,6 +6,14 @@ const sequelize = require('./db')
 const router = require('./router/index')
 const fileUpload = require("express-fileupload")
 const errorMiddleware = require('./middlewares/error-middleware')
+const { rateLimit } = require('express-rate-limit')
+
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 1,
+    message: 'Rate limiter'
+})
 
 const app = express()
 
@@ -18,6 +26,7 @@ app.use(cookieParser());
 app.use(cors());
 app.use(express.static('static'))
 app.use('/api',router);
+app.use('/api/login',limiter)
 app.use(errorMiddleware);
 
 

@@ -70,7 +70,7 @@ class UserController {
       delete userData.refreshToken
       console.log(userData)
       res.redirect(redirect_url)
-
+      
     } catch(e) {
       next(e)
     }
@@ -94,8 +94,8 @@ class UserController {
   async updateUser(req, res, next) {
     try {
       const userId = req.params.id
-
-
+      
+      
       const data = req.body
       const {refreshToken} = req.cookies
       const resultData = await userService.updateUser(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
@@ -109,21 +109,21 @@ class UserController {
   }
   
   async updateNickname(req, res, next) {
-      try {
-        const userId = req.params.id
-  
-  
-        const data = req.body
-        const {refreshToken} = req.cookies
-        const resultData = await userService.updateNickname(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
-        const status = {status: 200, statusText: 'OK'}
-        res.json(status)
-        
-        
-      } catch(e) {
-        next(e)
-      }
+    try {
+      const userId = req.params.id
+      
+      
+      const data = req.body
+      const {refreshToken} = req.cookies
+      const resultData = await userService.updateNickname(data, refreshToken, userId) //{email,nickname,sex,avatar,text,birthday,hiddenBirthday}
+      const status = {status: 200, statusText: 'OK'}
+      res.json(status)
+      
+      
+    } catch(e) {
+      next(e)
     }
+  }
   
   
   async getUsers(req, res, next) {
@@ -176,49 +176,191 @@ class UserController {
   async getUser(req, res, next) {
     try {
       const userId = req.params.id
-      const id = req.headers
-      const user = await userService.getUser(userId)
+      // const id = req.headers
+      const {refreshToken} = req.cookies
+      const user = await userService.getUser(userId, refreshToken)
       
       return res.json(user)
     } catch(e) {
       next(e)
     }
   }
-
+  
   async uploadAvatar(req, res, next) {
     try {
-
-     
+      
+      
       const errors = validationResult(req)
-
-
+      
+      
       if (!errors.isEmpty()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'avatar', type: 'Error validate'}]))
       }
       const file = req.files.file
-       //console.log("ASDASDASDASDA",req.files.file['mimetype'])
-
+      //console.log("ASDASDASDASDA",req.files.file['mimetype'])
+      
       // console.log(file)
       const userId = req.params.id
       console.log(userId)
       const user = await userService.uploadAvatar(file, userId)
       return res.json({link: user})
-
-
+      
+      
     } catch(e) {
       next(e)
     }
   }
-
+  
   async deleteAvatar(req, res, next) {
     try {
       const userId = req.params.id
       const user = await userService.deleteAvatar(userId)
-
+      
       return res.json(user)
     } catch(e) {
       next(e)
     }
+  }
+  
+  async resetPasswordProfile(req, res, next) {
+    try {
+      const {refreshToken} = req.cookies
+      const user = await userService.resetProfile(refreshToken)
+      const type ="password"
+      const result = await userService.reset(user.email,type)
+      
+      
+      const status = {status: 200, statusText: 'OK'}
+      res.json(status)
+    } catch(e) {
+      next(e)
+    }
+  }
+  
+  async resetPassword(req, res, next) {
+    try {
+      const errors = validationResult(req)
+
+            if (!errors.isEmpty()) {
+              return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
+            }
+      
+      const {email} = req.body
+      const type ="password"
+      const result = await userService.reset(email,type)
+      
+      
+      const status = {status: 200, statusText: 'OK'}
+      res.json(status)
+    } catch(e) {
+      next(e)
+    }
+  }
+  
+  async resetUser(req, res, next) {
+    try {
+      if (!req.params.link) {
+        return res.redirect(process.env.API_URL)
+      }
+      
+      const link = req.params.link
+      
+      
+      const result = await userService.validationLinkReset(link)
+      
+      
+      const status = {status: 200, statusText: 'OK'}
+      if (result.type.toString()==="password") {
+        res.redirect(
+          `http://localhost:5173?connected=resetPassword&linkId=${result.id}&userId=${result.userId}&link=${link}`)
+      }
+      else {
+        res.redirect(
+          `http://localhost:5173?connected=resetEmail&linkId=${result.id}&userId=${result.userId}&link=${link}`)
+      }
+    } catch(e) {
+      next(e)
+    }
+  }
+  
+  async newPassword(req, res, next) {
+    
+    
+    try {
+
+      const errors = validationResult(req)
+
+            if (!errors.isEmpty()) {
+              return next(ApiError.BadRerquest('Error validate', [{input: 'password', type: 'Error validate'}]))
+            }
+
+      const {password, link, userId, idLink} = req.body
+      const result = await userService.validationLinkReset(link)
+      if (result.type.toString()!=="password") {
+         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+      }
+      console.log(userId, result.userId)
+      if (userId.toString()!==result.userId.toString()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+      }
+      const newPass = await userService.newPassword(password, userId, idLink)
+      
+      const status = {status: 200, statusText: 'OK'}
+      res.json(status)
+      
+    } catch(e) {
+      console.log(e)
+    }
+    
+  }
+
+  async newEmail(req, res, next) {
+
+
+      try {
+        const errors = validationResult(req)
+
+              if (!errors.isEmpty()) {
+                return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
+              }
+        
+        const {email, link, userId, idLink} = req.body
+        const result = await userService.validationLinkReset(link)
+        if (result.type.toString()!=="email") {
+           return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        }
+        console.log(userId, result.userId)
+        if (userId.toString()!==result.userId.toString()) {
+          return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        }
+        const newEmail = await userService.newEmail(email, userId, idLink)
+
+        const status = {status: 200, statusText: 'Ссылка на подверждение отправлена на email, подтвердите новый email'}
+        res.json(status)
+
+      } catch(e) {
+        next(e)
+      }
+
+    }
+  
+  async resetEmail(req, res, next) {
+    
+    
+    try {
+      const type ="email"
+      const {refreshToken} = req.cookies
+      const user = await userService.resetProfile(refreshToken)
+      
+      const result = await userService.reset(user.email,type)
+
+      console.log(result)
+      const status = {status: 200, statusText: 'OK'}
+      res.json(status)
+    } catch(e) {
+      next(e)
+    }
+    
   }
   
   

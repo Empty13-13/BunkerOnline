@@ -1,4 +1,4 @@
-<script setup>
+<script async setup>
 import { useAuthStore } from "@/stores/auth.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useMyProfileStore } from "@/stores/profile.js";
@@ -21,21 +21,12 @@ const checkUser = () => {
 
 checkUser()
 
-
-const getId = computed(() => {
-  return +router.currentRoute.value.path.split('=')[1]
-})
-onMounted(async () => {
+onBeforeMount(async () => {
   let params = getLinkParams()
-  if (params['account'] && params['account']==="connected") {
-    await authStore.refreshToken()
-    if(!localStorage.getItem('userId')) {
-      myProfile.id = getId.value
-      localStorage.setItem('userId', myProfile.id.toString())
-    }
+  if (!(params['account'] && params['account']==="connected")) {
+    console.log("setMyProfileInfo APP",params)
+    await myProfile.setMyProfileInfo()
   }
-
-  await myProfile.setMyProfileInfo()
 })
 
 import { RouterLink, RouterView } from 'vue-router'
@@ -43,11 +34,14 @@ import TheHeader from "@/components/TheHeader.vue";
 import TheFooter from "@/components/TheFooter.vue";
 import AppButton from "@/components/AppButton.vue";
 import AppUpButton from "@/components/AppUpButton.vue";
-import { computed, onMounted, onUpdated, ref } from "vue";
+import { computed, onBeforeMount, onMounted, onServerPrefetch, onUpdated, ref } from "vue";
 import AppLoader from "@/components/AppLoader.vue";
 import AppPreloader from "@/components/AppPreloader.vue";
-import { getLinkParams } from "@/plugins/functions.js";
+import { getId, getLinkParams } from "@/plugins/functions.js";
 import router from "@/router/index.js";
+import AppConfirm from "@/components/AppConfirm.vue";
+import AppPopup from "@/components/AppPopup.vue";
+import TheResetPopup from "@/components/TheResetPopup.vue";
 </script>
 
 <template>
@@ -56,6 +50,7 @@ import router from "@/router/index.js";
   <RouterView/>
   <TheFooter></TheFooter>
   <AppUpButton/>
+  <AppConfirm/>
 </template>
 
 <style lang="scss">

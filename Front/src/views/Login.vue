@@ -2,6 +2,14 @@
 import { useAuthStore } from "@/stores/auth.js";
 import { validationRegistration, testNicknameKey, clearError } from '@/plugins/auth.js'
 import { useMyProfileStore } from "@/stores/profile.js";
+import AppBackground from "@/components/AppBackground.vue";
+import AppButton from "@/components/AppButton.vue";
+import { ref } from "vue";
+import { objIsEmpty, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
+import router from "@/router/index.js";
+import AppLoader from "@/components/AppLoader.vue";
+import AppPopup from "@/components/AppPopup.vue";
+import axiosInstance from "@/api.js";
 
 const myProfile = useMyProfileStore()
 
@@ -45,42 +53,61 @@ async function registrationHandler(e) {
 
 const loginInput = ref()
 const password = ref()
+const isForgetPassword = ref(false)
 
 async function loginHandler(e) {
   e.preventDefault()
-  clearError(loginInput.value)
-  clearError(password.value)
-
-  let data = {
-    login: loginInput.value.value.trim(),
-    password: password.value.value,
-  }
-  let errors = {}
-
-  for (let key in data) {
-    if (!data[key]) {
-      errors[key] = 'Поле не должно быть пустым'
-
-      if (key==='login') {
-        setErrorForInput("nickname", 'Поле не должно быть пустым')
-      }
-      else {
-        setErrorForInput(key, 'Поле не должно быть пустым')
-      }
+  if(isForgetPassword.value) {
+    clearError(loginInput.value)
+    let errors = validationRegistration({email:loginInput.value.value})
+    if(errors.email) {
+      setErrorForInput('nickname',errors.email)
+      return
     }
-  }
 
-  if (objIsEmpty(errors)) {
-    await useAuthStore().auth(data, 'login')
-
+    await useAuthStore().resetPassword(loginInput.value.value)
     if (useAuthStore().errors.message) {
-      if (!useAuthStore().errors.input) {
-        useAuthStore().errors.input = 'nickname'
-      }
-      setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
+      setErrorForInput('nickname', useAuthStore().errors.message)
     }
     else {
       await router.push(`/profile=${myProfile.id}`)
+    }
+  }
+  else {
+    clearError(loginInput.value)
+    clearError(password.value)
+
+    let data = {
+      login: loginInput.value.value.trim(),
+      password: password.value.value,
+    }
+    let errors = {}
+
+    for (let key in data) {
+      if (!data[key]) {
+        errors[key] = 'Поле не должно быть пустым'
+
+        if (key==='login') {
+          setErrorForInput("nickname", 'Поле не должно быть пустым')
+        }
+        else {
+          setErrorForInput(key, 'Поле не должно быть пустым')
+        }
+      }
+    }
+
+    if (objIsEmpty(errors)) {
+      await useAuthStore().auth(data, 'login')
+
+      if (useAuthStore().errors.message) {
+        if (!useAuthStore().errors.input) {
+          useAuthStore().errors.input = 'nickname'
+        }
+        setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
+      }
+      else {
+        await router.push(`/profile=${myProfile.id}`)
+      }
     }
   }
 }
@@ -93,7 +120,7 @@ function keyDownNickname(e) {
 
 function focusInInput(e) {
   clearError(e.target)
-  slideUp(e.target.parentNode.querySelector('small'),200)
+  slideUp(e.target.parentNode.querySelector('small'), 200)
 }
 
 
@@ -117,38 +144,31 @@ function setErrorForInput(inputName, textSmall) {
   input.classList.add('_error')
   small.textContent = textSmall
   small.style.opacity = "1"
-  slideDown(small,200)
+  slideDown(small, 200)
 }
 
-import AppBackground from "@/components/AppBackground.vue";
-import AppButton from "@/components/AppButton.vue";
-import { ref } from "vue";
-import { objIsEmpty, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
-import router from "@/router/index.js";
-import AppLoader from "@/components/AppLoader.vue";
-import AppPopup from "@/components/AppPopup.vue";
 </script>
 
 <template>
   <main class="authBlock">
     <AppBackground class="backgroundAuth" img-name="profile.jpg" />
     <div class="authBlock__container">
-      <h1 class="authBlock__title">Вход и регистрация</h1>
+      <h1  class="authBlock__title">Вход и регистрация</h1>
       <div class="authBlock__body">
         <div class="authBlock__login login-authBlock linear-border gold">
           <div class="login-authBlock__body">
-            <h2 class="login-authBlock__title">Вход</h2>
+            <h2 class="login-authBlock__title">{{ isForgetPassword?'Забыли пароль?':'Вход' }}</h2>
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input autofocus @focus="focusInInput" ref="loginInput" placeholder="Ваш ник или email" type="text"
+                <input autofocus @focus="focusInInput" ref="loginInput" :placeholder="isForgetPassword?'Введите email аккаунта':'Ваш ник или email'" type="text"
                        name="nickname">
               </div>
-              <div class="authBlock-form__input">
+              <div v-if="!isForgetPassword" class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
                 <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
               </div>
-              <div>
+              <div v-if="!isForgetPassword">
                 <p>Войти с помощью</p>
                 <span>
                   <span @click="linkTo('http://localhost:80/api/loginDiscord')"
@@ -158,12 +178,13 @@ import AppPopup from "@/components/AppPopup.vue";
 
                 </span>
               </div>
+              <div @click="isForgetPassword=!isForgetPassword" class="authBlock-form__forgetPassword"><span>{{ isForgetPassword?'Вход':'Забыли пароль?' }}</span></div>
               <AppLoader v-if="useAuthStore().isLoader" />
-              <AppButton v-else color="gold">Войти</AppButton>
+              <AppButton v-else color="gold">{{ isForgetPassword?'Отправить':'Войти' }}</AppButton>
             </form>
           </div>
         </div>
-        <div class="authBlock__reg login-authBlock linear-border gold">
+        <div v-if="!isForgetPassword" class="authBlock__reg login-authBlock linear-border gold">
           <div class="login-authBlock__body">
             <h2 class="login-authBlock__title">Регистрация</h2>
             <form novalidate @submit="registrationHandler" class="login-authBlock__form authBlock-form">
@@ -327,6 +348,17 @@ import AppPopup from "@/components/AppPopup.vue";
       opacity: 0;
       transition: opacity 0.1s ease, height 0.1s ease;
       font-size: 12px;
+    }
+  }
+
+  &__forgetPassword {
+
+    span {
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 

@@ -9,6 +9,17 @@ const adminMiddleware = require('../middlewares/admin-middleware')
 const vipMvpAdminMiddleware = require('../middlewares/vipMvpAdmin-middleware')
 const updateUserMiddleware = require('../middlewares/updateUser-middleware')
 const path = require('path')
+const { rateLimit } = require('express-rate-limit')
+
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    keyGenerator: (req, res) => req.body['login'],
+    message: async (req,res) => {res.json({message: 'Вы привысили количество запросов, попробуйте позже', errors: [{input: "nickname", type: 'rateLimited'}]})},
+    legacyHeaders: false
+})
+
 
 
 router.post('/registration',
@@ -16,7 +27,7 @@ router.post('/registration',
   body('email').isEmail(),
   body('password').isLength({min: 5, max: 16}),
   userController.registration);
-router.post('/login',
+router.post('/login',limiter,
   body('login').notEmpty(),
   userController.login);
 router.post('/logout', userController.logout);
@@ -24,20 +35,26 @@ router.post('/blockUser=:id', adminMiddleware('admin'), adminController.banUser)
 router.get('/activate/:link', userController.activate);
 router.post('/refresh', userController.refresh);
 router.post('/updateUser=:id', updateUserMiddleware('admin'), userController.updateUser);
-router.post('/updateNickname=:id',vipMvpAdminMiddleware('admin'), userController.updateNickname);
+router.post('/updateNickname=:id', vipMvpAdminMiddleware('admin'), userController.updateNickname);
 router.get('/users', authMiddleware, userController.getUsers);
 router.get('/user=:id', userController.getUser);
 router.get('/loginDiscord', userController.loginDiscord);
 router.get('/callback', userController.callback);
-router.post('/uploadAvatar=:id',updateUserMiddleware('admin'), body('files').custom((value, req) => {
+router.post('/resetPasswordProfile', authMiddleware, userController.resetPasswordProfile);                                         //Только через профиль. Принимает refreshToken
+router.post('/resetPassword', body('email').isEmail(), userController.resetPassword);                                                       //Забыл пароль. Body - Email
+router.post('/newPassword', body('password').isLength({min: 5, max: 16}), userController.newPassword);  //Принимает данные от перехода по ссылке. Query paramerters
+router.get('/resetUser/:link', userController.resetUser);                                                          //Ссылка которая будет приходить на почту. Редирект
+router.post('/uploadAvatar=:id', updateUserMiddleware('admin'), body('files').custom((value, req) => {
   console.log(req)
   
   let extension = (path.extname(req.req.files.file.name)).toLowerCase();
-  let correctExtensions = ['.jpg','.jpeg','.png','.gif']
+  let correctExtensions = ['.jpg', '.jpeg', '.png', '.gif']
   
   return correctExtensions.toString().includes(extension);
 }), userController.uploadAvatar);
-router.post('/deleteAvatar=:id',updateUserMiddleware('admin'), userController.deleteAvatar);
+router.post('/deleteAvatar=:id', updateUserMiddleware('admin'), userController.deleteAvatar);
+router.post('/resetEmail', authMiddleware, userController.resetEmail); // cookie
+router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //body parameters and email
 
 
 //router.get('/loginVK',userController.loginVK);

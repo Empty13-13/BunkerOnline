@@ -34,12 +34,18 @@ module.exports = function(accsessLevel) {
       console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ID: ', user)
       if (userId.toString()!==id.dataValues.userId.toString()) {
         if (user.dataValues.accsessLevel!==accsessLevel) {
-          return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
+          return next(ApiError.BadRerquest(`РќРµС‚ РґРѕСЃС‚СѓРїР° РјРµРЅСЏС‚СЊ РґР°РЅРЅС‹Рµ`, [{type: 'Inadmissible id'}]))
         }
       }
       else if (user.dataValues.accsessLevel.toString()==='default') {
-        
-        return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
+        const isChange = await UserModel.DiscordAuthId.findOne({where:{userId:userId}})
+        if(!isChange){
+          return next(ApiError.BadRerquest(`РќРµС‚ РґРѕСЃС‚СѓРїР° РјРµРЅСЏС‚СЊ РґР°РЅРЅС‹Рµ`, [{type: 'Inadmissible id'}]))
+        }
+        if(isChange.changeNickname){
+          return next(ApiError.BadRerquest(`РќРµС‚ РґРѕСЃС‚СѓРїР° РјРµРЅСЏС‚СЊ РґР°РЅРЅС‹Рµ`, [{type: 'Inadmissible id'}]))
+        }
+                                                
       }
       
       

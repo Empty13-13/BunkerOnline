@@ -1,10 +1,12 @@
 <script setup>
 import AppButton from "@/components/AppButton.vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onBeforeMount, onMounted, onUnmounted, ref } from "vue";
 import router from "@/router/index.js";
 import { useAccessStore } from "@/stores/counter.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import { getClassForAccess, getId, getLinkParams } from "@/plugins/functions.js";
+import AppAvatar from "@/components/AppAvatar.vue";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -14,7 +16,10 @@ const isOpen = ref(false)
 const header = ref(null)
 let oldScrollY = 0
 
-onMounted(() => {
+onBeforeMount(() => {
+
+})
+onMounted(async () => {
   window.addEventListener('scroll', headerScroll)
 })
 onUnmounted(() => {
@@ -82,7 +87,7 @@ function headerScroll() {
               </div>
               <div v-if="myProfile.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__img">
-                  <img src="/img/icons/man.svg" alt="">
+                  <AppAvatar block-edit :color="myProfile.access" v-model:href="myProfile.avatarName"/>
                 </router-link>
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__name"
                              :title="myProfile.nickname">
@@ -337,7 +342,7 @@ function headerScroll() {
   &__img {
     margin-right: 15px;
     border-radius: 50%;
-    background: $goldColor;
+    //background: $goldColor;
     width: 35px;
     height: 35px;
     display: flex;
@@ -349,9 +354,9 @@ function headerScroll() {
       box-shadow: 0px 5px 30px 0px rgba(217, 102, 19, 0.7);
     }
 
-    img {
-      max-height: 100%;
-      max-width: 100%;
+    .avatar {
+      width: 100%;
+      height: 100%;
     }
   }
 

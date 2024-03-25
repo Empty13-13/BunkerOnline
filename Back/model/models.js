@@ -27,6 +27,7 @@ const Token = sequelize.define('token', {
 const DiscordAuthId = sequelize.define('discordAuthId', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   userId: {type: DataTypes.INTEGER},
+  changeNickname: {type: DataTypes.TINYINT, defaultValue: 0},
   discordId: {type: DataTypes.STRING}
 })
 
@@ -46,11 +47,21 @@ const BlackListUsers = sequelize.define('BlackListUsers', {
   userId: {type: DataTypes.INTEGER},
 })
 
+const ResetPassword = sequelize.define('resetPassword', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  userId: {type: DataTypes.INTEGER},
+  tokenLink: {type: DataTypes.STRING,},
+  tokenLinkExp: {type: DataTypes.DATE},
+  isChange:{type: DataTypes.TINYINT, defaultValue: 0},
+  type: {type: DataTypes.STRING}
+})
+
 
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
 User.hasOne(BlackListUsers)
+User.hasOne(ResetPassword)
 
 module.exports = {
   User,
@@ -58,5 +69,6 @@ module.exports = {
   BlackListWords,
   DiscordAuthId,
   VkAuthId,
-  BlackListUsers
+  BlackListUsers,
+  ResetPassword
 }

@@ -1,7 +1,7 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
 import { computed, ref } from "vue";
-import { useMyProfileStore,useActionsProfileStore } from "@/stores/profile.js";
+import { useMyProfileStore, useActionsProfileStore } from "@/stores/profile.js";
 import { getId } from "@/plugins/functions.js";
 
 defineProps({
@@ -41,8 +41,13 @@ async function changeFileInput(e) {
   reader.onload = async (e) => {
     const formData = new FormData()
     formData.append('file', file)
-    let response = await actionsProfile.uploadAvatar(getId.value,formData)
+    let response = await actionsProfile.uploadAvatar(getId.value, formData)
+    console.log(href.value, response.data.link)
     href.value = response.data.link
+
+    if (getId.value===myProfile.id) {
+      myProfile.avatarName = response.data.link
+    }
   }
   reader.onerror = () => {
     alert('Произошла ошибка')
@@ -54,6 +59,10 @@ async function changeFileInput(e) {
 async function deleteAvatar() {
   await actionsProfile.deleteAvatar(getId.value)
   href.value = ''
+
+  if (getId.value===myProfile.id) {
+    myProfile.avatarName = ""
+  }
 }
 
 </script>

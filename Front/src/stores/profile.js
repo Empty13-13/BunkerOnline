@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from "@/api.js";
 import router from "@/router/index.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
 
 export const useMyProfileStore = defineStore('myProfile', () => {
   const token = ref()
@@ -21,6 +22,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   const actionsProfile = useActionsProfileStore()
   
   async function setMyProfileInfo() {
+    const preloader = usePreloaderStore()
+    preloader.activate()
     console.log(id.value)
     if (id.value) {
       try {
@@ -28,15 +31,16 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         nickname.value = response.data.nickname
         access.value = response.data.accsessLevel
         avatarName.value = response.data.avatar
-        console.log(response)
       } catch(e) {
         console.log(e.message)
       }
     }
     else {
-      clearUserInfo()
-      await router.push('/login')
+      // clearUserInfo()
+      // await router.push('/login')
     }
+    
+    preloader.deactivate()
   }
   
   function clearUserInfo() {
@@ -67,7 +71,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
 export const useActionsProfileStore = defineStore('actionsProfile', () => {
   async function getUserInfo(id) {
     try {
-      return await axiosInstance.get(`/user=${id}`)
+      return await axiosInstance.get(`/user=${id}`, {withCredentials: true}).catch((error)=> {
+        console.log('getUserInfo Error',error)
+      })
     } catch(e) {
       console.log(e.message)
     }
@@ -93,7 +99,7 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
     }
   }
   
-  async function updateNickname(id,payload) {
+  async function updateNickname(id, payload) {
     try {
       return await axiosInstance.post(`/updateNickname=${id}`, {...payload},
         {

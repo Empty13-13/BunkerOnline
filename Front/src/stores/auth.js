@@ -48,6 +48,21 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
     } catch(e) {
+      console.log(e.response)
+      errors.value.message = e.response.data.message
+      errors.value.input = e.response.data.errors[0].input
+    } finally {
+      isLoader.value = false
+    }
+  }
+  
+  async function resetPassword(email) {
+    isLoader.value = true
+    try {
+      await axiosInstance.post('/resetPassword', {
+        email: email
+      })
+    } catch(e) {
       errors.value.message = e.response.data.message
       errors.value.input = e.response.data.errors[0].input
     } finally {
@@ -58,7 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function refreshToken() {
     try {
       const newTokens = await axiosInstance.post('/refresh', {}, {
-        withCredentials: true
+        withCredentials: true,
       })
       console.log("Обратились за новым токеном: ", newTokens.data)
       
@@ -83,14 +98,14 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('Error logout: ', e.message)
     }
     
-    const clearUser = () => myProfile.clearUserInfo()
+    myProfile.clearUserInfo()
     await router.push('/login')
   }
   
   //========================================================================================================================================================
   
   async function updateProfileInfo(id, payload) {
-    console.log(id,payload,`/updateUser=${id}`)
+    console.log(id, payload, `/updateUser=${id}`)
     try {
       return await axiosInstance.post(`/updateUser=${id}`, {...payload},
         {
@@ -98,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
         })
     } catch(e) {
       console.log(e.message)
-      return Promise.reject(e);
+      return e;
     }
   }
   
@@ -109,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoader,
     logoutUser,
     refreshToken,
-    updateProfileInfo
+    updateProfileInfo,
+    resetPassword
   }
 })

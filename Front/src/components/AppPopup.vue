@@ -117,7 +117,7 @@ function closePopup(e) {
   }
 
   &__block {
-    padding: 20px 30px;
+    padding: 30px 45px;
     display: flex;
     justify-content: center;
     align-items: center;

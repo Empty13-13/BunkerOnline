@@ -24,6 +24,10 @@ import axiosInstance from "@/api.js";
 import { testNicknameKey } from "@/plugins/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { useActionsProfileStore } from "@/stores/profile.js";
+import { focusInInput, setErrorForInput } from "@/plugins/inputActions.js";
+import AppUpButton from "@/components/AppUpButton.vue";
+import AppConfirm from "@/components/AppConfirm.vue";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -86,6 +90,7 @@ let saveBtnText = ref('Сохранить')
 
 
 let isChangingName = ref(false)
+let oldNickname = null
 
 function changeBlocked() {
   data.isBlocked = !data.isBlocked
@@ -102,14 +107,22 @@ async function banUser() {
 async function changeName() {
   if (!isChangingName.value) {
     isChangingName.value = true
+    oldNickname = data.name
   }
   else {
-    isChangingName.value = false
+    if (oldNickname===data.name) {
+      isChangingName.value = false
+      return
+    }
+
     try {
       let response = await actionsProfile.updateNickname(data.id, {nickname: data.name})
+      data.isChange = false
+      isChangingName.value = false
       console.log("Смогли поменять ник!", response)
     } catch(e) {
       console.log(e.message)
+      setErrorForInput('nickname', e.response.data.message)
     }
   }
 }
@@ -123,16 +136,28 @@ async function keyDownNickname(e) {
   }
 }
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   globalPreloader.activate()
   oldId = getId.value
+  let params = getLinkParams()
+  if (params['account'] && params['account']==="connected") {
+    await authStore.refreshToken()
+    if (!localStorage.getItem('userId')) {
+      myProfile.id = getId.value
+      localStorage.setItem('userId', myProfile.id.toString())
+    }
+    await myProfile.setMyProfileInfo()
+  }
+  else if (isMyProfile) {
+    await myProfile.setMyProfileInfo()
+  }
 })
 onMounted(async () => {
   await updateProfileInfo()
   fieldsInit()
   globalPreloader.deactivate()
 })
-onBeforeUpdate(() => {
+onBeforeUpdate(async () => {
   if (oldId!==getId.value) {
     destroyAll()
   }
@@ -150,7 +175,6 @@ onUpdated(async () => {
   }
   globalPreloader.deactivate()
 })
-
 onBeforeUnmount(() => {
   destroyAll()
 })
@@ -178,7 +202,7 @@ async function saveProfileInfoHandler(e) {
   }
 
   let response = await authStore.updateProfileInfo(getId.value, body)
-  if (response.status && response.status===200) {
+  if (response && response.status && response.status===200) {
     saveBtnText.value = 'Сохранили!'
   }
   else {
@@ -189,18 +213,18 @@ async function saveProfileInfoHandler(e) {
   }, 3400)
   isSaveLoader.value = false
 }
-
 async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(getId.value)
   if (!userInfo) {
     return
   }
 
+  data.isBlocked = userInfo.data.isBanned || false
+  data.isChange = userInfo.data.isChange || false
   data.access.title = userInfo.data.accsessLevel.toLowerCase() || 'default'
   data.access.date = new Date(userInfo.data.accsessDate) || '∞'
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
-  console.log(myProfile.avatarName)
   data.avatar = userInfo.data.avatar
   data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
   if (data.birthday.date && birthdayInput.value) {
@@ -222,6 +246,37 @@ async function updateProfileInfo() {
   data.survivalRate = !!userInfo.data.numGame && userInfo.data.numWinGame? Math.round(
       userInfo.data.numWinGame / userInfo.data.numGame * 100):0
 }
+
+const showPasswordChangePopup = ref(false)
+const showEmailChangePopup = ref(false)
+function changePasswordHandler(e) {
+  e.preventDefault()
+  showConfirmBlock(e.target,async () => {
+    try {
+      await axiosInstance.post('/resetPasswordProfile',{},{
+        withCredentials: true
+      })
+      showPasswordChangePopup.value = true
+    } catch(e) {
+      console.log(e.message)
+    }
+
+  },'Вы уверены что хотите сменить пароль?')
+}
+
+function changeEmailHandler(e) {
+  e.preventDefault()
+  showConfirmBlock(e.target,async () => {
+    try {
+      await axiosInstance.post('/resetEmail',{},{
+        withCredentials: true
+      })
+      showEmailChangePopup.value = true
+    } catch(e) {
+      console.log(e.message)
+    }
+  })
+}
 </script>
 
 <template>
@@ -242,25 +297,27 @@ async function updateProfileInfo() {
                 <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
                   {{ data.name }}
                 </span>
-                <input v-else type="text"
-                       name="nickname"
-                       v-model="data.name"
-                       @keydown="keyDownNickname"
-                       class="_type2"
-                       maxlength="15"
-                       minlength="3"
-                >
-                <button v-if="myProfile.isAdmin && !isMyProfile && data.access.title !== 'admin' && !isChangingName"
+                <div v-else class="naming-profileBlock__input">
+                  <small hidden="">Какой то текст с ошибкой</small>
+                  <input type="text" name="nickname" class="_type2" maxlength="15" minlength="3"
+                         v-model="data.name"
+                         @keydown="keyDownNickname"
+                         @focus="focusInInput"
+                  >
+                </div>
+
+                <button v-if="myProfile.isAdmin && !isMyProfile && !isChangingName"
                         class="naming-profileBlock__blockBtn btn"
                         @mouseover="changeBlocked" @mouseout="changeBlocked"
                         @click="banUser"
                 >
                   <img :src="'/img/icons/'+getBlockButtonImg" alt="">
                 </button>
-                <button v-if="(isMyProfile && !myProfile.isDefault) || myProfile.isAdmin"
-                        class="naming-profileBlock__blockBtn btn"
-                        ref="changeNameBtn"
-                        @click="changeName"
+                <button
+                    v-if="(isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)"
+                    class="naming-profileBlock__blockBtn btn"
+                    ref="changeNameBtn"
+                    @click="changeName"
                 >
                   <img v-if="!isChangingName" src="/img/icons/pencil.png" alt="">
                   <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50px" height="50px">
@@ -318,7 +375,8 @@ async function updateProfileInfo() {
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Дата регистрации {{ data.dateRegistration.toLocaleDateString() }}</span>
             </div>
-            <div v-if="!isMyProfile && !data.birthday.isHidden" class="middle-profileBlock__column">
+            <div v-if="!isMyProfile && !data.birthday.isHidden || (!isMyProfile && myProfile.isAdmin)"
+                 class="middle-profileBlock__column">
               <span>Дата рождения:
                     {{ data.birthday.date? data.birthday.date.toLocaleDateString():"Не установлено" }}
                     {{
@@ -362,6 +420,12 @@ async function updateProfileInfo() {
               <AppButton v-else color="gold" border="true">{{ saveBtnText }}</AppButton>
             </div>
           </form>
+          <div class="change-profileBlock">
+            <div class="change-profileBlock__body">
+              <AppButton @click="changePasswordHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить пароль</AppButton>
+              <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить почту</AppButton>
+            </div>
+          </div>
           <div class="profileBlock__bottom" :class="isMyProfile?'':'center'">
             <div class="statistic-bottom">
               <div v-if="isMyProfile" class="statistic-bottom__title">Статистика по играм</div>
@@ -412,57 +476,71 @@ async function updateProfileInfo() {
         </div>
       </div>
     </div>
-    <AppPopup v-model="isPopupOpen">
-      <template v-slot:title>
-        Оплата подписки
-      </template>
-      <div class="subscribeBlock">
-        <div class="subscribeBlock__block linear-border white">
-          <div class="subscribeBlock__title silverTextColor">VIP</div>
-          <p class="subscribeBlock__text">
-            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-          </p>
-          <div class="subscribeBlock__days">
-            <label for="dayVip">Срок действия</label>
-            <select v-model="vipValueInput" name="dayVip" id="dayVip" class="profile">
-              <option value="500">1 месяц</option>
-              <option value="3000">6 месяцев</option>
-              <option value="6000">12 месяцев</option>
-            </select>
+    <teleport to="#app">
+      <AppPopup v-model="isPopupOpen">
+        <template v-slot:title>
+          Оплата подписки
+        </template>
+        <div class="subscribeBlock">
+          <div class="subscribeBlock__block linear-border white">
+            <div class="subscribeBlock__title silverTextColor">VIP</div>
+            <p class="subscribeBlock__text">
+              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+            </p>
+            <div class="subscribeBlock__days">
+              <label for="dayVip">Срок действия</label>
+              <select v-model="vipValueInput" name="dayVip" id="dayVip" class="profile">
+                <option value="500">1 месяц</option>
+                <option value="3000">6 месяцев</option>
+                <option value="6000">12 месяцев</option>
+              </select>
+            </div>
+            <div class="price-subscribeBlock">
+              <div class="price-subscribeBlock__price silverTextColor">{{ vipValueInput }} ₽</div>
+              <div class="price-subscribeBlock__oldPrice silverTextColor">{{ +vipValueInput + 209 }} ₽</div>
+              <div class="price-subscribeBlock__discount">Скидка 33%</div>
+            </div>
+            <div class="">
+              <AppButton class="subscribeBlock__btn" color="whiteGray">Перейти к оплате</AppButton>
+            </div>
           </div>
-          <div class="price-subscribeBlock">
-            <div class="price-subscribeBlock__price silverTextColor">{{ vipValueInput }} ₽</div>
-            <div class="price-subscribeBlock__oldPrice silverTextColor">{{ +vipValueInput + 209 }} ₽</div>
-            <div class="price-subscribeBlock__discount">Скидка 33%</div>
-          </div>
-          <div class="">
-            <AppButton class="subscribeBlock__btn" color="whiteGray">Перейти к оплате</AppButton>
+          <div class="subscribeBlock__block linear-border gold">
+            <div class="subscribeBlock__title goldTextColor">MVP</div>
+            <p class="subscribeBlock__text">
+              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
+            </p>
+            <div class="subscribeBlock__days">
+              <label for="dayMvp">Срок действия</label>
+              <select v-model="mvpValueInput" name="dayMvp" id="dayMvp" class="profile">
+                <option value="1000">1 месяц</option>
+                <option value="6000">6 месяцев</option>
+                <option value="12000">12 месяцев</option>
+              </select>
+            </div>
+            <div class="price-subscribeBlock">
+              <div class="price-subscribeBlock__price goldTextColor">{{ mvpValueInput }} ₽</div>
+            </div>
+            <div class="">
+              <AppButton class="subscribeBlock__btn" color="gold">Перейти к оплате</AppButton>
+            </div>
           </div>
         </div>
-        <div class="subscribeBlock__block linear-border gold">
-          <div class="subscribeBlock__title goldTextColor">MVP</div>
-          <p class="subscribeBlock__text">
-            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-            Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-          </p>
-          <div class="subscribeBlock__days">
-            <label for="dayMvp">Срок действия</label>
-            <select v-model="mvpValueInput" name="dayMvp" id="dayMvp" class="profile">
-              <option value="1000">1 месяц</option>
-              <option value="6000">6 месяцев</option>
-              <option value="12000">12 месяцев</option>
-            </select>
-          </div>
-          <div class="price-subscribeBlock">
-            <div class="price-subscribeBlock__price goldTextColor">{{ mvpValueInput }} ₽</div>
-          </div>
-          <div class="">
-            <AppButton class="subscribeBlock__btn" color="gold">Перейти к оплате</AppButton>
-          </div>
-        </div>
-      </div>
-    </AppPopup>
+      </AppPopup>
+      <AppPopup v-model="showPasswordChangePopup" color="gold">
+        <template v-slot:title>
+          Подтверждение смены пароля отправлено на почту
+        </template>
+        Для изменения пароля следуйте инструкции в почте
+      </AppPopup>
+      <AppPopup v-model="showEmailChangePopup" color="gold">
+        <template v-slot:title>
+          Подтверждение смены Email отправлено на почту
+        </template>
+        Для изменения Email следуйте инструкции в почте
+      </AppPopup>
+    </teleport>
   </main>
 </template>
 
@@ -629,6 +707,20 @@ async function updateProfileInfo() {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  &__input {
+    position: relative;
+    margin-left: 7px;
+
+    small {
+      font-size: 12px;
+      font-weight: 500;
+      color: $redColorHover;
+      position: absolute;
+      left: 0;
+      bottom: -20px;
+    }
+  }
 }
 
 .packs-profileBlock {
@@ -686,7 +778,17 @@ async function updateProfileInfo() {
   gap: 30px;
   position: relative;
   z-index: 4;
-  margin-bottom: 80px;
+  margin-bottom: 30px;
+
+  @media (max-width: $pc) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: inherit;
+  }
+
+  @media (max-width: $tablet) {
+    margin-bottom: 70px;
+  }
 
   &__column {
     display: flex;
@@ -696,6 +798,24 @@ async function updateProfileInfo() {
 
     @media (max-width: $pc) {
       margin-bottom: 35px;
+      flex: 1 1 auto;
+
+      &:nth-child(1),&:nth-child(2) {
+        flex: 0 1 48%;
+      }
+      &:nth-child(3) {
+        flex: 1 1 100%;
+      }
+    }
+    @media (max-width:$tablet){
+      &:nth-child(1),&:nth-child(2) {
+        flex: 0 1 47.5%;
+      }
+    }
+    @media (max-width: $mobile) {
+      &:nth-child(1),&:nth-child(2) {
+        flex: 1 1 100%;
+      }
     }
 
     @media (max-width: $mobileSmall) {
@@ -766,12 +886,6 @@ async function updateProfileInfo() {
     }
   }
 
-  @media (max-width: $pc) {
-    display: flex;
-    flex-direction: column;
-    align-items: inherit;
-  }
-
 
   &.center {
     display: flex;
@@ -791,6 +905,34 @@ async function updateProfileInfo() {
       &:first-child {
         margin: 0 !important;
       }
+    }
+  }
+}
+
+.change-profileBlock {
+  margin-bottom: 50px;
+
+  &__body {
+    display: flex;
+    gap: 33px;
+
+    @media (max-width: $mobileSmall) {
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+  }
+
+  &__btn {
+    padding: 13px;
+    flex: 0 1 183px;
+
+    @media (max-width: $tablet) {
+      flex: 1 1 auto;
+    }
+
+    @media (max-width: $mobileSmall) {
+      width: 200px;
     }
   }
 }
