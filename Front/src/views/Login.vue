@@ -12,7 +12,7 @@ import AppPopup from "@/components/AppPopup.vue";
 import axiosInstance from "@/api.js";
 
 const myProfile = useMyProfileStore()
-
+const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const showPopup = ref(false)
 
 const nicknameReg = ref()
@@ -171,7 +171,7 @@ function setErrorForInput(inputName, textSmall) {
               <div v-if="!isForgetPassword">
                 <p>Войти с помощью</p>
                 <span>
-                  <span @click="linkTo('http://localhost:3000/api/loginDiscord')"
+                  <span @click="linkTo(`${apiLink}/loginDiscord`)"
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
@@ -213,7 +213,7 @@ function setErrorForInput(inputName, textSmall) {
               <div>
                 <p>Зарегистрироваться с помощью</p>
                 <span>
-                  <span @click="linkTo('http://localhost:3000/api/loginDiscord')"
+                  <span @click="linkTo(`${apiLink}/loginDiscord`)"
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
