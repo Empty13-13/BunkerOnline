@@ -64,7 +64,7 @@ class UserController {
     try {
       const activateLink = req.params.link
       const userData = await userService.activate(activateLink)
-      const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
+      const redirect_url = `${process.env.FRONT_API}/profile=${userData.user.id}?account=connected`
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
@@ -151,7 +151,7 @@ class UserController {
       {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
     delete userData.refreshToken
     //console.log(userData.user.id)
-    const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
+    const redirect_url = `${process.env.FRONT_API}/profile=${userData.user.id}?account=connected`
     res.redirect(redirect_url)
   }
 
@@ -169,7 +169,7 @@ class UserController {
 //     delete userData.refreshToken
 //         console.log(userData.user.id)
 //         console.log(userData)
-//         const redirect_url = `http://localhost:5173/profile=${userData.user.id}?account=connected`
+//         const redirect_url = `${process.env.FRONT_API}/profile=${userData.user.id}?account=connected`
 //         res.redirect(redirect_url)
 //   }
   
@@ -272,11 +272,11 @@ class UserController {
       const status = {status: 200, statusText: 'OK'}
       if (result.type.toString()==="password") {
         res.redirect(
-          `http://localhost:5173?connected=resetPassword&linkId=${result.id}&userId=${result.userId}&link=${link}`)
+          `${process.env.FRONT_API}?connected=resetPassword&linkId=${result.id}&userId=${result.userId}&link=${link}`)
       }
       else {
         res.redirect(
-          `http://localhost:5173?connected=resetEmail&linkId=${result.id}&userId=${result.userId}&link=${link}`)
+          `${process.env.FRONT_API}?connected=resetEmail&linkId=${result.id}&userId=${result.userId}&link=${link}`)
       }
     } catch(e) {
       next(e)
