@@ -72,7 +72,7 @@ async function deleteAvatar() {
     <div class="avatar__img" :class="color">
       <img v-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
       <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.svg" alt="">
-      <img ref="ownImage" v-else :src="'http://localhost/'+href" alt="">
+      <img ref="ownImage" v-else :src="'http://5.75.177.255:3000/'+href" alt="">
 
       <div v-if="!blockEdit && (myProfile.isAdmin || myProfile.id === getId)" class="profileEdit-avatar">
         <div @click="editAvatar" class="profileEdit-avatar__img _edit">
