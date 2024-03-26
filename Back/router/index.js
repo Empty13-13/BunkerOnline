@@ -16,7 +16,7 @@ const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 5,
     keyGenerator: (req, res) => req.body['login'],
-    message: async (req,res) => {res.json({message: 'Вы превысили количество запросов, попробуйте позже', errors: [{input: "nickname", type: 'rateLimited'}]})},
+    message: async (req,res) => {return res.json({message: 'Вы превысили количество запросов, попробуйте позже', errors: [{input: "nickname", type: 'rateLimited'}]})},
     legacyHeaders: false
 })
 
