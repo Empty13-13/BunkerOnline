@@ -171,7 +171,7 @@ function setErrorForInput(inputName, textSmall) {
               <div v-if="!isForgetPassword">
                 <p>Войти с помощью</p>
                 <span>
-                  <span @click="linkTo('http://localhost:80/api/loginDiscord')"
+                  <span @click="linkTo('http://localhost:3000/api/loginDiscord')"
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
@@ -213,7 +213,7 @@ function setErrorForInput(inputName, textSmall) {
               <div>
                 <p>Зарегистрироваться с помощью</p>
                 <span>
-                  <span @click="linkTo('http://localhost:80/api/loginDiscord')"
+                  <span @click="linkTo('http://localhost:3000/api/loginDiscord')"
                         class="authBlock-form__connectBtn btn purple">
                     <span class="img"><img src="/img/icons/discord.png" alt=""></span>
                   </span>
