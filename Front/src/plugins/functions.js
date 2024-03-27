@@ -94,6 +94,8 @@ export function getClassForAccess(access) {
       return 'silverTextColor';
     case 'admin':
       return 'redTextColor';
+    case 'banned':
+      return 'default'
   }
 }
 
@@ -107,6 +109,8 @@ export function getDisplayNameForAccess(access) {
       return 'VIP';
     case 'admin':
       return 'Админ';
+    case 'banned':
+      return 'Заблокирован'
   }
 }
 

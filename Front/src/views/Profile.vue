@@ -28,11 +28,13 @@ import { focusInInput, setErrorForInput } from "@/plugins/inputActions.js";
 import AppUpButton from "@/components/AppUpButton.vue";
 import AppConfirm from "@/components/AppConfirm.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const globalPreloader = usePreloaderStore()
 const actionsProfile = useActionsProfileStore()
+const globalPopup = useGlobalPopupStore()
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
@@ -97,11 +99,24 @@ function changeBlocked() {
 }
 
 async function banUser() {
-  data.isBlocked = !data.isBlocked
+  globalPreloader.activate()
 
-  await axiosInstance.post(`/blockUser=${data.id}`, {}, {
-    withCredentials: true
-  })
+  try {
+    await axiosInstance.post(`/blockUser=${data.id}`, {}, {
+      withCredentials: true
+    })
+  } catch(e) {
+    console.log(e.message)
+  }
+  await updateProfileInfo()
+
+  if(data.isBlocked) {
+    globalPopup.activate('Успешно!','Пользователь успешно заблокирован')
+  } else {
+    globalPopup.activate('Успешно!','Пользователь успешно разблокирован')
+  }
+
+  globalPreloader.deactivate()
 }
 
 async function changeName() {
@@ -155,6 +170,7 @@ onBeforeMount(async () => {
 onMounted(async () => {
   await updateProfileInfo()
   fieldsInit()
+
   globalPreloader.deactivate()
 })
 onBeforeUpdate(async () => {
@@ -172,8 +188,9 @@ onUpdated(async () => {
     if (isMyProfile) {
       await myProfile.setMyProfileInfo()
     }
+
+    globalPreloader.deactivate()
   }
-  globalPreloader.deactivate()
 })
 onBeforeUnmount(() => {
   destroyAll()
@@ -213,15 +230,21 @@ async function saveProfileInfoHandler(e) {
   }, 3400)
   isSaveLoader.value = false
 }
+
 async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(getId.value)
   if (!userInfo) {
+    await router.push('/')
+    globalPopup.activate('Ошибка!','Данный пользователь не найден')
     return
   }
 
   data.isBlocked = userInfo.data.isBanned || false
   data.isChange = userInfo.data.isChange || false
   data.access.title = userInfo.data.accsessLevel.toLowerCase() || 'default'
+  if (data.isBlocked) {
+    data.access.title = 'banned'
+  }
   data.access.date = new Date(userInfo.data.accsessDate) || '∞'
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
@@ -234,7 +257,7 @@ async function updateProfileInfo() {
   if (isHiddenBirthdayInput.value) {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
-  data.isMale = userInfo.data.sex || 0
+  data.isMale = !!+userInfo.data.sex || 0
   if (isMaleSelect.value) {
     isMaleSelect.value.value = data.isMale
   }
@@ -249,11 +272,12 @@ async function updateProfileInfo() {
 
 const showPasswordChangePopup = ref(false)
 const showEmailChangePopup = ref(false)
+
 function changePasswordHandler(e) {
   e.preventDefault()
-  showConfirmBlock(e.target,async () => {
+  showConfirmBlock(e.target, async () => {
     try {
-      await axiosInstance.post('/resetPasswordProfile',{},{
+      await axiosInstance.post('/resetPasswordProfile', {}, {
         withCredentials: true
       })
       showPasswordChangePopup.value = true
@@ -261,14 +285,14 @@ function changePasswordHandler(e) {
       console.log(e.message)
     }
 
-  },'Вы уверены что хотите сменить пароль?')
+  }, 'Вы уверены что хотите сменить пароль?')
 }
 
 function changeEmailHandler(e) {
   e.preventDefault()
-  showConfirmBlock(e.target,async () => {
+  showConfirmBlock(e.target, async () => {
     try {
-      await axiosInstance.post('/resetEmail',{},{
+      await axiosInstance.post('/resetEmail', {}, {
         withCredentials: true
       })
       showEmailChangePopup.value = true
@@ -322,7 +346,7 @@ function changeEmailHandler(e) {
                   <img v-if="!isChangingName" src="/img/icons/pencil.png" alt="">
                   <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50px" height="50px">
                     <path stroke="white"
-                          d="M 42.875 8.625 C 42.84375 8.632813 42.8125 8.644531 42.78125 8.65625 C 42.519531 8.722656 42.292969 8.890625 42.15625 9.125 L 21.71875 40.8125 L 7.65625 28.125 C 7.410156 27.8125 7 27.675781 6.613281 27.777344 C 6.226563 27.878906 5.941406 28.203125 5.882813 28.597656 C 5.824219 28.992188 6.003906 29.382813 6.34375 29.59375 L 21.25 43.09375 C 21.46875 43.285156 21.761719 43.371094 22.050781 43.328125 C 22.339844 43.285156 22.59375 43.121094 22.75 42.875 L 43.84375 10.1875 C 44.074219 9.859375 44.085938 9.425781 43.875 9.085938 C 43.664063 8.746094 43.269531 8.566406 42.875 8.625 Z" />
+                          d="M 42.875 8.625 C 42.84375 8.632813 42.8125 8.644531 42.78125 8.65625 C 42.519531 8.722656 42.292969 8.890625 42.15625 9.125 L 21.71875 40.8125 L 7.65625 28.125 C 7.410156 27.8125 7 27.675781 6.613281 27.777344 C 6.226563 27.878906 941406 28.203125 5.882813 28.597656 C 5.824219 28.992188 6.003906 29.382813 6.34375 29.59375 L 21.25 43.09375 C 21.46875 43.285156 21.761719 43.371094 22.050781 43.328125 C 22.339844 43.285156 22.59375 43.121094 22.75 42.875 L 43.84375 10.1875 C 44.074219 9.859375 44.085938 9.425781 43.875 9.085938 C 43.664063 8.746094 43.269531 8.566406 42.875 8.625 Z" />
                   </svg>
                 </button>
               </div>
@@ -407,8 +431,8 @@ function changeEmailHandler(e) {
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
               <select ref="isMaleSelect" class="profile" name="sex" id="sex">
-                <option value="0" :selected="!data.isMale">Женский</option>
-                <option value="1" :selected="!!data.isMale">Мужской</option>
+                <option value="0" :selected="!data.isMale?'selected':''">Женский</option>
+                <option value="1" :selected="data.isMale?'selected':''">Мужской</option>
               </select>
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
@@ -420,10 +444,14 @@ function changeEmailHandler(e) {
               <AppButton v-else color="gold" border="true">{{ saveBtnText }}</AppButton>
             </div>
           </form>
-          <div class="change-profileBlock">
+          <div v-if="isMyProfile" class="change-profileBlock">
             <div class="change-profileBlock__body">
-              <AppButton @click="changePasswordHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить пароль</AppButton>
-              <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить почту</AppButton>
+              <AppButton @click="changePasswordHandler" color="gold" border="true" class="change-profileBlock__btn">
+                Сменить пароль
+              </AppButton>
+              <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить
+                                                                                                                 почту
+              </AppButton>
             </div>
           </div>
           <div class="profileBlock__bottom" :class="isMyProfile?'':'center'">
@@ -680,7 +708,6 @@ function changeEmailHandler(e) {
     }
 
     display: flex;
-    justify-content: center;
     align-items: center;
 
     input {
@@ -800,20 +827,20 @@ function changeEmailHandler(e) {
       margin-bottom: 35px;
       flex: 1 1 auto;
 
-      &:nth-child(1),&:nth-child(2) {
+      &:nth-child(1), &:nth-child(2) {
         flex: 0 1 48%;
       }
       &:nth-child(3) {
         flex: 1 1 100%;
       }
     }
-    @media (max-width:$tablet){
-      &:nth-child(1),&:nth-child(2) {
+    @media (max-width: $tablet) {
+      &:nth-child(1), &:nth-child(2) {
         flex: 0 1 47.5%;
       }
     }
     @media (max-width: $mobile) {
-      &:nth-child(1),&:nth-child(2) {
+      &:nth-child(1), &:nth-child(2) {
         flex: 1 1 100%;
       }
     }

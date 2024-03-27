@@ -147,6 +147,10 @@ class UserController {
     const code = req.query['code']
     const userData = await userService.connectionDiscord(code)
     console.log(userData)
+    if (userData==='banned') {
+      res.redirect(423,`${process.env.FRONT_API}/login`)
+      return
+    }
     res.cookie('refreshToken', userData.refreshToken,
       {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
     delete userData.refreshToken
@@ -226,8 +230,8 @@ class UserController {
     try {
       const {refreshToken} = req.cookies
       const user = await userService.resetProfile(refreshToken)
-      const type ="password"
-      const result = await userService.reset(user.email,type)
+      const type = "password"
+      const result = await userService.reset(user.email, type)
       
       
       const status = {status: 200, statusText: 'OK'}
@@ -240,14 +244,14 @@ class UserController {
   async resetPassword(req, res, next) {
     try {
       const errors = validationResult(req)
-
-            if (!errors.isEmpty()) {
-              return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
-            }
+      
+      if (!errors.isEmpty()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
+      }
       
       const {email} = req.body
-      const type ="password"
-      const result = await userService.reset(email,type)
+      const type = "password"
+      const result = await userService.reset(email, type)
       
       
       const status = {status: 200, statusText: 'OK'}
@@ -287,17 +291,17 @@ class UserController {
     
     
     try {
-
+      
       const errors = validationResult(req)
-
-            if (!errors.isEmpty()) {
-              return next(ApiError.BadRerquest('Error validate', [{input: 'password', type: 'Error validate'}]))
-            }
-
+      
+      if (!errors.isEmpty()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'password', type: 'Error validate'}]))
+      }
+      
       const {password, link, userId, idLink} = req.body
       const result = await userService.validationLinkReset(link)
       if (result.type.toString()!=="password") {
-         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
       console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
@@ -313,47 +317,47 @@ class UserController {
     }
     
   }
-
+  
   async newEmail(req, res, next) {
-
-
-      try {
-        const errors = validationResult(req)
-
-              if (!errors.isEmpty()) {
-                return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
-              }
-        
-        const {email, link, userId, idLink} = req.body
-        const result = await userService.validationLinkReset(link)
-        if (result.type.toString()!=="email") {
-           return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
-        }
-        console.log(userId, result.userId)
-        if (userId.toString()!==result.userId.toString()) {
-          return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
-        }
-        const newEmail = await userService.newEmail(email, userId, idLink)
-
-        const status = {status: 200, statusText: 'Ссылка на подверждение отправлена на email, подтвердите новый email'}
-        res.json(status)
-
-      } catch(e) {
-        next(e)
+    
+    
+    try {
+      const errors = validationResult(req)
+      
+      if (!errors.isEmpty()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
       }
-
+      
+      const {email, link, userId, idLink} = req.body
+      const result = await userService.validationLinkReset(link)
+      if (result.type.toString()!=="email") {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+      }
+      console.log(userId, result.userId)
+      if (userId.toString()!==result.userId.toString()) {
+        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+      }
+      const newEmail = await userService.newEmail(email, userId, idLink)
+      
+      const status = {status: 200, statusText: 'Ссылка на подверждение отправлена на email, подтвердите новый email'}
+      res.json(status)
+      
+    } catch(e) {
+      next(e)
     }
+    
+  }
   
   async resetEmail(req, res, next) {
     
     
     try {
-      const type ="email"
+      const type = "email"
       const {refreshToken} = req.cookies
       const user = await userService.resetProfile(refreshToken)
       
-      const result = await userService.reset(user.email,type)
-
+      const result = await userService.reset(user.email, type)
+      
       console.log(result)
       const status = {status: 200, statusText: 'OK'}
       res.json(status)

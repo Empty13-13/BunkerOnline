@@ -24,10 +24,12 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   async function setMyProfileInfo() {
     const preloader = usePreloaderStore()
     preloader.activate()
-    console.log(id.value)
     if (id.value) {
       try {
         let response = await actionsProfile.getUserInfo(id.value)
+        if(!response) {
+          return
+        }
         nickname.value = response.data.nickname
         access.value = response.data.accsessLevel
         avatarName.value = response.data.avatar
@@ -36,7 +38,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
       }
     }
     else {
-      // clearUserInfo()
+      clearUserInfo()
       // await router.push('/login')
     }
     
@@ -71,9 +73,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
 export const useActionsProfileStore = defineStore('actionsProfile', () => {
   async function getUserInfo(id) {
     try {
-      return await axiosInstance.get(`/user=${id}`, {withCredentials: true}).catch((error)=> {
-        console.log('getUserInfo Error',error)
-      })
+      return await axiosInstance.get(`/user=${id}`, {withCredentials: true})
     } catch(e) {
       console.log(e.message)
     }
@@ -85,7 +85,7 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
         withCredentials: true
       })
     } catch(e) {
-      console.log(e)
+      console.log(e.message)
     }
   }
   
@@ -95,7 +95,7 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
         withCredentials: true
       })
     } catch(e) {
-      console.log(e)
+      console.log(e.message)
     }
   }
   

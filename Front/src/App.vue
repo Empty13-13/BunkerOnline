@@ -5,6 +5,8 @@ import { useMyProfileStore } from "@/stores/profile.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
+const globalPopup = useGlobalPopupStore()
+const globalPreloader = usePreloaderStore()
 
 const checkUser = () => {
   const tokens = JSON.parse( localStorage.getItem('userTokens'))
@@ -42,15 +44,22 @@ import router from "@/router/index.js";
 import AppConfirm from "@/components/AppConfirm.vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
+import { useGlobalPopupStore } from "@/stores/popup.js";
 </script>
 
 <template>
   <TheHeader></TheHeader>
-  <AppPreloader :class="usePreloaderStore().showLoader?'':'_deactivate'"/>
+  <AppPreloader :class="globalPreloader.showLoader?'':'_deactivate'"/>
   <RouterView/>
   <TheFooter></TheFooter>
   <AppUpButton/>
   <AppConfirm/>
+  <AppPopup v-model="globalPopup.show">
+    <template v-slot:title>
+      {{globalPopup.title}}
+    </template>
+    <div v-html="globalPopup.text"></div>
+  </AppPopup>
 </template>
 
 <style lang="scss">

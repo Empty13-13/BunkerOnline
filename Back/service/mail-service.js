@@ -65,6 +65,23 @@ class MailService {
 
     })
   }
+  
+  async sendRateLimited(to) {
+      await this.transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to,
+        subject: 'Угроза безопасности аккаунт' + process.env.API_URL,
+        text: '',
+        html:
+          `
+                              <div>
+                                  <h1> Кто-то пытается войти в ваш аккаунт</h1>
+                                  
+                              </div>
+                          `
+  
+      })
+    }
 }
 
 module.exports = new MailService()

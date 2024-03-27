@@ -29,7 +29,6 @@ export const useAuthStore = defineStore('auth', () => {
         {
           withCredentials: isLogin()
         })
-      console.log(response)
       
       if (isLogin()) {
         myProfile.token = response.data.accessToken
@@ -48,9 +47,13 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
     } catch(e) {
-      console.log(e.response)
-      errors.value.message = e.response.data.message
-      errors.value.input = e.response.data.errors[0].input
+      console.log(e.message)
+      if(e && e.response && e.response.data) {
+        errors.value.message = e.response.data.message
+        errors.value.input = e.response.data.errors[0].input
+      } else {
+        errors.value.message = e.response.message
+      }
     } finally {
       isLoader.value = false
     }
@@ -83,7 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
         token: newTokens.data.accessToken,
       }))
     } catch(e) {
-      console.log("Refresh Error: ", e)
+      console.log("Refresh Error: ", e.message)
       myProfile.clearUserInfo()
       await router.push('/login')
     }

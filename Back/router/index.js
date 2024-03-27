@@ -9,17 +9,43 @@ const adminMiddleware = require('../middlewares/admin-middleware')
 const vipMvpAdminMiddleware = require('../middlewares/vipMvpAdmin-middleware')
 const updateUserMiddleware = require('../middlewares/updateUser-middleware')
 const path = require('path')
-const { rateLimit } = require('express-rate-limit')
-
+const {rateLimit} = require('express-rate-limit')
+const ApiError = require('../exceptions/api-error')
+const mailService = require('../service/mail-service')
+const UserModel = require('../model/models')
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 5,
-    keyGenerator: (req, res) => req.body['login'],
-    message: async (req,res) => {return res.json({message: 'Вы превысили количество запросов, попробуйте позже', errors: [{input: "nickname", type: 'rateLimited'}]})},
-    legacyHeaders: false
-})
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  keyGenerator: (req, res) => req.body['login'],
+  message: async (req, res) => {
+    try {
+      const track = req.body['login']
+      console.log("123123123123123", track)
+      let user = null
+      if (emailTest(track)) {
 
+        user = await UserModel.User.findOne({where: {email: track}})
+        
+      }
+      else {
+        user = await UserModel.User.findOne({where: {nickname: track}})
+        
+        
+      }
+              console.log("22",user)
+      if (user) {
+        console.log("22222222", user.email)
+        mailService.sendRateLimited(user.email)
+      }
+      
+      throw ApiError.BadRerquest(`Привышен лимит запросов`, [{input: 'login', type: 'Rate limited'}])
+    } catch(e) {
+      console.log(e)
+    }
+  },
+  legacyHeaders: false
+})
 
 
 router.post('/registration',
@@ -27,7 +53,7 @@ router.post('/registration',
   body('email').isEmail(),
   body('password').isLength({min: 5, max: 16}),
   userController.registration);
-router.post('/login',limiter,
+router.post('/login', limiter,
   body('login').notEmpty(),
   userController.login);
 router.post('/logout', userController.logout);
@@ -61,3 +87,8 @@ router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //b
 //router.get('/callbackVK',userController.callbackVK);
 
 module.exports = router
+
+function emailTest(value) {
+  console.log(value)
+  return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(value);
+}

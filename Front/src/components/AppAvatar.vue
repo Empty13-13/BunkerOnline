@@ -3,6 +3,9 @@ import AppButton from "@/components/AppButton.vue";
 import { computed, ref } from "vue";
 import { useMyProfileStore, useActionsProfileStore } from "@/stores/profile.js";
 import { getId } from "@/plugins/functions.js";
+import AppLoader from "@/components/AppLoader.vue";
+
+const globalLink = import.meta.env.VITE_SERVER_LINK
 
 defineProps({
   color: String,
@@ -13,6 +16,7 @@ let href = defineModel('href')
 
 const myProfile = useMyProfileStore()
 const actionsProfile = useActionsProfileStore()
+const showLoader = ref(false)
 
 let fileInput = ref()
 let ownImage = ref()
@@ -39,6 +43,7 @@ async function changeFileInput(e) {
 
   let reader = new FileReader()
   reader.onload = async (e) => {
+    showLoader.value=true
     const formData = new FormData()
     formData.append('file', file)
     let response = await actionsProfile.uploadAvatar(getId.value, formData)
@@ -48,9 +53,11 @@ async function changeFileInput(e) {
     if (getId.value===myProfile.id) {
       myProfile.avatarName = response.data.link
     }
+    showLoader.value=false
   }
   reader.onerror = () => {
     alert('Произошла ошибка')
+    showLoader.value=false
   }
   reader.readAsDataURL(file)
   defaultAvatar.value = false
@@ -70,9 +77,10 @@ async function deleteAvatar() {
 <template>
   <div class="avatar" :class="color">
     <div class="avatar__img" :class="color">
-      <img v-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
+      <AppLoader v-if="showLoader"/>
+      <img v-else-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
       <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.svg" alt="">
-      <img ref="ownImage" v-else :src="'http://5.75.177.255:3000/'+href" alt="">
+      <img ref="ownImage" v-else :src="globalLink+href" alt="">
 
       <div v-if="!blockEdit && (myProfile.isAdmin || myProfile.id === getId)" class="profileEdit-avatar">
         <div @click="editAvatar" class="profileEdit-avatar__img _edit">
@@ -197,6 +205,19 @@ async function deleteAvatar() {
     }
   }
 
+  .loader {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    z-index: 999;
+
+    svg {
+
+    }
+  }
 }
 
 .profileEdit-avatar {

@@ -1,5 +1,3 @@
-import { mapGetters } from "pinia";
-
 const getTemplate = (data = [], placeholder, classList = "") => {
   let resultElement = document.createElement('div')
   resultElement.classList.add('select')
@@ -193,12 +191,9 @@ class Select {
   // endregion
 }
 
-export let
-  selectsList = []
+export let selectsList = []
 
-export function
-
-fieldsInit() {
+export function fieldsInit() {
   let selects = document.querySelectorAll('select')
   
   //Инициализация select-ов
@@ -206,6 +201,7 @@ fieldsInit() {
     selects.forEach(select => {
       let placeholder = select.dataset.placeholder;
       let {data, selectedId, itemId} = createDataSelect(select)
+      console.log(selectedId,data,itemId,placeholder)
       
       selectsList.push(
         new Select(select, {
@@ -267,9 +263,7 @@ fieldsInit() {
   }
 }
 
-export function
-
-findAllErrors() {
+export function findAllErrors() {
   let error = 0
   
   if (selectsList.length) {
@@ -281,9 +275,7 @@ findAllErrors() {
   return error
 }
 
-export function
-
-clearAllError() {
+export function clearAllError() {
   if (selectsList.length) {
     selectsList.forEach(select => {
       select.clear()
@@ -291,9 +283,7 @@ clearAllError() {
   }
 }
 
-export function
-
-destroyAll() {
+export function destroyAll() {
   selectsList.forEach(item => {
     item.destroy()
   })

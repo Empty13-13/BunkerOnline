@@ -196,7 +196,7 @@ class UserService {
     return users
   }
   
-  async connectionDiscord(code) {
+  async connectionDiscord(code,res) {
     const resp = await axios.post('https://discord.com/api/oauth2/token',
       new URLSearchParams({
         'client_id': process.env.CLIENT_ID,
@@ -248,6 +248,10 @@ class UserService {
         
       }
       else {
+        const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: candidateUser.userId}})
+        if (userIsBlock) {
+          return 'banned'
+        }
         userDto = new UserDto(candidateUser)
       }
       await UserModel.DiscordAuthId.create({userId: userDto.id, discordId: userId})
@@ -259,7 +263,11 @@ class UserService {
         user: userDto
       }
     }
-    const candidateDisUser = await UserModel.User.findOne({where:{id:candidate.userId}})
+    const candidateDisUser = await UserModel.User.findOne({where: {id: candidate.userId}})
+    const userIsBlock1 = await UserModel.BlackListUsers.findOne({where: {userId: candidate.userId}})
+    if (userIsBlock1) {
+      return 'banned'
+    }
     
     if (!candidateDisUser.isActivated) {
       candidateDisUser.isActivated = 1
@@ -562,7 +570,7 @@ class UserService {
         [{input: 'link', type: 'database'}])
     }
     try {
-      if (type.toString() ==='password') {
+      if (type.toString()==='password') {
         await mailService.sendResetPasswordMail(email, `${process.env.API_URL}/api/resetUser/${resetLink}`)
       }
       else {
