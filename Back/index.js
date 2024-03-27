@@ -24,7 +24,7 @@ app.use(fileUpload({}))
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
-app.use('/static',express.static('static'))
+app.use(express.static('static'))
 app.use('/api', router);
 app.use('/api/login', limiter)
 app.use(errorMiddleware);
