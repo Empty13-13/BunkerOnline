@@ -24,11 +24,16 @@ app.use(fileUpload({}))
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
-app.use(express.static('static'))
+app.use(express.static('static', {
+  setHeaders: setHeaders
+}))
 app.use('/api', router);
 app.use('/api/login', limiter)
 app.use(errorMiddleware);
 
+function setHeaders(res, path) {
+  res.setHeader('Content-Security-Policy', "default-src 'self';")
+}
 
 const start = async () => {
   
