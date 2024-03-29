@@ -69,7 +69,15 @@ const router = createRouter({
     //   // which is lazy-loaded when the route is visited.
     //   component: () => import('../views/AboutView.vue')
     // }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    console.log('savedPosition ',savedPosition)
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
 })
 
 router.beforeEach((to, from) => {
@@ -79,21 +87,5 @@ router.beforeEach((to, from) => {
     return {name:'profile'}
   }
 })
-
-// router.beforeResolve(async (to) => {
-//   console.log(to.name,to.name==='profile',to.query.account==='connected')
-//   if (to.name==='profile' && to.query.account==='connected') {
-//     console.log('start beforeEach')
-//     const authStore = useAuthStore()
-//     const myProfile = useMyProfileStore()
-//     await authStore.refreshToken()
-//
-//     console.log('refresh token ROUTER')
-//     if (!localStorage.getItem('userId')) {
-//       myProfile.id = getId.value
-//       localStorage.setItem('userId', myProfile.id.toString())
-//     }
-//   }
-// })
 
 export default router

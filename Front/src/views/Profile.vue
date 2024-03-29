@@ -114,21 +114,21 @@ function banUser(e) {
       await axiosInstance.post(`/blockUser=${data.id}`, {}, {
         withCredentials: true
       })
+
+      await updateProfileInfo()
+
+      if (data.isBlocked) {
+        globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
+      }
+      else {
+        globalPopup.activate('Успешно!', 'Пользователь успешно разблокирован', 'green')
+      }
     } catch(e) {
       console.log(e.message)
-    }
-    await updateProfileInfo()
-
-    if (data.isBlocked) {
-      globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
-    }
-    else {
-      globalPopup.activate('Успешно!', 'Пользователь успешно разблокирован', 'green')
     }
 
     globalPreloader.deactivate()
   })
-
 }
 
 async function changeName() {

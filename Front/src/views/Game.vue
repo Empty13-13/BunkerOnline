@@ -838,6 +838,12 @@ import TheLogs from "@/components/TheLogs.vue";
 <style lang="scss">
 @import "@/assets/scss/style";
 
+.game {
+  .titleH2 {
+    cursor: pointer;
+  }
+}
+
 .bunker {
   position: relative;
   z-index: 2;
@@ -1826,7 +1832,7 @@ import TheLogs from "@/components/TheLogs.vue";
   &__window {
     position: absolute;
     left: calc(100% + 20px);
-    top: 0;
+    top: 10px;
     font-size: 14px;
     white-space: nowrap;
     opacity: 0;

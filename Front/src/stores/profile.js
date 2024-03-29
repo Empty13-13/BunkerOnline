@@ -34,6 +34,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         access.value = response.data.accsessLevel
         avatarName.value = response.data.avatar
       } catch(e) {
+        clearUserInfo()
+        preloader.deactivate()
         console.log(e.message)
       }
     }

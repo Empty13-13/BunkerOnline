@@ -113,6 +113,23 @@ export const useAuthStore = defineStore('auth', () => {
     await router.push('/login')
   }
   
+  function getLocalData(nameData) {
+    try {
+      let data = localStorage.getItem(nameData)
+      if(data) {
+        let json = JSON.parse(data)
+        if(json) {
+          return json
+        }
+      }
+    } catch(e) {
+      console.log(e.message)
+    }
+    
+    
+    return null
+  }
+  
   //========================================================================================================================================================
   
   async function updateProfileInfo(id, payload) {
@@ -136,6 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
     logoutUser,
     refreshToken,
     updateProfileInfo,
-    resetPassword
+    resetPassword,
+    getLocalData
   }
 })

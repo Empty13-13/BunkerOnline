@@ -9,13 +9,13 @@ const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 
 const checkUser = () => {
-  const tokens = JSON.parse( localStorage.getItem('userTokens'))
+  const tokens = authStore.getLocalData('userTokens')
   console.log(tokens)
   if(tokens) {
     myProfile.token = tokens.token
   }
 
-  const userId = JSON.parse(localStorage.getItem('userId'))
+  const userId = authStore.getLocalData('userId')
   if(userId) {
     myProfile.id = userId
   }
