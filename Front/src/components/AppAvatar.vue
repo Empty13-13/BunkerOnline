@@ -5,6 +5,7 @@ import { useMyProfileStore, useActionsProfileStore } from "@/stores/profile.js";
 import { getId } from "@/plugins/functions.js";
 import AppLoader from "@/components/AppLoader.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 const globalLink = import.meta.env.VITE_SERVER_LINK
 
@@ -17,6 +18,7 @@ let href = defineModel('href')
 
 const myProfile = useMyProfileStore()
 const actionsProfile = useActionsProfileStore()
+const globalPopup = useGlobalPopupStore()
 const showLoader = ref(false)
 
 let fileInput = ref()
@@ -31,14 +33,14 @@ async function changeFileInput(e) {
   let file = e.target.files[0]
 
   // проверяем тип файла
-  if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-    alert('Разрешены только изображения.');
+  if (!['image/jpeg', 'image/png', 'image/gif','image/jpg'].includes(file.type)) {
+    globalPopup.activate('Ошибка!','Разрешены только изображения формата .jpg, .jpeg, .png и .gif','red')
     e.target.value = '';
     return
   }
   // проверим размер файла   (<4 Мб)
   if (file.size>4 * 1024 * 1024) {
-    alert('Файл должен быть менее 4 МБ.');
+    globalPopup.activate('Ошибка!','Размер файла не должен превышать 4 мегабайта','red')
     return
   }
 
@@ -48,16 +50,20 @@ async function changeFileInput(e) {
     const formData = new FormData()
     formData.append('file', file)
     let response = await actionsProfile.uploadAvatar(getId.value, formData)
-    console.log(href.value, response.data.link)
-    href.value = response.data.link
+    if(response) {
+      console.log(href.value, response.data.link)
+      href.value = response.data.link
 
-    if (getId.value===myProfile.id) {
-      myProfile.avatarName = response.data.link
+      if (getId.value===myProfile.id) {
+        myProfile.avatarName = response.data.link
+      }
+    } else {
+      globalPopup.activate('Ошибка!','Произошла ошибка обновления аватара. Попробуйте обновить страницу и изменить аватар ещё раз','red')
     }
     showLoader.value=false
   }
   reader.onerror = () => {
-    alert('Произошла ошибка')
+    globalPopup.activate('Ошибка!','Произошла ошибка чтения изображения. Попробуйте другое изображение','red')
     showLoader.value=false
   }
   reader.readAsDataURL(file)
