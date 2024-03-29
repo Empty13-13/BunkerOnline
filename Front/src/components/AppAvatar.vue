@@ -1,6 +1,5 @@
 <script setup="">
-import AppButton from "@/components/AppButton.vue";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useMyProfileStore, useActionsProfileStore } from "@/stores/profile.js";
 import { getId } from "@/plugins/functions.js";
 import AppLoader from "@/components/AppLoader.vue";
@@ -25,7 +24,7 @@ let fileInput = ref()
 let ownImage = ref()
 let defaultAvatar = ref(false)
 
-function editAvatar(e) {
+function editAvatar() {
   fileInput.value.click()
 }
 
@@ -45,7 +44,7 @@ async function changeFileInput(e) {
   }
 
   let reader = new FileReader()
-  reader.onload = async (e) => {
+  reader.onload = async () => {
     showLoader.value=true
     const formData = new FormData()
     formData.append('file', file)
@@ -152,7 +151,7 @@ function deleteAvatar(e) {
   &.vip {
     &::before {
       background: linear-gradient(135deg, #696969, rgba(0, 0, 0, 0), #C9C9C9);
-      box-shadow: 0px 4px 25px #646464;
+      box-shadow: 0 4px 25px #646464;
     }
   }
 
