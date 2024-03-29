@@ -8,7 +8,7 @@ const User = sequelize.define('user', {
   password: {type: DataTypes.STRING, required: true},
   isActivated: {type: DataTypes.TINYINT, defaultValue: 0},
   activationLink: {type: DataTypes.STRING,},
-  sex: {type: DataTypes.STRING,defaultValue: "male"},
+  sex: {type: DataTypes.STRING,defaultValue: null},
   avatar: {type: DataTypes.STRING},
   text: {type: DataTypes.STRING,defaultValue: ""},
   accsessLevel: {type: DataTypes.STRING,defaultValue: "default"},
