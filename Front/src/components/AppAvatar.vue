@@ -107,7 +107,6 @@ function deleteAvatar(e) {
 <style lang="scss">
 @import "@/assets/scss/style";
 @import "@/assets/scss/base";
-
 .avatar {
   position: relative;
   border-radius: 50%;
