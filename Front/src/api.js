@@ -14,7 +14,6 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use((config) => {
   const myProfile = useMyProfileStore()
-  console.log(config['axios-retry'])
   if (myProfile.token) {
     let headers = config.headers
     headers.Authorization = 'Bearer ' + myProfile.token
@@ -28,20 +27,27 @@ axiosInstance.interceptors.response.use((response) => {
 }, async function(error) {
   const globalPopup = useGlobalPopupStore()
   
-  if(!error.response) {
+  console.log(error, error.response, !error.response)
+  
+  if (!error.response) {
     error.response = {message: 'Сервер не отвечает'}
-    globalPopup.activate('Ошибка соединения с сервером','Пожалуйста,проверьте интернет-соединением, либо попробуйте перезагрузить страницу')
+    globalPopup.activate('Ошибка соединения с сервером',
+      'Пожалуйста,проверьте интернет-соединением, либо попробуйте перезагрузить страницу', 'red')
   }
   
   console.log(error)
   
   
-  if(error.response.status===429) {
+  if (error.response.status===429) {
     console.log('Слишком много попыток')
     const globalPopup = useGlobalPopupStore()
-    globalPopup.activate('Слишком много запросов','Вы использовали слишком много запросов. Пожалуйста, попробуйте ещё раз через 15 минут')
+    globalPopup.activate('Слишком много запросов',
+      'Вы использовали слишком много запросов. Пожалуйста, попробуйте ещё раз через 15 минут','red')
     
-    error.response.data = {message:'Вы превысили количество запросов, попробуйте позже',errors:[{input: '',type:'To many requests'}]}
+    error.response.data = {
+      message: 'Вы превысили количество запросов, попробуйте позже',
+      errors: [{input: '', type: 'To many requests'}]
+    }
   }
   
   return Promise.reject(error);
@@ -52,7 +58,9 @@ axiosRetry(axiosInstance, {
   retryCondition: (error) => {
     return error.response.status===401;
   },
-  retryDelay: () => {return 1000;},
+  retryDelay: () => {
+    return 1000;
+  },
   onRetry: async (retryCount, error, requestConfig) => {
     console.log(retryCount)
     console.log(error.response.status)
@@ -62,7 +70,7 @@ axiosRetry(axiosInstance, {
       const myProfile = useMyProfileStore()
       
       try {
-        const newTokens = await axios.post(apiLink+"/refresh",{},{
+        const newTokens = await axios.post(apiLink + "/refresh", {}, {
           withCredentials: true
         })
         

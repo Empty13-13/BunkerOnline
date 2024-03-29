@@ -18,6 +18,7 @@ function closePopup(e) {
       <div class="popup__block linear-border"
            :class="color || 'white'"
       >
+        {{color}}
         <div @click="closePopup" class="popup__closeBtn"></div>
         <div class="popup__title">
           <slot name="title" />

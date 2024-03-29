@@ -98,25 +98,29 @@ function changeBlocked() {
   data.isBlocked = !data.isBlocked
 }
 
-async function banUser() {
-  globalPreloader.activate()
+function banUser(e) {
+  showConfirmBlock(e.target,async () => {
+    globalPreloader.activate()
 
-  try {
-    await axiosInstance.post(`/blockUser=${data.id}`, {}, {
-      withCredentials: true
-    })
-  } catch(e) {
-    console.log(e.message)
-  }
-  await updateProfileInfo()
+    try {
+      await axiosInstance.post(`/blockUser=${data.id}`, {}, {
+        withCredentials: true
+      })
+    } catch(e) {
+      console.log(e.message)
+    }
+    await updateProfileInfo()
 
-  if(data.isBlocked) {
-    globalPopup.activate('Успешно!','Пользователь успешно заблокирован')
-  } else {
-    globalPopup.activate('Успешно!','Пользователь успешно разблокирован')
-  }
+    if (data.isBlocked) {
+      globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
+    }
+    else {
+      globalPopup.activate('Успешно!', 'Пользователь успешно разблокирован', 'green')
+    }
 
-  globalPreloader.deactivate()
+    globalPreloader.deactivate()
+  })
+
 }
 
 async function changeName() {
@@ -235,7 +239,7 @@ async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(getId.value)
   if (!userInfo) {
     await router.push('/')
-    globalPopup.activate('Ошибка!','Данный пользователь не найден')
+    globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')
     return
   }
 
@@ -344,10 +348,19 @@ function changeEmailHandler(e) {
                     @click="changeName"
                 >
                   <img v-if="!isChangingName" src="/img/icons/pencil.png" alt="">
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50px" height="50px">
-                    <path stroke="white"
-                          d="M 42.875 8.625 C 42.84375 8.632813 42.8125 8.644531 42.78125 8.65625 C 42.519531 8.722656 42.292969 8.890625 42.15625 9.125 L 21.71875 40.8125 L 7.65625 28.125 C 7.410156 27.8125 7 27.675781 6.613281 27.777344 C 6.226563 27.878906 941406 28.203125 5.882813 28.597656 C 5.824219 28.992188 6.003906 29.382813 6.34375 29.59375 L 21.25 43.09375 C 21.46875 43.285156 21.761719 43.371094 22.050781 43.328125 C 22.339844 43.285156 22.59375 43.121094 22.75 42.875 L 43.84375 10.1875 C 44.074219 9.859375 44.085938 9.425781 43.875 9.085938 C 43.664063 8.746094 43.269531 8.566406 42.875 8.625 Z" />
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100"
+                       viewBox="0,0,256,256">
+                    <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
+                       stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
+                       font-family="none" font-weight="none" font-size="none" text-anchor="none"
+                       style="mix-blend-mode: normal">
+                      <g transform="scale(8.53333,8.53333)">
+                        <path
+                            d="M26.98047,5.99023c-0.2598,0.00774 -0.50638,0.11632 -0.6875,0.30273l-15.29297,15.29297l-6.29297,-6.29297c-0.25082,-0.26124 -0.62327,-0.36647 -0.97371,-0.27511c-0.35044,0.09136 -0.62411,0.36503 -0.71547,0.71547c-0.09136,0.35044 0.01388,0.72289 0.27511,0.97371l7,7c0.39053,0.39037 1.02353,0.39037 1.41406,0l16,-16c0.29576,-0.28749 0.38469,-0.72707 0.22393,-1.10691c-0.16075,-0.37985 -0.53821,-0.62204 -0.9505,-0.60988z"></path>
+                      </g>
+                    </g>
                   </svg>
+
                 </button>
               </div>
               <div class="naming-profileBlock__access"
@@ -357,7 +370,7 @@ function changeEmailHandler(e) {
               </div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
-              <div class="packs-profileBlock__block linear-border white">
+              <div v-if="!myProfile.isDefault" class="packs-profileBlock__block linear-border white">
                 <div class="packs-profileBlock__column">
                   <div class="packs-profileBlock__title">Базовый пак</div>
                   <ul class="packs-profileBlock__list">
@@ -431,6 +444,7 @@ function changeEmailHandler(e) {
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
               <select ref="isMaleSelect" class="profile" name="sex" id="sex">
+                <option value="-1" :selected="!data.isMale?'selected':''">Не выбран</option>
                 <option value="0" :selected="!data.isMale?'selected':''">Женский</option>
                 <option value="1" :selected="data.isMale?'selected':''">Мужской</option>
               </select>
@@ -609,6 +623,7 @@ function changeEmailHandler(e) {
     display: flex;
     justify-content: space-between;
     margin-bottom: 45px;
+    gap: 20px;
 
     &.center {
       justify-content: center;
@@ -702,16 +717,32 @@ function changeEmailHandler(e) {
 
   &__name {
     margin-bottom: 5px;
-
-    span {
-      margin-left: 7px;
-    }
-
     display: flex;
     align-items: center;
 
+    @media (max-width:540px){
+      flex-wrap: wrap;
+    }
+
+    span {
+      margin-left: 7px;
+
+      @media (max-width:540px){
+        width: calc(100% - 50px);
+        text-align: start;
+        max-width: 15ch;
+      }
+    }
+
     input {
 
+    }
+
+    button {
+      svg {
+        max-width: 100%;
+        max-height: 100%;
+      }
     }
   }
 
@@ -721,6 +752,8 @@ function changeEmailHandler(e) {
     border: 1px solid #4a4843;
     width: 30px;
     height: 30px;
+    max-width: 30px;
+    max-height: 30px;
 
     img {
       pointer-events: none;
@@ -738,6 +771,12 @@ function changeEmailHandler(e) {
   &__input {
     position: relative;
     margin-left: 7px;
+    display: flex;
+
+    @media (max-width:540px){
+      width: calc(100% - 50px);
+      max-width: 15ch;
+    }
 
     small {
       font-size: 12px;
@@ -747,10 +786,18 @@ function changeEmailHandler(e) {
       left: 0;
       bottom: -20px;
     }
+
+    input {
+      display: flex;
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 15ch;
+    }
   }
 }
 
 .packs-profileBlock {
+
   @media (max-width: $mobile) {
     width: 100%;
   }
@@ -804,7 +851,7 @@ function changeEmailHandler(e) {
   align-items: flex-start;
   gap: 30px;
   position: relative;
-  z-index: 4;
+  z-index: 4 !important;
   margin-bottom: 30px;
 
   @media (max-width: $pc) {
@@ -847,6 +894,9 @@ function changeEmailHandler(e) {
 
     @media (max-width: $mobileSmall) {
       margin-bottom: 0;
+      &:nth-child(1) {
+        margin-bottom: 30px;
+      }
     }
   }
 
@@ -906,11 +956,11 @@ function changeEmailHandler(e) {
       margin: 0;
     }
 
-    @media (max-width: $mobileSmall) {
-      position: relative;
-      margin-left: 15px;
-      white-space: nowrap;
-    }
+    //@media (max-width: $mobileSmall) {
+    //  position: relative;
+    //  margin-left: 15px;
+    //  white-space: nowrap;
+    //}
   }
 
 

@@ -326,15 +326,16 @@ let navTimout = setTimeout(() => {
   closeOpen()
 }, 2000)
 
-function closeOpen() {
+function closeOpen(target) {
   navBlock.value.classList.remove('_active')
+  target.blur()
 }
 
 function openNavigation(e) {
   navBlock.value.classList.add('_active')
   clearTimeout(navTimout)
   navTimout = setTimeout(() => {
-    closeOpen()
+    closeOpen(e.target)
   }, 2000)
 }
 

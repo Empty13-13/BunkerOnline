@@ -10,10 +10,10 @@ import router from "@/router/index.js";
 import AppLoader from "@/components/AppLoader.vue";
 import AppPopup from "@/components/AppPopup.vue";
 import axiosInstance from "@/api.js";
-
-
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 const myProfile = useMyProfileStore()
+const globalPopup = useGlobalPopupStore()
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const showPopup = ref(false)
 
@@ -21,6 +21,7 @@ const nicknameReg = ref()
 const emailReg = ref()
 const passwordReg = ref()
 const passwordRepeatReg = ref()
+const rulesChecked = ref(false)
 
 async function registrationHandler(e) {
   e.preventDefault()
@@ -36,6 +37,13 @@ async function registrationHandler(e) {
     passwordRepeat: passwordRepeatReg.value.value
   }
   let errors = validationRegistration(data)
+
+  console.log(rulesChecked.value)
+  if(!rulesChecked.value) {
+    useAuthStore().errors.input = 'rules'
+    useAuthStore().errors.message = "Ознакомьтесь с правилами"
+    errors['rules'] = 'Ознакомьтесь с правилами'
+  }
 
   for (let key in errors) {
     setErrorForInput(key + 'Reg', errors[key])
@@ -72,7 +80,7 @@ async function loginHandler(e) {
       setErrorForInput('nickname', useAuthStore().errors.message)
     }
     else {
-      await router.push(`/profile=${myProfile.id}`)
+      globalPopup.activate('Успешно!','Инструкция по восстановлению пароля была отправлена на email '+loginInput.value.value,'green')
     }
   }
   else {
@@ -149,6 +157,11 @@ function setErrorForInput(inputName, textSmall) {
   slideDown(small, 200)
 }
 
+function clickRulesHandler(e) {
+  e.preventDefault()
+  globalPopup.activate('Как играть?','Написать текст в будущем')
+}
+
 </script>
 
 <template>
@@ -163,12 +176,12 @@ function setErrorForInput(inputName, textSmall) {
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input autofocus @focus="focusInInput" ref="loginInput" :placeholder="isForgetPassword?'Введите email аккаунта':'Ваш ник или email'" type="text"
+                <input autofocus @focus="focusInInput" ref="loginInput" autocomplete="email" :placeholder="isForgetPassword?'Введите email аккаунта':'Ваш ник или email'" type="text"
                        name="nickname">
               </div>
               <div v-if="!isForgetPassword" class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password">
+                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password" autocomplete="on">
               </div>
               <div v-if="!isForgetPassword">
                 <p>Войти с помощью</p>
@@ -204,12 +217,22 @@ function setErrorForInput(inputName, textSmall) {
               </div>
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
+                <input @focus="focusInInput" autocomplete="new-password" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
               </div>
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
+                <input @focus="focusInInput" autocomplete="new-password" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
                        name="passwordRepeatReg">
+              </div>
+              <div class="checkbox authBlock-form__input">
+                <small hidden="">Какой то текст с ошибкой</small>
+                <input id="rules" class="checkbox__input" type="checkbox" name="rulesReg"
+                       v-model="rulesChecked" @focus="focusInInput">
+                <label for="rules" class="checkbox__label">
+                  <span class="checkbox__text">
+                    Я ознакомился с <span @click="clickRulesHandler" class="rules">правилами</span>
+                  </span>
+                </label>
               </div>
 
               <div>
@@ -223,7 +246,7 @@ function setErrorForInput(inputName, textSmall) {
                 </span>
               </div>
               <AppLoader v-if="useAuthStore().isLoader" />
-              <AppButton v-else color="gold">Регистрация</AppButton>
+              <AppButton v-else color="gold" :disabled="!rulesChecked">Регистрация</AppButton>
             </form>
           </div>
         </div>
@@ -298,8 +321,8 @@ function setErrorForInput(inputName, textSmall) {
     width: 100%;
 
     @media (max-width: $tablet) {
-      flex-direction: column;
-      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
     }
   }
 }
@@ -314,6 +337,7 @@ function setErrorForInput(inputName, textSmall) {
   }
   @media (max-width: $tablet) {
     padding: 35px 50px;
+    flex: 0 1 511px;
   }
   @media (max-width: $mobile) {
     padding: 35px 30px;
@@ -427,5 +451,13 @@ function setErrorForInput(inputName, textSmall) {
   width: 42px;
   height: 42px;
   margin: 20px auto !important;
+}
+
+.rules {
+  text-decoration: underline;
+
+  &:hover{
+    text-decoration: none;
+  }
 }
 </style>

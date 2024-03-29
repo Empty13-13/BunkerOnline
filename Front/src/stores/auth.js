@@ -61,13 +61,21 @@ export const useAuthStore = defineStore('auth', () => {
   
   async function resetPassword(email) {
     isLoader.value = true
+    errors.value = {
+      message: '',
+      input: '',
+    }
     try {
       await axiosInstance.post('/resetPassword', {
         email: email
       })
     } catch(e) {
-      errors.value.message = e.response.data.message
-      errors.value.input = e.response.data.errors[0].input
+      if(e && e.response && e.response.data) {
+        errors.value.message = e.response.data.message
+        errors.value.input = e.response.data.errors[0].input
+      } else {
+        errors.value.message = e.response.message
+      }
     } finally {
       isLoader.value = false
     }

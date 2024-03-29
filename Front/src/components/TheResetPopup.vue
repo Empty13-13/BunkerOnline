@@ -26,6 +26,7 @@ const passwordInput = ref(null)
 const passwordRepeatInput = ref(null)
 const showLoader = ref(false)
 const showPasswordConfirm = ref(false)
+const color = ref('gold')
 
 
 async function changePasswordHandler(e) {
@@ -52,6 +53,8 @@ async function changePasswordHandler(e) {
       idLink: params['linkId']
     })
     showPasswordConfirm.value=true
+    color.value = 'green'
+    await router.replace('/')
   } catch(e) {
     setErrorForInput('passwordChange', "Ошибка изменения пароля")
   } finally {
@@ -82,6 +85,8 @@ async function changeEmailHandler(e) {
       idLink: params['linkId']
     })
     showEmailConfirm.value=true
+    color.value = 'green'
+    await router.replace('/')
   } catch(e) {
     setErrorForInput('emailChange', "Ошибка изменения email")
   } finally {
@@ -92,19 +97,19 @@ async function changeEmailHandler(e) {
 </script>
 
 <template>
-  <AppPopup v-model="showPopup" color="gold">
+  <AppPopup v-model="showPopup" :color="color">
     <template v-slot:title>{{ isPasswordReset? "Изменение пароля":"Изменение Email" }}</template>
     <form v-if="isPasswordReset && !showPasswordConfirm && !showPasswordConfirm" novalidate @submit="changePasswordHandler"
           class="login-authBlock__form authBlock-form">
       <div class="authBlock-form__input">
         <small hidden="">Какой то текст с ошибкой</small>
-        <input @focus="focusInInput" v-model="passwordInput" autocomplete="new-password" placeholder="Введите пароль"
+        <input @focus="focusInInput" v-model="passwordInput" autocomplete="new-password" placeholder="Введите новый пароль"
                type="password" name="passwordChange">
       </div>
       <div class="authBlock-form__input">
         <small hidden="">Какой то текст с ошибкой</small>
         <input @focus="focusInInput" v-model="passwordRepeatInput" autocomplete="new-password"
-               placeholder="Подтвердите пароль" type="password"
+               placeholder="Подтвердите новый пароль" type="password"
                name="passwordRepeatChange">
       </div>
       <AppLoader v-if="showLoader" />
@@ -113,7 +118,7 @@ async function changeEmailHandler(e) {
     <form v-else-if="!showEmailConfirm && !showPasswordConfirm" novalidate @submit="changeEmailHandler" class="login-authBlock__form authBlock-form">
       <div class="authBlock-form__input">
         <small hidden="">Какой то текст с ошибкой</small>
-        <input v-model="emailInput" @focus="focusInInput" ref="emailReg" placeholder="Электронная почта" type="email"
+        <input v-model="emailInput" @focus="focusInInput" autocomplete="off" ref="emailReg" placeholder="Новая электронная почта" type="email"
                name="emailChange">
       </div>
       <AppLoader v-if="showLoader" />

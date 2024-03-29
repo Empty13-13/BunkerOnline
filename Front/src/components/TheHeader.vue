@@ -259,6 +259,8 @@ function headerScroll() {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
     //transition: background 0.3s ease 0s,-webkit-background-clip 0.3s ease 0s;
 
     @media (max-width: $tablet) {

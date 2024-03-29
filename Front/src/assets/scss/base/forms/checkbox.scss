@@ -22,6 +22,10 @@
 			//background-image: url("/img/icons/check.png");
 			background: url("/img/icons/check.png") 50%/50% no-repeat, linear-gradient(90.00deg, rgb(249, 211, 91),rgb(217, 102, 19) 100%);
 		}
+
+		&._error + .checkbox__label {
+			color: red;
+		}
 	}
 	// .checkbox__label
 	&__label {

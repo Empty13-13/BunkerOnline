@@ -5,10 +5,12 @@ export const useGlobalPopupStore = defineStore('globalPopup', () => {
   const show = ref(false)
   const title = ref('')
   const text = ref('')
+  const color = ref('white')
   
-  function activate(title,text) {
+  function activate(title, text, color = 'white') {
     this.title = title
     this.text = text
+    this.color = color
     show.value = true
   }
   
@@ -22,5 +24,6 @@ export const useGlobalPopupStore = defineStore('globalPopup', () => {
     text,
     activate,
     deactivate,
+    color
   }
 })

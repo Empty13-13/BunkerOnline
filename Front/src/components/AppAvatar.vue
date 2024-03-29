@@ -4,6 +4,7 @@ import { computed, ref } from "vue";
 import { useMyProfileStore, useActionsProfileStore } from "@/stores/profile.js";
 import { getId } from "@/plugins/functions.js";
 import AppLoader from "@/components/AppLoader.vue";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 
 const globalLink = import.meta.env.VITE_SERVER_LINK
 
@@ -63,13 +64,15 @@ async function changeFileInput(e) {
   defaultAvatar.value = false
 }
 
-async function deleteAvatar() {
-  await actionsProfile.deleteAvatar(getId.value)
-  href.value = ''
+function deleteAvatar(e) {
+  showConfirmBlock(e.target,async () => {
+    await actionsProfile.deleteAvatar(getId.value)
+    href.value = ''
 
-  if (getId.value===myProfile.id) {
-    myProfile.avatarName = ""
-  }
+    if (getId.value===myProfile.id) {
+      myProfile.avatarName = ""
+    }
+  },'Вы действительно хотите удалить аватар?')
 }
 
 </script>

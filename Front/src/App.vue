@@ -54,7 +54,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
   <TheFooter></TheFooter>
   <AppUpButton/>
   <AppConfirm/>
-  <AppPopup v-model="globalPopup.show">
+  <AppPopup v-model="globalPopup.show" :color="globalPopup.color">
     <template v-slot:title>
       {{globalPopup.title}}
     </template>
