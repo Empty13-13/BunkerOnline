@@ -83,13 +83,21 @@ const getBlockButtonImg = computed(() => {
     return 'unblocked.png'
   }
 })
+const getSex = computed(() => {
+  if(data.isMale===-1){
+    return 'Не указан'
+  } else if(data.isMale===0) {
+    return 'Женский'
+  } else if(data.isMale===1) {
+    return 'Мужской'
+  }
+})
 
 let birthdayInput = ref()
 let isHiddenBirthdayInput = ref()
 let isMaleSelect = ref()
 let aboutInput = ref()
 let saveBtnText = ref('Сохранить')
-
 
 let isChangingName = ref(false)
 let oldNickname = null
@@ -216,7 +224,11 @@ async function saveProfileInfoHandler(e) {
     body.hiddenBirthday = isHiddenBirthdayInput.value.checked
   }
   if (+isMaleSelect.value!==data.sex) {
-    body.sex = +isMaleSelect.value.value
+    if(+isMaleSelect.value.value === -1) {
+      body.sex = null
+    } else {
+      body.sex = +isMaleSelect.value.value
+    }
   }
   if (aboutInput.value!==data.text) {
     body.text = aboutInput.value.value
@@ -261,7 +273,14 @@ async function updateProfileInfo() {
   if (isHiddenBirthdayInput.value) {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
-  data.isMale = !!+userInfo.data.sex || 0
+  console.log(userInfo.data.sex)
+  if(userInfo.data.sex===null || userInfo.data.sex===undefined) {
+    data.isMale = -1
+  } else {
+    data.isMale = +userInfo.data.sex
+  }
+
+  console.log(data.isMale)
   if (isMaleSelect.value) {
     isMaleSelect.value.value = data.isMale
   }
@@ -422,7 +441,7 @@ function changeEmailHandler(e) {
               </span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
-              <span>Пол: {{ data.isMale? "Мужской":"Женский" }}</span>
+              <span>Пол: {{ getSex }}</span>
             </div>
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>{{ data.about }}</span>
@@ -444,9 +463,9 @@ function changeEmailHandler(e) {
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
               <select ref="isMaleSelect" class="profile" name="sex" id="sex">
-                <option value="-1" :selected="!data.isMale?'selected':''">Не выбран</option>
-                <option value="0" :selected="!data.isMale?'selected':''">Женский</option>
-                <option value="1" :selected="data.isMale?'selected':''">Мужской</option>
+                <option value="-1" :selected="data.isMale===-1">Не выбран</option>
+                <option value="0" :selected="data.isMale===0">Женский</option>
+                <option value="1" :selected="data.isMale===1">Мужской</option>
               </select>
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">

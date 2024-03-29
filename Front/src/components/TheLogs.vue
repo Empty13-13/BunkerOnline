@@ -7,7 +7,7 @@
     <div class="logs__container">
       <div class="logs__wrapper">
         <h2 v-slide class="logs__title titleH2">Логи</h2>
-        <div slideBody class="logs__body">
+        <div slideBody class="logs__body" hidden="">
           <ul class="list-logs">
             <li class="list-logs__item">
               <p class="list-logs__text">

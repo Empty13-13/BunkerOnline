@@ -18,7 +18,6 @@ function closePopup(e) {
       <div class="popup__block linear-border"
            :class="color || 'white'"
       >
-        {{color}}
         <div @click="closePopup" class="popup__closeBtn"></div>
         <div class="popup__title">
           <slot name="title" />
@@ -45,6 +44,7 @@ function closePopup(e) {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 999 !important;
 
   &:hover {
     &::after, &::before {
@@ -118,7 +118,7 @@ function closePopup(e) {
   }
 
   &__block {
-    padding: 30px 45px;
+    padding: 40px 45px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -130,7 +130,7 @@ function closePopup(e) {
     overflow-x: hidden;
 
     @media (max-width: $tablet) {
-      padding: 20px 15px;
+      padding: 40px 40px;
       width: 100%;
     }
   }
