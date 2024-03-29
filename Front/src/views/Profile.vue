@@ -3,7 +3,6 @@ import AppButton from "@/components/AppButton.vue";
 import AppBackground from "@/components/AppBackground.vue";
 import {
   computed,
-  nextTick,
   onBeforeMount,
   onBeforeUnmount,
   onBeforeUpdate,
@@ -25,8 +24,6 @@ import { testNicknameKey } from "@/plugins/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { useActionsProfileStore } from "@/stores/profile.js";
 import { focusInInput, setErrorForInput } from "@/plugins/inputActions.js";
-import AppUpButton from "@/components/AppUpButton.vue";
-import AppConfirm from "@/components/AppConfirm.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 
@@ -84,11 +81,13 @@ const getBlockButtonImg = computed(() => {
   }
 })
 const getSex = computed(() => {
-  if(data.isMale===-1){
+  if (data.isMale=== -1) {
     return 'Не указан'
-  } else if(data.isMale===0) {
+  }
+  else if (data.isMale===0) {
     return 'Женский'
-  } else if(data.isMale===1) {
+  }
+  else if (data.isMale===1) {
     return 'Мужской'
   }
 })
@@ -107,7 +106,7 @@ function changeBlocked() {
 }
 
 function banUser(e) {
-  showConfirmBlock(e.target,async () => {
+  showConfirmBlock(e.target, async () => {
     globalPreloader.activate()
 
     try {
@@ -224,9 +223,10 @@ async function saveProfileInfoHandler(e) {
     body.hiddenBirthday = isHiddenBirthdayInput.value.checked
   }
   if (+isMaleSelect.value!==data.sex) {
-    if(+isMaleSelect.value.value === -1) {
+    if (+isMaleSelect.value.value=== -1) {
       body.sex = null
-    } else {
+    }
+    else {
       body.sex = +isMaleSelect.value.value
     }
   }
@@ -251,7 +251,7 @@ async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(getId.value)
   if (!userInfo) {
     await router.push('/')
-    globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')
+    // globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')
     return
   }
 
@@ -274,9 +274,10 @@ async function updateProfileInfo() {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
   console.log(userInfo.data.sex)
-  if(userInfo.data.sex===null || userInfo.data.sex===undefined) {
+  if (userInfo.data.sex===null || userInfo.data.sex===undefined) {
     data.isMale = -1
-  } else {
+  }
+  else {
     data.isMale = +userInfo.data.sex
   }
 
@@ -306,6 +307,7 @@ function changePasswordHandler(e) {
       showPasswordChangePopup.value = true
     } catch(e) {
       console.log(e.message)
+      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление пароля', 'gold')
     }
 
   }, 'Вы уверены что хотите сменить пароль?')
@@ -321,6 +323,7 @@ function changeEmailHandler(e) {
       showEmailChangePopup.value = true
     } catch(e) {
       console.log(e.message)
+      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление email', 'gold')
     }
   })
 }
@@ -343,6 +346,14 @@ function changeEmailHandler(e) {
                 {{ isMyProfile? "Привет, ":'' }}
                 <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
                   {{ data.name }}
+                  <button
+                      v-if="((isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && !isChangingName"
+                      class="naming-profileBlock__blockBtn btn"
+                      ref="changeNameBtn"
+                      @click="changeName"
+                  >
+                    <img src="/img/icons/pencil.png" alt="">
+                  </button>
                 </span>
                 <div v-else class="naming-profileBlock__input">
                   <small hidden="">Какой то текст с ошибкой</small>
@@ -351,36 +362,27 @@ function changeEmailHandler(e) {
                          @keydown="keyDownNickname"
                          @focus="focusInInput"
                   >
+                  <button
+                      v-if="((isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && isChangingName"
+                      class="naming-profileBlock__blockBtn btn"
+                      ref="changeNameBtn"
+                      @click="changeName"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100"
+                         viewBox="0,0,256,256">
+                      <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
+                         stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
+                         font-family="none" font-size="none"
+                         style="mix-blend-mode: normal">
+                        <g transform="scale(8.53333,8.53333)">
+                          <path
+                              d="M26.98047,5.99023c-0.2598,0.00774 -0.50638,0.11632 -0.6875,0.30273l-15.29297,15.29297l-6.29297,-6.29297c-0.25082,-0.26124 -0.62327,-0.36647 -0.97371,-0.27511c-0.35044,0.09136 -0.62411,0.36503 -0.71547,0.71547c-0.09136,0.35044 0.01388,0.72289 0.27511,0.97371l7,7c0.39053,0.39037 1.02353,0.39037 1.41406,0l16,-16c0.29576,-0.28749 0.38469,-0.72707 0.22393,-1.10691c-0.16075,-0.37985 -0.53821,-0.62204 -0.9505,-0.60988z"></path>
+                        </g>
+                      </g>
+                    </svg>
+                  </button>
                 </div>
 
-                <button v-if="myProfile.isAdmin && !isMyProfile && !isChangingName"
-                        class="naming-profileBlock__blockBtn btn"
-                        @mouseover="changeBlocked" @mouseout="changeBlocked"
-                        @click="banUser"
-                >
-                  <img :src="'/img/icons/'+getBlockButtonImg" alt="">
-                </button>
-                <button
-                    v-if="(isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)"
-                    class="naming-profileBlock__blockBtn btn"
-                    ref="changeNameBtn"
-                    @click="changeName"
-                >
-                  <img v-if="!isChangingName" src="/img/icons/pencil.png" alt="">
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100"
-                       viewBox="0,0,256,256">
-                    <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
-                       stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
-                       font-family="none" font-weight="none" font-size="none" text-anchor="none"
-                       style="mix-blend-mode: normal">
-                      <g transform="scale(8.53333,8.53333)">
-                        <path
-                            d="M26.98047,5.99023c-0.2598,0.00774 -0.50638,0.11632 -0.6875,0.30273l-15.29297,15.29297l-6.29297,-6.29297c-0.25082,-0.26124 -0.62327,-0.36647 -0.97371,-0.27511c-0.35044,0.09136 -0.62411,0.36503 -0.71547,0.71547c-0.09136,0.35044 0.01388,0.72289 0.27511,0.97371l7,7c0.39053,0.39037 1.02353,0.39037 1.41406,0l16,-16c0.29576,-0.28749 0.38469,-0.72707 0.22393,-1.10691c-0.16075,-0.37985 -0.53821,-0.62204 -0.9505,-0.60988z"></path>
-                      </g>
-                    </g>
-                  </svg>
-
-                </button>
               </div>
               <div class="naming-profileBlock__access"
                    :class="getClassForAccess(data.access.title)"
@@ -739,15 +741,17 @@ function changeEmailHandler(e) {
     display: flex;
     align-items: center;
 
-    @media (max-width:540px){
+    @media (max-width: 540px) {
       flex-wrap: wrap;
     }
 
     span {
       margin-left: 7px;
+      display: flex;
+      align-items: center;
 
-      @media (max-width:540px){
-        width: calc(100% - 50px);
+      @media (max-width: 540px) {
+        //width: calc(100% - 50px);
         text-align: start;
         max-width: 15ch;
       }
@@ -791,11 +795,6 @@ function changeEmailHandler(e) {
     position: relative;
     margin-left: 7px;
     display: flex;
-
-    @media (max-width:540px){
-      width: calc(100% - 50px);
-      max-width: 15ch;
-    }
 
     small {
       font-size: 12px;
