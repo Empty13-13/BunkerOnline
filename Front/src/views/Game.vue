@@ -1804,8 +1804,17 @@ import TheLogs from "@/components/TheLogs.vue";
     cursor: pointer;
     padding: 10px;
 
-    @media (any-hover: hover){
-      &:hover{
+    @media (any-hover: hover) {
+      &:hover {
+        text-decoration: underline;
+
+        & + .navigation__window {
+          opacity: 1;
+        }
+      }
+    }
+    @media (hover: none) {
+      &:active {
         text-decoration: underline;
 
         & + .navigation__window {
