@@ -1760,7 +1760,7 @@ import TheLogs from "@/components/TheLogs.vue";
   font-size: 11px;
   font-weight: 600;
   top: 50%;
-  transform: translate(0,-50%);
+  transform: translate(0, -50%);
   padding: 20px 0;
 
   &__block {
@@ -1804,11 +1804,13 @@ import TheLogs from "@/components/TheLogs.vue";
     cursor: pointer;
     padding: 10px;
 
-    &:hover {
-      text-decoration: underline;
+    @media (any-hover: hover){
+      &:hover{
+        text-decoration: underline;
 
-      & + .navigation__window {
-        opacity: 1;
+        & + .navigation__window {
+          opacity: 1;
+        }
       }
     }
   }
