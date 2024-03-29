@@ -358,27 +358,27 @@ import TheLogs from "@/components/TheLogs.vue";
         <div class="navigation__block linear-border white" ref="navBlock">
           <ul class="navigation__list">
             <li id="welcomeBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">1</a>
+              <div @click="goToBlock" class="navigation__text">1</div>
               <div class="navigation__window">Катаклизм</div>
             </li>
             <li id="bunkerBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">2</a>
+              <div @click="goToBlock" class="navigation__text">2</div>
               <div class="navigation__window">Бункер</div>
             </li>
             <li id="gamerInfoBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">3</a>
+              <div @click="goToBlock" class="navigation__text">3</div>
               <div class="navigation__window">Информация обо мне</div>
             </li>
             <li id="gamerListBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">4</a>
+              <div @click="goToBlock" class="navigation__text">4</div>
               <div class="navigation__window">Желающие попасть внутрь</div>
             </li>
             <li id="specBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">5</a>
+              <div @click="goToBlock" class="navigation__text">5</div>
               <div class="navigation__window">Таблица со спец возможностями</div>
             </li>
             <li id="notesBB" class="navigation__item">
-              <a @click="goToBlock" class="navigation__text">6</a>
+              <div @click="goToBlock" class="navigation__text">6</div>
               <div class="navigation__window">Заметки</div>
             </li>
           </ul>
@@ -1764,7 +1764,7 @@ import TheLogs from "@/components/TheLogs.vue";
   padding: 20px 0;
 
   &__block {
-    padding: 32px 15px;
+    padding: 22px 15px;
     transition: transform 0.2s ease;
 
     @media (max-width: $pc) {
@@ -1793,7 +1793,7 @@ import TheLogs from "@/components/TheLogs.vue";
 
   &__item {
     position: relative;
-    margin-bottom: 25px;
+    margin-bottom: 5px;
 
     &:last-child {
       margin-bottom: 0;
