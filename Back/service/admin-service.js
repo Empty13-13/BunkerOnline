@@ -12,26 +12,28 @@ require('dotenv').config()
 
 
 class AdminService {
+  
+  async blockUser(id) {
     
-    async blockUser(id){
-        
-       const  isBlocked = await UserModel.BlackListUsers.findOne({where: {userId: id}})
-       if (!isBlocked){
-           await UserModel.BlackListUsers.create({userId: id})
-           const refreshToken = await UserModel.Token.findOne({where:{userId:id}})
-           const token = await userService.logout(refreshToken.refreshToken)
-           
-           return true
-       }
-       
-       await UserModel.BlackListUsers.destroy({where:{userId: id}})
-       return false
-        
+    const isBlocked = await UserModel.BlackListUsers.findOne({where: {userId: id}})
+    if (!isBlocked) {
+      await UserModel.BlackListUsers.create({userId: id})
+      const refreshToken = await UserModel.Token.findOne({where: {userId: id}})
+      try {
+        const token = await userService.logout(refreshToken.refreshToken)
+      } catch(e) {
+        console.log('У пользователя нет refreshToken в системе')
+      }
+      
+      return true
     }
-
-
-
-
+    
+    await UserModel.BlackListUsers.destroy({where: {userId: id}})
+    return false
+    
+  }
+  
+  
 }
 
 module.exports = new AdminService()

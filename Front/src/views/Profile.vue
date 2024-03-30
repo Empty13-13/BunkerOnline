@@ -354,6 +354,13 @@ function changeEmailHandler(e) {
                   >
                     <img src="/img/icons/pencil.png" alt="">
                   </button>
+                  <button v-if="myProfile.isAdmin && !isMyProfile && !isChangingName"
+                          class="naming-profileBlock__blockBtn btn"
+                          @mouseover="changeBlocked" @mouseout="changeBlocked"
+                          @click="banUser"
+                  >
+                    <img :src="'/img/icons/'+getBlockButtonImg" alt="">
+                  </button>
                 </span>
                 <div v-else class="naming-profileBlock__input">
                   <small hidden="">Какой то текст с ошибкой</small>
@@ -382,7 +389,6 @@ function changeEmailHandler(e) {
                     </svg>
                   </button>
                 </div>
-
               </div>
               <div class="naming-profileBlock__access"
                    :class="getClassForAccess(data.access.title)"
@@ -740,6 +746,10 @@ function changeEmailHandler(e) {
     margin-bottom: 5px;
     display: flex;
     align-items: center;
+
+    @media (max-width: $tablet) {
+      flex-wrap: wrap;
+    }
 
     @media (max-width: 540px) {
       flex-wrap: wrap;
