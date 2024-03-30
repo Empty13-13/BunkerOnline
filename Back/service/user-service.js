@@ -193,6 +193,11 @@ class UserService {
     if (isBdayHidden && !isAdmin && !isUser) {
       delete users.dataValues.birthday
     }
+    delete users.dataValues.activationLink
+    delete users.dataValues.password
+    delete users.dataValues.email
+    delete users.dataValues.updatedAt
+    
     return users
   }
   
