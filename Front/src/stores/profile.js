@@ -3,13 +3,16 @@ import { defineStore } from 'pinia'
 import axiosInstance from "@/api.js";
 import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useAuthStore } from "@/stores/auth.js";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export const useMyProfileStore = defineStore('myProfile', () => {
-  const token = ref()
+  const token = ref(null)
   const id = ref(0)
   const nickname = ref("Загрузка...")
   const access = ref("noreg")
   const avatarName = ref('')
+  const fingerPrint = ref('')
   const isAdmin = computed(() => {
     return access.value==='admin'
   })
@@ -17,17 +20,23 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     return access.value==='default'
   })
   const isReg = computed(() => {
-    return !access.value && access.value!=='noreg'
+    return access.value && access.value!=='noreg'
+  })
+  const isNoReg = computed(() => {
+    return !!fingerPrint && !token.value
+  })
+  const isHigherThanDefault = computed(() => {
+    return !isDefault.value && !isReg.value
   })
   const actionsProfile = useActionsProfileStore()
   
   async function setMyProfileInfo() {
     const preloader = usePreloaderStore()
     preloader.activate()
-    if (id.value) {
+    if (id.value && token.value) {
       try {
         let response = await actionsProfile.getUserInfo(id.value)
-        if(!response) {
+        if (!response) {
           return
         }
         nickname.value = response.data.nickname
@@ -42,6 +51,25 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     else {
       clearUserInfo()
       // await router.push('/login')
+      
+      const authStore = useAuthStore()
+      if (!authStore.getLocalData('fingerPrint')) {
+        const fpPromise = FingerprintJS.load()
+        
+        console.log('получаем новый')
+        const fp = await fpPromise
+        if (fp) {
+          const result = await fp.get()
+          if (result) {
+            authStore.setLocalData('fingerPrint', result.visitorId)
+            fingerPrint.value = result.visitorId
+            console.log('Новый fingerPrint')
+          }
+        }
+      }
+      else {
+        fingerPrint.value = authStore.getLocalData('fingerPrint')
+      }
     }
     
     preloader.deactivate()
@@ -54,9 +82,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     access.value = 'noreg'
     avatarName.value = ''
     
-    localStorage.clear()
+    localStorage.removeItem('userTokens')
+    localStorage.removeItem('userId')
   }
-  
   
   return {
     setMyProfileInfo,
@@ -68,7 +96,10 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     isAdmin,
     isDefault,
     avatarName,
-    isReg
+    isReg,
+    fingerPrint,
+    isNoReg,
+    isHigherThanDefault
   }
 })
 

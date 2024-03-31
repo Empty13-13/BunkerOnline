@@ -163,3 +163,9 @@ export function isAsync (func) {
     // there are other more complex situations that maybe require you to check the return line for a *promise*
   );
 }
+
+export function copyLinkToBuffer() {
+  console.log('copyLink')
+  navigator.clipboard.writeText(window.location.href)
+  
+}

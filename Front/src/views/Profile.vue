@@ -347,7 +347,7 @@ function changeEmailHandler(e) {
                 <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
                   {{ data.name }}
                   <button
-                      v-if="((isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && !isChangingName"
+                      v-if="((isMyProfile && myProfile.isHigherThanDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && !isChangingName"
                       class="naming-profileBlock__blockBtn btn"
                       ref="changeNameBtn"
                       @click="changeName"
@@ -370,7 +370,7 @@ function changeEmailHandler(e) {
                          @focus="focusInInput"
                   >
                   <button
-                      v-if="((isMyProfile && !myProfile.isDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && isChangingName"
+                      v-if="((isMyProfile && myProfile.isHigherThanDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && isChangingName"
                       class="naming-profileBlock__blockBtn btn"
                       ref="changeNameBtn"
                       @click="changeName"
@@ -397,7 +397,7 @@ function changeEmailHandler(e) {
               </div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
-              <div v-if="!myProfile.isDefault" class="packs-profileBlock__block linear-border white">
+              <div v-if="myProfile.isHigherThanDefault" class="packs-profileBlock__block linear-border white">
                 <div class="packs-profileBlock__column">
                   <div class="packs-profileBlock__title">Базовый пак</div>
                   <ul class="packs-profileBlock__list">

@@ -126,8 +126,15 @@ export const useAuthStore = defineStore('auth', () => {
       console.log(e.message)
     }
     
-    
     return null
+  }
+  
+  function setLocalData(nameData,data) {
+    try {
+      localStorage.setItem(nameData, JSON.stringify(data))
+    } catch(e) {
+      console.log(e.message)
+    }
   }
   
   //========================================================================================================================================================
@@ -154,6 +161,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken,
     updateProfileInfo,
     resetPassword,
-    getLocalData
+    getLocalData,
+    setLocalData
   }
 })

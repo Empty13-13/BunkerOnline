@@ -1,7 +1,19 @@
 <script setup="">
-import { computed, reactive, ref } from "vue";
+import { computed, onBeforeMount, onMounted, reactive, ref } from "vue";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import AppBackground from "@/components/AppBackground.vue";
+import AppButton from "@/components/AppButton.vue";
+import TheGamerInfo from "@/components/TheGamerInfo.vue";
+import TheVoteBlock from "@/components/TheVoteBlock.vue";
+import TheHostPanel from "@/components/TheHostPanel.vue";
+import { useAccessStore } from "@/stores/counter.js";
+import AppSmallInfo from "@/components/AppSmallInfo.vue";
+import AppAvatar from "@/components/AppAvatar.vue";
+import TheLogs from "@/components/TheLogs.vue";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import router from "@/router/index.js";
+import { copyLinkToBuffer } from "@/plugins/functions.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -12,13 +24,12 @@ const capacity = ref(3)
 
 const firstItem = ['№ Имя', 'num']
 
-const myId = access.id
-const myAccess = 'mpv'
+const myId = myProfile.id
 const gameData = reactive({
   isStarted: access.isStarted,
-  hostId: 313,
+  hostId: 2,
   gamers: [
-    {id: 323, nickname: '123456789012345'},
+    {id: 2, nickname: '123456789012345'},
     {id: 234, nickname: 'Никнейм1'},
     {id: 345, nickname: 'Никнейм2'},
     {id: 456, nickname: 'Никнейм3'},
@@ -36,14 +47,6 @@ const gameData = reactive({
   ]
 })
 const itemsName = [
-  // title:{title:'№ Имя'},
-  // sex:{title:'Пол'},
-  // physique:{title:'Пол'},
-  // trait:{title:'Пол'},
-  // profession:{title:'Пол'},
-  // health:{title:'Пол'},
-  // hobbies:{title:'Пол'},
-
   ['Пол', 'sex'],
   ['Телосложение', 'physique'],
   ['Человеческая черта', 'trait'],
@@ -269,13 +272,20 @@ const votedData = {
 let isActive = ref(null)
 
 const isHost = computed(() => {
-  return myProfile.token && myId===gameData.hostId
+  return myProfile.isReg && myProfile.id===gameData.hostId
 })
 const mayStartGame = computed(() => {
   return gameData.gamers.length>5
 })
 const isReg = computed(() => {
   return access.level!=='noreg'
+})
+
+onBeforeMount(() => {
+
+})
+onMounted(async () => {
+
 })
 
 function getAccessStr(access) {
@@ -322,32 +332,28 @@ function goToBlock(e) {
 }
 
 const navBlock = ref()
-let navTimout = setTimeout(() => {
-  closeOpen()
-}, 2000)
 
-function closeOpen() {
-  navBlock.value.classList.remove('_active')
-}
-
-function openNavigation(e) {
+function openNavigation() {
   navBlock.value.classList.add('_active')
-  clearTimeout(navTimout)
-  navTimout = setTimeout(() => {
-    closeOpen()
+  setTimeout(() => {
+    navBlock.value.classList.remove('_active')
   }, 2000)
 }
 
-import AppBackground from "@/components/AppBackground.vue";
-import AppButton from "@/components/AppButton.vue";
-import TheGamerInfo from "@/components/TheGamerInfo.vue";
-import TheVoteBlock from "@/components/TheVoteBlock.vue";
-import TheHostPanel from "@/components/TheHostPanel.vue";
-import router from "../router/index.js";
-import { useAccessStore } from "@/stores/counter.js";
-import AppSmallInfo from "@/components/AppSmallInfo.vue";
-import AppAvatar from "@/components/AppAvatar.vue";
-import TheLogs from "@/components/TheLogs.vue";
+//========================================================================================================================================================
+//Buttons Functions
+function closeRoom(e) {
+  showConfirmBlock(e.target,async () => {
+    await router.push('/')
+  },'Вы уверены, что хотите закрыть комнату?')
+}
+
+function startGame(e) {
+  showConfirmBlock(e.target,async () => {
+    gameData.isStarted=true
+  })
+}
+
 </script>
 
 <template>
@@ -746,7 +752,7 @@ import TheLogs from "@/components/TheLogs.vue";
             <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
             <div class="info-awaitRoom__body">
               <p v-if="isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке ниже</p>
-              <div v-if="isHost" class="info-awaitRoom__link">
+              <div v-if="isHost" @click="copyLinkToBuffer" class="info-awaitRoom__link">
                 {{ getURL }}
                 <span>
               <svg width="14.000000" height="14.000000" viewBox="0 0 14 14" fill="none"
@@ -785,12 +791,12 @@ import TheLogs from "@/components/TheLogs.vue";
 
 
               <div v-if="isHost" class="info-awaitRoom__buttons">
-                <AppButton @click="$router.push('/')" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
+                <AppButton @click="closeRoom" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
                 </AppButton>
                 <button :disabled="!mayStartGame"
                         class="info-awaitRoom__btn startBtn"
                         :class="mayStartGame?'btn green':''"
-                        @click="gameData.isStarted=true"
+                        @click="startGame"
                 >
                   Начать игру
                 </button>
@@ -814,7 +820,7 @@ import TheLogs from "@/components/TheLogs.vue";
                 <div class="people-awaitRoom__title">Игрок {{ index + 1 }}</div>
                 <div class="people-awaitRoom__nickname">{{ gamer.nickname }}</div>
               </div>
-              <div v-if="gamer.id!==myId" @click="removeGamer(index)" class="people-awaitRoom__removeBtn">
+              <div v-if="gamer.id!==myProfile.id" @click="removeGamer(index)" class="people-awaitRoom__removeBtn">
                 <svg width="14.631836" height="14.627319" viewBox="0 0 14.6318 14.6273" fill="none"
                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                   <defs />

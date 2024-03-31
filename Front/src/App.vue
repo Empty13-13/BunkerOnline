@@ -2,6 +2,7 @@
 import { useAuthStore } from "@/stores/auth.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -29,7 +30,9 @@ onBeforeMount(async () => {
     console.log("setMyProfileInfo APP",params)
     await myProfile.setMyProfileInfo()
   }
+  console.log(myProfile.isReg);
 })
+
 
 import { RouterLink, RouterView } from 'vue-router'
 import TheHeader from "@/components/TheHeader.vue";

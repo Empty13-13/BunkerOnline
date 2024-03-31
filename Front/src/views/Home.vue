@@ -81,13 +81,14 @@ import AppConfirm from "@/components/AppConfirm.vue";
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <input v-if="!myProfile.token" v-model="inputId" type="text"
+              <input v-if="myProfile.isNoReg" v-model="inputId" type="text"
                      placeholder="Введите ID игры для присоединения">
-              <AppButton @click="letsGo" v-if="!myProfile.token" class="create-room__btn join" color="gold"
-                         :disabled="inputId.length<4">Присоединиться
+              <AppButton @click="letsGo" v-if="myProfile.isNoReg" class="create-room__btn join" color="gold"
+                         :disabled="inputId.length<4">
+                Присоединиться
               </AppButton>
-              <AppButton @click="letsGo" v-if="myProfile.token" class="create-room__btn create" color="gold">Создать
-                                                                                                             игру
+              <AppButton @click="letsGo" v-else class="create-room__btn create" color="gold">
+                Создать игру
               </AppButton>
               <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
               <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">

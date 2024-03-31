@@ -83,8 +83,8 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const myProfile = useMyProfileStore()
   
-  if (to.name==="login" && myProfile.token) {
-    return {name:'profile'}
+  if (to.name==="login" && !myProfile.isNoReg) {
+    return 'profile='+myProfile.id
   }
 })
 

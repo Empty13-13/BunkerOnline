@@ -26,6 +26,11 @@ onUnmounted(() => {
   window.removeEventListener('scroll', headerScroll)
 })
 
+async function logout() {
+  await authStore.logoutUser()
+  isOpen.value = false
+}
+
 function headerScroll() {
   const contentHide = () => header.value.classList.contains('_hide')
 
@@ -85,15 +90,16 @@ function headerScroll() {
                   <img src="/img/icons/vk.svg" alt="">
                 </a>
               </div>
-              <div v-if="myProfile.token" v-adaptive="['.menu__body',992,0]" class="header__authorization authorization-header">
+              <div v-if="myProfile.isReg" v-adaptive="['.menu__body',992,0]"
+                   class="header__authorization authorization-header">
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__img">
-                  <AppAvatar block-edit :color="myProfile.access" v-model:href="myProfile.avatarName"/>
+                  <AppAvatar block-edit :color="myProfile.access" v-model:href="myProfile.avatarName" />
                 </router-link>
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__name"
                              :title="myProfile.nickname">
-                  {{myProfile.nickname}}
+                  {{ myProfile.nickname }}
                 </router-link>
-                <AppButton @click="authStore.logoutUser()" class="authorization-header__exit" icon-name="door.svg"></AppButton>
+                <AppButton @click="logout" class="authorization-header__exit" icon-name="door.svg"></AppButton>
               </div>
               <div v-else @click="isOpen=false" v-adaptive="['.menu__body',992,0]" class="header__login login-header">
                 <AppButton class="login-header__btn" @click="router.push('/login')" color="gold">
