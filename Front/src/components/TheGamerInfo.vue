@@ -1,7 +1,7 @@
 <script setup="">
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
-defineProps(['specItems','isReg'])
+defineProps(['specItems', 'isReg'])
 
 const itemsName = [
   ['Пол', 'sex'],
@@ -41,96 +41,140 @@ import AppButton from "@/components/AppButton.vue";
   <div class="gamerInfo">
     <div class="gamerInfo__container">
       <div class="gamerInfo__block linear-border white">
-        <h2 class="gamerInfo__title titleH2">
+        <h2 v-slide class="gamerInfo__title titleH2">
           Информация о
           <span> НикИгрока</span>
         </h2>
-        <div v-if="isCreate" class="gamerInfo__body">
-          <div class="gamerInfo__column">
-            <div
-                v-for="index in 5"
-                :key="index"
-                class="gamerInfo__item item-gamerInfo"
-            >
-              <div class="item-gamerInfo__title">
-                {{ itemsName[index - 1][0] }}
-                <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
-              </div>
-              <div class="item-gamerInfo__description">
+        <div slidebody>
+          <div v-if="isCreate" class="gamerInfo__body">
+            <div class="gamerInfo__column">
+              <div
+                  v-for="index in 5"
+                  :key="index"
+                  class="gamerInfo__item item-gamerInfo"
+              >
+                <div class="item-gamerInfo__title">
+                  {{ itemsName[index - 1][0] }}
+                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
+                </div>
+                <div class="item-gamerInfo__description">
                 <textarea :id="'input'+(index-1)" maxlength="70" placeholder="Введите характеристику" type="text"
                           class="item-gamerInfo__input"></textarea>
-                <button class="item-gamerInfo__open">
-                  <img src="/img/icons/lock-closed.png" alt="">
-                </button>
+                  <button class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-closed.png" alt="">
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="gamerInfo__column">
-            <div
-                v-for="index in 5"
-                :key="index"
-                class="gamerInfo__item item-gamerInfo"
-            >
-              <div class="item-gamerInfo__title">
-                {{ itemsName[index + 4][0] }}
-                <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
-              </div>
-              <div class="item-gamerInfo__description">
+            <div class="gamerInfo__column">
+              <div
+                  v-for="index in 5"
+                  :key="index"
+                  class="gamerInfo__item item-gamerInfo"
+              >
+                <div class="item-gamerInfo__title">
+                  {{ itemsName[index + 4][0] }}
+                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
+                </div>
+                <div class="item-gamerInfo__description">
                 <textarea :id="'input'+(index+4)" maxlength="70" placeholder="Введите характеристику"
                           class="item-gamerInfo__input"></textarea>
+                  <button class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-closed.png" alt="">
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div v-else class="gamerInfo__body">
+            <div class="gamerInfo__column">
+              <div
+                  v-for="index in 5"
+                  :key="index"
+                  class="gamerInfo__item item-gamerInfo"
+              >
+                <div class="item-gamerInfo__title">
+                  {{ itemsName[index - 1][0] }}
+                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
+                </div>
+                <div class="item-gamerInfo__description">
+                  <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
+                  <AppSmallInfo v-if="features[itemsName[index - 1][1]].info"
+                                :text="features[itemsName[index - 1][1]].info" />
+                  <button v-if="features[itemsName[index-1][1]].isReload && isReg" class="item-gamerInfo__reload">
+                    <img src="/img/icons/reload.png" alt="">
+                  </button>
+                  <button v-if="features[itemsName[index-1][1]].isLocked" class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-closed.png" alt="">
+                  </button>
+                  <button v-else class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-open.png" alt="">
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="gamerInfo__column">
+              <div
+                  v-for="index in 5"
+                  :key="index"
+                  class="gamerInfo__item item-gamerInfo"
+              >
+                <div class="item-gamerInfo__title">
+                  {{ itemsName[index + 4][0] }}
+                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
+                </div>
+                <div class="item-gamerInfo__description">
+                  <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
+                  <AppSmallInfo v-if="features[itemsName[index + 4][1]].info"
+                                :text="features[itemsName[index + 4][1]].info" />
+                  <button v-if="isReg" class="item-gamerInfo__reload">
+                    <img v-if="features[itemsName[index+4][1]].isReload" src="/img/icons/reload.png" alt="">
+                  </button>
+                  <button v-if="features[itemsName[index+4][1]].isLocked" class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-closed.png" alt="">
+                  </button>
+                  <button v-else class="item-gamerInfo__open">
+                    <img src="/img/icons/lock-open.png" alt="">
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="isCreate" class="gamerInfo__specials">
+            <div
+                v-for="item in 2"
+                :key="item"
+                class="gamerInfo__item item-gamerInfo special"
+            >
+              <div class="item-gamerInfo__title">
+                Спец. возможность {{ item }}
+              </div>
+              <div class="item-gamerInfo__description">
+              <textarea :id="'specInput'+(item-1)" maxlength="150" placeholder="Введите характеристику"
+                        class="item-gamerInfo__input"></textarea>
                 <button class="item-gamerInfo__open">
                   <img src="/img/icons/lock-closed.png" alt="">
                 </button>
               </div>
-
             </div>
           </div>
-        </div>
-        <div v-else class="gamerInfo__body">
-          <div class="gamerInfo__column">
+          <div v-else class="gamerInfo__specials">
             <div
-                v-for="index in 5"
-                :key="index"
-                class="gamerInfo__item item-gamerInfo"
+                v-for="item in 2"
+                :key="item"
+                class="gamerInfo__item item-gamerInfo special"
             >
               <div class="item-gamerInfo__title">
-                {{ itemsName[index - 1][0] }}
-                <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
+                Спец. возможность {{ item }}
               </div>
               <div class="item-gamerInfo__description">
-                <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
-                <AppSmallInfo v-if="features[itemsName[index - 1][1]].info"
-                              :text="features[itemsName[index - 1][1]].info" />
-                <button v-if="features[itemsName[index-1][1]].isReload && isReg" class="item-gamerInfo__reload">
-                  <img src="/img/icons/reload.png" alt="">
-                </button>
-                <button v-if="features[itemsName[index-1][1]].isLocked" class="item-gamerInfo__open">
-                  <img src="/img/icons/lock-closed.png" alt="">
-                </button>
-                <button v-else class="item-gamerInfo__open">
-                  <img src="/img/icons/lock-open.png" alt="">
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="gamerInfo__column">
-            <div
-                v-for="index in 5"
-                :key="index"
-                class="gamerInfo__item item-gamerInfo"
-            >
-              <div class="item-gamerInfo__title">
-                {{ itemsName[index + 4][0] }}
-                <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
-              </div>
-              <div class="item-gamerInfo__description">
-                <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
-                <AppSmallInfo v-if="features[itemsName[index + 4][1]].info"
-                              :text="features[itemsName[index + 4][1]].info" />
+                <p class="item-gamerInfo__text">{{ specItems[item - 1].title }}</p>
                 <button v-if="isReg" class="item-gamerInfo__reload">
-                  <img v-if="features[itemsName[index+4][1]].isReload" src="/img/icons/reload.png" alt="">
+                  <img v-if="specItems[item - 1].isReload" src="/img/icons/reload.png" alt="">
                 </button>
-                <button v-if="features[itemsName[index+4][1]].isLocked" class="item-gamerInfo__open">
+                <button v-if="specItems[item-1].isLocked" class="item-gamerInfo__open">
                   <img src="/img/icons/lock-closed.png" alt="">
                 </button>
                 <button v-else class="item-gamerInfo__open">
@@ -140,53 +184,9 @@ import AppButton from "@/components/AppButton.vue";
             </div>
           </div>
         </div>
-
-        <div v-if="isCreate" class="gamerInfo__specials">
-          <div
-              v-for="item in 2"
-              :key="item"
-              class="gamerInfo__item item-gamerInfo special"
-          >
-            <div class="item-gamerInfo__title">
-              Спец. возможность {{ item }}
-            </div>
-            <div class="item-gamerInfo__description">
-              <textarea :id="'specInput'+(item-1)" maxlength="150" placeholder="Введите характеристику"
-                        class="item-gamerInfo__input"></textarea>
-              <button class="item-gamerInfo__open">
-                <img src="/img/icons/lock-closed.png" alt="">
-              </button>
-            </div>
-          </div>
-        </div>
-        <div v-else class="gamerInfo__specials">
-          <div
-              v-for="item in 2"
-              :key="item"
-              class="gamerInfo__item item-gamerInfo special"
-          >
-            <div class="item-gamerInfo__title">
-              Спец. возможность {{ item }}
-            </div>
-            <div class="item-gamerInfo__description">
-              <p class="item-gamerInfo__text">{{ specItems[item - 1].title }}</p>
-              <button v-if="isReg" class="item-gamerInfo__reload">
-                <img v-if="specItems[item - 1].isReload" src="/img/icons/reload.png" alt="">
-              </button>
-              <button v-if="specItems[item-1].isLocked" class="item-gamerInfo__open">
-                <img src="/img/icons/lock-closed.png" alt="">
-              </button>
-              <button v-else class="item-gamerInfo__open">
-                <img src="/img/icons/lock-open.png" alt="">
-              </button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -218,18 +218,25 @@ import AppButton from "@/components/AppButton.vue";
     padding-top: 60px;
     margin-right: 20px;
     margin-left: 20px;
+    margin-bottom: 0;
+    padding-bottom: 50px;
 
     @media (max-width: $tablet) {
       margin-top: 50px;
+      padding-bottom: 45px;
     }
     @media (max-width: $mobile) {
-      margin-top: 40px;
+      margin-top: 0;
+      padding-top: 45px;
+      padding-bottom: 35px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
     @media (max-width: $mobileSmall) {
       font-size: 20px;
+      padding-top: 35px;
+      padding-bottom: 25px;
     }
   }
 

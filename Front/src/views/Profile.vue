@@ -751,20 +751,11 @@ function changeEmailHandler(e) {
       flex-wrap: wrap;
     }
 
-    @media (max-width: 540px) {
-      flex-wrap: wrap;
-    }
-
     span {
       margin-left: 7px;
       display: flex;
       align-items: center;
 
-      @media (max-width: 540px) {
-        //width: calc(100% - 50px);
-        text-align: start;
-        max-width: 15ch;
-      }
     }
 
     input {
@@ -805,6 +796,7 @@ function changeEmailHandler(e) {
     position: relative;
     margin-left: 7px;
     display: flex;
+    align-items: center;
 
     small {
       font-size: 12px;

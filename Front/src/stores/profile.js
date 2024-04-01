@@ -26,7 +26,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     return !!fingerPrint && !token.value
   })
   const isHigherThanDefault = computed(() => {
-    return !isDefault.value && !isReg.value
+    return access.value==='vip' || access.value==='mvp' || access.value==='admin'
   })
   const actionsProfile = useActionsProfileStore()
   
@@ -40,7 +40,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
           return
         }
         nickname.value = response.data.nickname
-        access.value = response.data.accsessLevel
+        access.value = response.data.accsessLevel.toLowerCase()
         avatarName.value = response.data.avatar
       } catch(e) {
         clearUserInfo()

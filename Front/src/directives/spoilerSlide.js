@@ -2,14 +2,20 @@ import {slideToggle} from "@/plugins/functions.js";
 
 function slide(el) {
   return function(el) {
-    slideToggle(el.target.parentNode.querySelector('[slideBody]'))
+  
   }
+}
+
+let sliderFunc = (el) => f => {
+  console.log(el)
+  console.log(el.parentNode,el.parentNode.querySelector('[slideBody]'))
+  slideToggle(el.parentNode.querySelector('[slideBody]'))
 }
 
 export default {
   
   mounted(el, binding) {
-    el.addEventListener('click',slide(el))
+    el.addEventListener('click',sliderFunc(el))
     el.removeEventListener('click',slide(el))
   },
   

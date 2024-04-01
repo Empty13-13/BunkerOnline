@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
         myProfile.token = response.data.accessToken
         myProfile.id = response.data.user.id
         myProfile.nickname = response.data.user.nickname
-        myProfile.access = response.data.accsessLevel
+        myProfile.access = response.data.accsessLevel.toLowerCase()
         
         localStorage.setItem('userTokens', JSON.stringify({
           token: myProfile.token,

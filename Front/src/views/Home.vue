@@ -228,7 +228,6 @@ import AppConfirm from "@/components/AppConfirm.vue";
   }
 
   &__subtitle {
-    display: inline;
     font-family: Montserrat;
     font-size: 14px;
     line-height: 1.8;
