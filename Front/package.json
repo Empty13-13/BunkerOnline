@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.2.2",
+    "@vueuse/core": "^10.9.0",
     "pinia": "^2.1.7",
     "run": "^1.5.0",
+    "socket.io-client": "^4.7.5",
     "vue": "^3.4.15",
     "vue-multiselect": "^3.0.0-beta.3",
     "vue-router": "^4.2.5",

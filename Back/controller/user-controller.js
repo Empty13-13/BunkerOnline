@@ -2,6 +2,7 @@ const userService = require('../service/user-service');
 const {validationResult} = require('express-validator')
 const ApiError = require('../exceptions/api-error')
 const axios = require('axios')
+const uuid = require('uuid')
 require('dotenv').config()
 
 class UserController {
@@ -347,7 +348,7 @@ class UserController {
     }
     
   }
-  
+  generatRoomId
   async resetEmail(req, res, next) {
     
     
@@ -366,6 +367,19 @@ class UserController {
     }
     
   }
+
+  async generateRoomId(req, res, next) {
+
+
+      try {
+        const roomLink = userService.gen_roomLink()
+        console.log(roomLink)
+        return res.json({link:roomLink})
+      } catch(e) {
+        next(e)
+      }
+
+    }
   
   
 }

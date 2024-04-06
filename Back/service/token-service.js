@@ -8,28 +8,28 @@ class TokenService {
     return {
       accessToken,
       refreshToken,
-      expiresIn:3600,
+      expiresIn: 3600,
     }
     
   }
   
   validateAccessToken(token) {
     try {
-              const userData = jwt.verify(token,process.env.JWT_ACCESS_SECRET)
-        return userData
+      const userData = jwt.verify(token, process.env.JWT_ACCESS_SECRET)
+      return userData
     } catch(e) {
       return null
     }
   }
-
+  
   validateRefreshToken(token) {
-      try {
-        const userData = jwt.verify(token,process.env.JWT_REFRESH_SECRET)
-        return userData
+    try {
+      const userData = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
+      return userData
     } catch(e) {
       return null
-      }
     }
+  }
   
   async saveToken(userId, refreshToken) {
     const tokenData = await tokenModel.Token.findOne({where: {userId}})
@@ -46,11 +46,11 @@ class TokenService {
     const tokenData = await tokenModel.Token.destroy({where: {refreshToken: refreshToken}})
     return tokenData
   }
-
+  
   async findToken(refreshToken) {
-      const tokenData = await tokenModel.Token.findOne({where: {refreshToken: refreshToken}})
-      return tokenData
-    }
+    const tokenData = await tokenModel.Token.findOne({where: {refreshToken: refreshToken}})
+    return tokenData
+  }
 }
 
 module.exports = new TokenService()

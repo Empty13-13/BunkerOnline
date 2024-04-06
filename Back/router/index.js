@@ -82,6 +82,7 @@ router.post('/deleteAvatar=:id', updateUserMiddleware('admin'), userController.d
 router.post('/resetEmail', authMiddleware, userController.resetEmail); // cookie
 router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //body parameters and email
 
+router.post('/generateRoomId', userController.generateRoomId);
 
 //router.get('/loginVK',userController.loginVK);
 //router.get('/callbackVK',userController.callbackVK);

@@ -2,7 +2,6 @@
 import { useAuthStore } from "@/stores/auth.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useMyProfileStore } from "@/stores/profile.js";
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()

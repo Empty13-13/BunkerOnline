@@ -4,7 +4,6 @@ import axiosInstance from "@/api.js";
 import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useAuthStore } from "@/stores/auth.js";
-import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export const useMyProfileStore = defineStore('myProfile', () => {
   const token = ref(null)
@@ -12,7 +11,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   const nickname = ref("Загрузка...")
   const access = ref("noreg")
   const avatarName = ref('')
-  const fingerPrint = ref('')
+  const noregToken = ref(null)
   const isAdmin = computed(() => {
     return access.value==='admin'
   })
@@ -23,7 +22,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     return access.value && access.value!=='noreg'
   })
   const isNoReg = computed(() => {
-    return !!fingerPrint && !token.value
+    return !!noregToken && !token.value
   })
   const isHigherThanDefault = computed(() => {
     return access.value==='vip' || access.value==='mvp' || access.value==='admin'
@@ -42,6 +41,12 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         nickname.value = response.data.nickname
         access.value = response.data.accsessLevel.toLowerCase()
         avatarName.value = response.data.avatar
+        
+        const authStore = useAuthStore()
+        let noregTokenLocal = authStore.getLocalData('noregToken')
+        if(noregToken) {
+          noregToken.value = noregTokenLocal
+        }
       } catch(e) {
         clearUserInfo()
         preloader.deactivate()
@@ -51,28 +56,15 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     else {
       clearUserInfo()
       // await router.push('/login')
-      
-      const authStore = useAuthStore()
-      if (!authStore.getLocalData('fingerPrint')) {
-        const fpPromise = FingerprintJS.load()
-        
-        console.log('получаем новый')
-        const fp = await fpPromise
-        if (fp) {
-          const result = await fp.get()
-          if (result) {
-            authStore.setLocalData('fingerPrint', result.visitorId)
-            fingerPrint.value = result.visitorId
-            console.log('Новый fingerPrint')
-          }
-        }
-      }
-      else {
-        fingerPrint.value = authStore.getLocalData('fingerPrint')
-      }
     }
     
     preloader.deactivate()
+  }
+  
+  function setNoregToken(token) {
+    const authStore = useAuthStore()
+    noregToken.value = token
+    authStore.setLocalData('noregToken',token)
   }
   
   function clearUserInfo() {
@@ -89,6 +81,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   return {
     setMyProfileInfo,
     clearUserInfo,
+    setNoregToken,
     token,
     id,
     nickname,
@@ -97,7 +90,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     isDefault,
     avatarName,
     isReg,
-    fingerPrint,
+    noregToken,
     isNoReg,
     isHigherThanDefault
   }
@@ -148,6 +141,6 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
     getUserInfo,
     uploadAvatar,
     updateNickname,
-    deleteAvatar
+    deleteAvatar,
   }
 })

@@ -625,6 +625,19 @@ function changeEmailHandler(e) {
   position: relative;
   padding: 130px 0;
 
+  @media (max-width: $pc) {
+    padding: 120px 0;
+  }
+  @media (max-width: $tablet) {
+    padding: 100px 0;
+  }
+  @media (max-width: $mobile) {
+    padding: 80px 0;
+  }
+  @media (max-width: $mobileSmall) {
+    padding: 50px 0;
+  }
+
   &__container {
   }
 

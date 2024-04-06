@@ -647,6 +647,14 @@ class UserService {
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
   }
+   gen_roomLink() {
+    var link = "";
+    var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (var i = 0; i<5; i++) {
+      link += symbols.charAt(Math.floor(Math.random() * symbols.length));
+    }
+    return link;
+  }
   
   
 }
@@ -664,6 +672,8 @@ function gen_password(len) {
   }
   return password;
 }
+
+
 
 function objIsEmpty(obj) {
   for (let key in obj) {

@@ -1,5 +1,5 @@
 <script setup="">
-import { computed, onBeforeMount, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
@@ -13,10 +13,27 @@ import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import router from "@/router/index.js";
-import { copyLinkToBuffer } from "@/plugins/functions.js";
+import { copyLinkToBuffer, getId } from "@/plugins/functions.js";
+import { io } from "socket.io-client";
+import { useSelectedGame } from "@/stores/game.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
+import { useWindowFocus } from '@vueuse/core'
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
+const selectedGame = useSelectedGame()
+const globalPreloader = usePreloaderStore()
+const globalPopup = useGlobalPopupStore()
+const socket = io(import.meta.env.VITE_SERVER_LINK,{
+  auth: {
+    noregToken: authStore.getLocalData('noregToken'),
+    token: myProfile.token,
+    idRoom: router.currentRoute.value.path.split('=')[1],
+    _retry: false,
+  }
+});
+
 
 const access = useAccessStore()
 
@@ -24,7 +41,6 @@ const capacity = ref(3)
 
 const firstItem = ['№ Имя', 'num']
 
-const myId = myProfile.id
 const gameData = reactive({
   isStarted: access.isStarted,
   hostId: 2,
@@ -268,6 +284,7 @@ const votedData = {
   abstainedList: ['Витя', 'Леша', 'Игорь', 'Лена'],
   allVoteNum: 7,
 }
+const gameLoadText = ref('Идет загрузка данных игры...')
 
 let isActive = ref(null)
 
@@ -282,10 +299,88 @@ const isReg = computed(() => {
 })
 
 onBeforeMount(() => {
+  globalPreloader.activate()
+
+  console.log(socket)
+
+  socket.on('setError',async data=> {
+
+    let {message,status,functionName,vars} = data
+
+    if(status===403) {
+      globalPreloader.activate()
+      if (!socket.auth._retry) {
+        await authStore.refreshToken()
+        socket.close()
+        socket.auth._retry = true
+        socket.auth.token = myProfile.token
+        socket.connect()
+        setTimeout(() => socket.emit(functionName, vars),1000)
+      } else {
+        await router.push({name: 'home'})
+        globalPopup.activate('Ошибка подключения',message,'red')
+      }
+
+      globalPreloader.deactivate()
+      return
+    }
+    if(status===404) {
+      gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
+      globalPreloader.deactivate()
+      return
+    }
+
+    globalPopup.activate('Ошибка',message,'red')
+    globalPreloader.deactivate()
+  })
+
+  socket.on("connect", () => {
+    console.log(socket)
+    console.log('Подключились по Socket.io')
+    globalPreloader.activate()
+
+    if (selectedGame.isNewGame) {
+      console.log('Создаем комнату')
+      socket.emit('createRoom')
+      selectedGame.isNewGame = false
+    }
+    else {
+      socket.emit('joinRoom')
+    }
+  });
+
+  socket.on('setNoregToken', noRegToken => {
+    console.log('setNoregToken',noRegToken)
+    myProfile.setNoregToken(noRegToken)
+  })
+
+  socket.on('joinedRoom',data => {
+    console.log(data)
+    if(data.status===201) {
+      socket.emit('getAwaitRoomData')
+    }
+  })
+
+  socket.on('setAwaitRoomData', data => {
+    globalPreloader.activate()
+    console.log('setAwaitRoomData',data)
+    if(!data) {
+      gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
+    } else {
+      selectedGame.data.value = data
+      console.log('setAwaitRoomData',selectedGame.data)
+    }
+
+
+    globalPreloader.deactivate()
+  })
+})
+onMounted(() => {
 
 })
-onMounted(async () => {
-
+onUnmounted(() => {
+  socket.close()
+  selectedGame.clear()
 })
 
 function getAccessStr(access) {
@@ -358,7 +453,19 @@ function startGame(e) {
 </script>
 
 <template>
-  <main v-if="gameData.isStarted" class="game">
+  <main v-if="!selectedGame.isGameExist">
+    <div class="awaitRoom">
+      <AppBackground img-name="await.jpg" />
+      <div class="awaitRoom__container">
+        <div class="awaitRoom__body">
+          <div class="info-awaitRoom">
+            <div class="info-awaitRoom__title titleH2">{{ gameLoadText }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <main v-else-if="selectedGame.isStarted" class="game">
     <Teleport to="#app">
       <div @click="openNavigation" v-if="gameData.isStarted" class="navigation">
         <div class="navigation__block linear-border white" ref="navBlock">
@@ -390,7 +497,7 @@ function startGame(e) {
           </ul>
         </div>
       </div>
-      <TheHostPanel v-if="isHost" />
+      <TheHostPanel v-if="selectedGame.isHost" />
     </Teleport>
 
     <div id="welcome" class="welcome">
@@ -763,8 +870,8 @@ function startGame(e) {
           <div class="info-awaitRoom">
             <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
             <div class="info-awaitRoom__body">
-              <p v-if="isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке ниже</p>
-              <div v-if="isHost" @click="copyLinkToBuffer" class="info-awaitRoom__link">
+              <p v-if="selectedGame.isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке ниже</p>
+              <div v-if="selectedGame.isHost" @click="copyLinkToBuffer" class="info-awaitRoom__link">
                 {{ getURL }}
                 <span>
               <svg width="14.000000" height="14.000000" viewBox="0 0 14 14" fill="none"
@@ -789,20 +896,20 @@ function startGame(e) {
             </span>
               </div>
 
-              <p v-if="!isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
+              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
               <div class="info-awaitRoom__min">
-                {{ isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
+                {{ selectedGame.isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
                 ({{ gameData.gamers.length }}/15)
               </div>
 
               <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
-              <p v-if="!isHost" class="info-awaitRoom__text">
+              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">
                 Минимальное количество игроков: 6<br>
                 Максимальное количество игроков: 15
               </p>
 
 
-              <div v-if="isHost" class="info-awaitRoom__buttons">
+              <div v-if="selectedGame.isHost" class="info-awaitRoom__buttons">
                 <AppButton @click="closeRoom" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
                 </AppButton>
                 <button :disabled="!mayStartGame"
@@ -819,7 +926,8 @@ function startGame(e) {
         </div>
       </div>
     </div>
-    <div v-if="isHost" class="people-awaitRoom">
+    {{selectedGame.isHost}}
+    <div v-if="selectedGame.isHost" class="people-awaitRoom">
       <div class="people-awaitRoom__container">
         <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
         <div class="people-awaitRoom__body">

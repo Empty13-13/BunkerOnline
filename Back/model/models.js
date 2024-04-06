@@ -56,12 +56,36 @@ const ResetPassword = sequelize.define('resetPassword', {
   type: {type: DataTypes.STRING}
 })
 
+const NoRegUsers = sequelize.define('noRegUsers', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  noRegToken: {type: DataTypes.STRING},
+  isBlock:{type: DataTypes.TINYINT, defaultValue: 0}
+})
+
+const GameRooms = sequelize.define('gameRooms', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  idRoom: {type: DataTypes.STRING},
+  hostId: {type: DataTypes.INTEGER},
+  isActivated: {type: DataTypes.TINYINT, defaultValue: 0}
+})
+
+const RoomSession = sequelize.define('roomSession', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  idRoom: {type: DataTypes.INTEGER},
+  userId: {type: DataTypes.INTEGER},
+  noRegUserId: {type: DataTypes.INTEGER}
+})
+
 
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
 User.hasOne(BlackListUsers)
 User.hasOne(ResetPassword)
+
+GameRooms.hasOne(RoomSession)
+User.hasOne(RoomSession)
+NoRegUsers.hasOne(RoomSession)
 
 module.exports = {
   User,
@@ -70,5 +94,8 @@ module.exports = {
   DiscordAuthId,
   VkAuthId,
   BlackListUsers,
-  ResetPassword
+  ResetPassword,
+  NoRegUsers,
+  GameRooms,
+  RoomSession
 }

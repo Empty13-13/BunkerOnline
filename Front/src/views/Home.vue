@@ -2,9 +2,24 @@
 import { useAccessStore } from "@/stores/counter.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import AppBackground from "@/components/AppBackground.vue";
+import AppButton from "@/components/AppButton.vue";
+import TheRoom from "@/components/TheRoom.vue";
+import TheList from "@/components/TheList.vue";
+import router from "@/router/index.js";
+import { onBeforeMount, ref } from "vue";
+import AppPopup from "@/components/AppPopup.vue";
+import TheResetPopup from "@/components/TheResetPopup.vue";
+import AppConfirm from "@/components/AppConfirm.vue";
+import { useSelectedGame } from "@/stores/game.js";
+import { useGlobalPopupStore } from "@/stores/popup.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
+const selectedGame = useSelectedGame()
+const globalPopup = useGlobalPopupStore()
+const globalPreloader = usePreloaderStore()
 
 const gamersData = [
   {name: 'nickname228', link: '/game=D389N'},
@@ -35,9 +50,16 @@ function openGallery(e) {
   const oldStyle = imgDiv.style
 }
 
-function letsGo() {
-  access.isStarted = false;
-  router.push('/game=D389N')
+async function letsGo() {
+  globalPreloader.activate()
+  const error = await selectedGame.generateGameId()
+  if(error) {
+    globalPopup.activate('Ошибка создания комнаты',error,'red')
+  } else {
+    await router.push(`/game=${selectedGame.gameId}`)
+  }
+
+  globalPreloader.deactivate()
 }
 
 const showPopup = ref(false)
@@ -48,17 +70,6 @@ onBeforeMount(() => {
     showPopup.value = true
   }
 })
-
-
-import AppBackground from "@/components/AppBackground.vue";
-import AppButton from "@/components/AppButton.vue";
-import TheRoom from "@/components/TheRoom.vue";
-import TheList from "@/components/TheList.vue";
-import router from "@/router/index.js";
-import { onBeforeMount, ref } from "vue";
-import AppPopup from "@/components/AppPopup.vue";
-import TheResetPopup from "@/components/TheResetPopup.vue";
-import AppConfirm from "@/components/AppConfirm.vue";
 </script>
 
 <template>
