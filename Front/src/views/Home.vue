@@ -7,13 +7,14 @@ import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
 import router from "@/router/index.js";
-import { onBeforeMount, ref } from "vue";
+import { onBeforeMount, onMounted, ref } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
 import AppConfirm from "@/components/AppConfirm.vue";
 import { useSelectedGame } from "@/stores/game.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import axiosInstance from "@/api.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -63,12 +64,29 @@ async function letsGo() {
 }
 
 const showPopup = ref(false)
+const roomData = ref([])
 
 onBeforeMount(() => {
   let params = router.currentRoute.value.query
   if (params['connected'] && (params['connected']==='resetPassword' || params['connected']==='resetEmail')) {
     showPopup.value = true
   }
+})
+onMounted(async () => {
+  console.log('noregToken',authStore.getLocalData('noregToken'))
+  try {
+    let data = await axiosInstance.post('/userGames', {
+      noregToken: authStore.getLocalData('noregToken')
+    })
+
+    if(data) {
+      console.log(data)
+      roomData.value = data.data
+    }
+  } catch(e) {
+    console.log(e)
+  }
+
 })
 </script>
 
@@ -92,9 +110,9 @@ onBeforeMount(() => {
         <div class="room__body">
           <div class="room__create create-room">
             <div class="create-room__body">
-              <input v-if="myProfile.isNoReg" v-model="inputId" type="text"
+              <input v-if="false" v-model="inputId" type="text"
                      placeholder="Введите ID игры для присоединения">
-              <AppButton @click="letsGo" v-if="myProfile.isNoReg" class="create-room__btn join" color="gold"
+              <AppButton @click="letsGo" v-if="false" class="create-room__btn join" color="gold"
                          :disabled="inputId.length<4">
                 Присоединиться
               </AppButton>
@@ -109,14 +127,12 @@ onBeforeMount(() => {
           </div>
           <div class="room__list list-room">
             <TheRoom
-                :gamers-num="5"
-                :isStarted="true"
-                :datetime="new Date()"
-            />
-            <TheRoom
-                :gamers-num="11"
-                :isStarted="false"
-                :datetime="new Date()"
+                v-for="room in roomData"
+                :key="room.idRoom"
+                :gamers-num="room.countPlayers"
+                :isStarted="room.isStarted"
+                :datetime="new Date(room.dataCreate)"
+                :link="room.idRoom"
             />
           </div>
         </div>

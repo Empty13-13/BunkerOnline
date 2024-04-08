@@ -4,14 +4,16 @@ defineProps(['imgName'])
 
 <template>
   <div class="wrapper">
-    <div class="wrapper__shadows right">
-      <img src="/img/backgrounds/right-shadow.svg" alt="">
-    </div>
-    <div class="wrapper__shadows left">
-      <img src="/img/backgrounds/right-shadow.svg" alt="">
-    </div>
-    <div class="wrapper__shadows up">
-      <img src="/img/backgrounds/up-shadow.svg" alt="">
+    <div class="bodyBackground">
+      <div class="wrapper__shadows right">
+        <img src="/img/backgrounds/right-shadow.svg" alt="">
+      </div>
+      <div class="wrapper__shadows left">
+        <img src="/img/backgrounds/right-shadow.svg" alt="">
+      </div>
+      <div class="wrapper__shadows up">
+        <img src="/img/backgrounds/up-shadow.svg" alt="">
+      </div>
     </div>
     <div class="wrapper__shadows down">
       <img src="/img/backgrounds/down-shadow.svg" alt="">
@@ -36,7 +38,10 @@ defineProps(['imgName'])
   z-index: -1;
   max-width: $containerWidth+200px;
   pointer-events: none;
-  overflow: hidden;
+
+  .bodyBackground {
+    overflow: hidden;
+  }
 
   &__shadows {
     position: absolute;
@@ -58,8 +63,9 @@ defineProps(['imgName'])
     }
 
     &.down {
-      width: 100%;
+      width: 200vw;
       bottom: 0;
+      left: -13%;
       transform: translateY(45%);
     }
 

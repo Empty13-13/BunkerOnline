@@ -24,8 +24,9 @@ const io = new Server(http, {
     origin: `${process.env.FRONT_API}`
   }
 });
-
+require('./io/host-io')(io)
 require('./io/users-io')(io)
+
 
 // io.on('connection', (socket) => {
 //   console.log(`${socket.id} user connected`)

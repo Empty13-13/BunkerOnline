@@ -201,7 +201,7 @@ class UserService {
     return users
   }
   
-  async connectionDiscord(code,res) {
+  async connectionDiscord(code, res) {
     const resp = await axios.post('https://discord.com/api/oauth2/token',
       new URLSearchParams({
         'client_id': process.env.CLIENT_ID,
@@ -647,15 +647,88 @@ class UserService {
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
   }
-   gen_roomLink() {
-    var link = "";
-    var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    for (var i = 0; i<5; i++) {
-      link += symbols.charAt(Math.floor(Math.random() * symbols.length));
+  
+  async gen_roomLink() {
+    let isValid = false
+    while (!isValid) {
+      var link = "";
+      var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      for (var i = 0; i<5; i++) {
+        link += symbols.charAt(Math.floor(Math.random() * symbols.length));
+      }
+      let isRoom = await UserModel.GameRooms.findOne({where: {idRoom: link}})
+      if (!isRoom) {
+        isValid = true
+      }
     }
     return link;
   }
   
+  async userGames(token, noRegToken) {
+    try {
+      let data = []
+      if (token) {
+        const userData = tokenService.validateAccessToken(token)
+        if (!userData) {
+          throw ApiError.UnauthorizedError()
+        }
+        let result = await getGamesData(userData.id)
+        if (result) {
+          data = data.concat(result)
+        }
+      }
+      const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
+      if (isValidNoRegToken) {
+        let result = await getGamesData(-Math.abs(isValidNoRegToken.id))
+        if (result) {
+          data = data.concat(result)
+        }
+      }
+      
+      return data
+      
+      
+    } catch(e) {
+      console.log(e)
+    }
+    
+  }
+  
+  async allUsersGames() {
+    try {
+      
+      
+      const data = await UserModel.GameRooms.findAll({where: {isStarted: 1, isHidden: 0}})
+      
+      return
+    } catch(e) {
+      console.log(e)
+    }
+    
+  }
+
+  
+  
+}
+
+async function get
+
+async function getGamesData(userId) {
+  let data = []
+  const userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
+  if (userJoinGame) {
+    for (const room of userJoinGame) {
+      const gameRoom = await UserModel.GameRooms.findOne({where: {id: room.gameRoomId}})
+      const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: room.gameRoomId}})
+      data.push({
+        idRoom: gameRoom.idRoom,
+        countPlayers: countPlayers.count,
+        isStarted: !!+gameRoom.isStarted,
+        dataCreate: gameRoom.createdAt
+      })
+    }
+  }
+  return data
   
 }
 
@@ -672,7 +745,6 @@ function gen_password(len) {
   }
   return password;
 }
-
 
 
 function objIsEmpty(obj) {

@@ -66,14 +66,13 @@ const GameRooms = sequelize.define('gameRooms', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   idRoom: {type: DataTypes.STRING},
   hostId: {type: DataTypes.INTEGER},
-  isActivated: {type: DataTypes.TINYINT, defaultValue: 0}
+  isStarted: {type: DataTypes.TINYINT, defaultValue: 0},
+  isHidden: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 const RoomSession = sequelize.define('roomSession', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  idRoom: {type: DataTypes.INTEGER},
-  userId: {type: DataTypes.INTEGER},
-  noRegUserId: {type: DataTypes.INTEGER}
+  userId: {type: DataTypes.INTEGER}
 })
 
 
@@ -84,8 +83,8 @@ User.hasOne(BlackListUsers)
 User.hasOne(ResetPassword)
 
 GameRooms.hasOne(RoomSession)
-User.hasOne(RoomSession)
-NoRegUsers.hasOne(RoomSession)
+
+
 
 module.exports = {
   User,

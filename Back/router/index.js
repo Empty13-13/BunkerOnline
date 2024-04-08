@@ -83,6 +83,8 @@ router.post('/resetEmail', authMiddleware, userController.resetEmail); // cookie
 router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //body parameters and email
 
 router.post('/generateRoomId', userController.generateRoomId);
+router.post('/userGames', userController.userGames);
+router.post('/allUsersGames', userController.allUsersGames);
 
 //router.get('/loginVK',userController.loginVK);
 //router.get('/callbackVK',userController.callbackVK);

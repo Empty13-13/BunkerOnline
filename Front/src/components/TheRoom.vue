@@ -9,6 +9,7 @@ defineProps([
   'gamersNum',
   'isStarted',
   'datetime',
+  'link',
 ])
 
 function letsGo(isStarted) {
@@ -43,9 +44,9 @@ function letsGo(isStarted) {
         </div>
       </div>
       <div class="roomCreated__block">
-        <AppButton @click="letsGo(isStarted)" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
+        <AppButton @click="router.push(`/game=${link}`)" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
             isStarted? 'Перейти к игре':'Присоединиться'
-                                                                                                                  }}
+                                                                                                        }}
         </AppButton>
       </div>
     </div>

@@ -149,7 +149,7 @@ class UserController {
     const userData = await userService.connectionDiscord(code)
     console.log(userData)
     if (userData==='banned') {
-      res.redirect(423,`${process.env.FRONT_API}/login`)
+      res.redirect(423, `${process.env.FRONT_API}/login`)
       return
     }
     res.cookie('refreshToken', userData.refreshToken,
@@ -348,7 +348,9 @@ class UserController {
     }
     
   }
+  
   generatRoomId
+  
   async resetEmail(req, res, next) {
     
     
@@ -367,18 +369,58 @@ class UserController {
     }
     
   }
-
+  
   async generateRoomId(req, res, next) {
+    
+    
+    try {
+      const roomLink = await userService.gen_roomLink()
+      console.log(roomLink)
+      return res.json({link: roomLink})
+    } catch(e) {
+      next(e)
+    }
+    
+  }
 
-
+  async userGames(req, res, next) {
+    
+    
+    try {
+      let token = null
+      const accessToken = req.headers.authorization
+      if (accessToken) {
+        token = accessToken.split(' ')[1]
+      }
+      const noregToken = req.body.noregToken
+      console.log(token, noregToken)
+      const data = await userService.userGames(token, noregToken)
+      console.log(data)
+      res.json(data)
+    } catch(e) {
+      next(e)
+    }
+    
+  }
+  
+  async allUsersGames(req, res, next) {
+      
+      
       try {
-        const roomLink = userService.gen_roomLink()
-        console.log(roomLink)
-        return res.json({link:roomLink})
+        let token = null
+        const accessToken = req.headers.authorization
+        if (accessToken) {
+          token = accessToken.split(' ')[1]
+        }
+        const noregToken = req.body.noregToken
+        console.log(token, noregToken)
+        const data = await userService.allUsersGames()
+        console.log(data)
+        res.json(data)
       } catch(e) {
         next(e)
       }
-
+      
     }
   
   

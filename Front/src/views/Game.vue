@@ -25,7 +25,7 @@ const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
 const globalPreloader = usePreloaderStore()
 const globalPopup = useGlobalPopupStore()
-const socket = io(import.meta.env.VITE_SERVER_LINK,{
+const socket = io(import.meta.env.VITE_SERVER_LINK, {
   auth: {
     noregToken: authStore.getLocalData('noregToken'),
     token: myProfile.token,
@@ -33,6 +33,16 @@ const socket = io(import.meta.env.VITE_SERVER_LINK,{
     _retry: false,
   }
 });
+const socketHost = io(import.meta.env.VITE_SERVER_LINK+'host', {
+  auth: {
+    noregToken: authStore.getLocalData('noregToken'),
+    token: myProfile.token,
+    idRoom: router.currentRoute.value.path.split('=')[1],
+    _retry: false,
+  }
+})
+console.log(import.meta.env.VITE_SERVER_LINK+'host')
+socketHost.close()
 
 
 const access = useAccessStore()
@@ -288,9 +298,6 @@ const gameLoadText = ref('Идет загрузка данных игры...')
 
 let isActive = ref(null)
 
-const isHost = computed(() => {
-  return myProfile.isReg && myProfile.id===gameData.hostId
-})
 const mayStartGame = computed(() => {
   return gameData.gamers.length>5
 })
@@ -303,34 +310,37 @@ onBeforeMount(() => {
 
   console.log(socket)
 
-  socket.on('setError',async data=> {
+  socket.on('setError', async data => {
 
-    let {message,status,functionName,vars} = data
+    let {message, status, functionName, vars,color} = data
 
-    if(status===403) {
-      globalPreloader.activate()
-      if (!socket.auth._retry) {
-        await authStore.refreshToken()
-        socket.close()
-        socket.auth._retry = true
-        socket.auth.token = myProfile.token
-        socket.connect()
-        setTimeout(() => socket.emit(functionName, vars),1000)
-      } else {
-        await router.push({name: 'home'})
-        globalPopup.activate('Ошибка подключения',message,'red')
+    switch(status) {
+      case 403: {
+        globalPreloader.activate()
+        if (!socket.auth._retry) {
+          await authStore.refreshToken()
+          socket.close()
+          socket.auth._retry = true
+          socket.auth.token = myProfile.token
+          socket.connect()
+          setTimeout(() => socket.emit(functionName, vars), 1000)
+        }
+        else {
+          await router.push({name: 'home'})
+          globalPopup.activate('Ошибка подключения', message, 'red')
+        }
+        break;
       }
-
-      globalPreloader.deactivate()
-      return
+      case 404: {
+        gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
+        selectedGame.clearData()
+        break;
+      }
+      default: {
+        globalPopup.activate('Ошибка', message, color || 'red')
+      }
     }
-    if(status===404) {
-      gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
-      globalPreloader.deactivate()
-      return
-    }
 
-    globalPopup.activate('Ошибка',message,'red')
     globalPreloader.deactivate()
   })
 
@@ -339,44 +349,93 @@ onBeforeMount(() => {
     console.log('Подключились по Socket.io')
     globalPreloader.activate()
 
-    if (selectedGame.isNewGame) {
-      console.log('Создаем комнату')
-      socket.emit('createRoom')
-      selectedGame.isNewGame = false
-    }
-    else {
-      socket.emit('joinRoom')
+    if (!socket.auth._retry) {
+      if (selectedGame.isNewGame) {
+        console.log('Создаем комнату')
+        socket.emit('createRoom')
+        selectedGame.isNewGame = false
+      }
+      else {
+        console.log('joinRoom')
+        socket.emit('joinRoom')
+      }
     }
   });
 
+  socket.on("connect_error", (err) => {
+    globalPreloader.deactivate()
+    // globalPopup.activate('Ошибка','Сервер перестал отвечать на запросы. Пожалуйста обновите страницу.')
+  });
+
+  socket.on('updateInitialInfo',() => {
+    globalPreloader.activate()
+    socket.emit('getAwaitRoomData')
+  })
+
+  socket.on('kickOut',async data => {
+    let {message} = data
+    globalPopup.activate('Сообщение от комнаты','Вас исключили из комнаты')
+    await router.push({name:'home'})
+  })
+
   socket.on('setNoregToken', noRegToken => {
-    console.log('setNoregToken',noRegToken)
+    console.log('setNoregToken', noRegToken)
     myProfile.setNoregToken(noRegToken)
   })
 
-  socket.on('joinedRoom',data => {
+  socket.on('joinedRoom', data => {
     console.log(data)
-    if(data.status===201) {
+    if (data.status===201) {
+      globalPreloader.activate()
       socket.emit('getAwaitRoomData')
     }
   })
 
   socket.on('setAwaitRoomData', data => {
     globalPreloader.activate()
-    console.log('setAwaitRoomData',data)
-    if(!data) {
+    console.log('setAwaitRoomData', data)
+    if (!data) {
       gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
-    } else {
-      selectedGame.data.value = data
-      console.log('setAwaitRoomData',selectedGame.data)
+    }
+    else {
+      selectedGame.setInitialData(data)
+      console.log('setAwaitRoomData', data)
+      if(selectedGame.isHost){
+        if(!socketHost.connected) {
+          socketHost.connect()
+        }
+      } else {
+        if(socketHost.connected) {
+          socketHost.close()
+        }
+      }
     }
 
 
     globalPreloader.deactivate()
   })
+
+  socket.on('roomClosed',async (data) => {
+    let {message,status} = data
+    if(status===200) {
+      globalPopup.activate('Комната закрыта','','gold')
+      await router.push({name:'home'})
+    }
+  })
+
+  //========================================================================================================================================================
+
+
+
 })
 onMounted(() => {
+  socketHost.on('connect', socket => {
+    console.log('Подключились к функционалу хоста')
+  })
 
+  socketHost.on('disconnect', socket => {
+    console.log('Отключились от функционала хоста')
+  })
 })
 onUnmounted(() => {
   socket.close()
@@ -407,8 +466,9 @@ function voteCalc() {
   console.log(isActive.value)
 }
 
-function removeGamer(index) {
-  gameData.gamers.splice(index, 1)
+function removeGamer(index, id) {
+  socketHost.emit('kickOutUser',id)
+  selectedGame.players.splice(index, 1)
 }
 
 const getURL = computed(() => {
@@ -440,7 +500,7 @@ function openNavigation() {
  */
 function closeRoom(e) {
   showConfirmBlock(e.target, async () => {
-    await router.push('/')
+    socketHost.emit('closeRoom')
   }, 'Вы уверены, что хотите закрыть комнату?')
 }
 
@@ -448,6 +508,10 @@ function startGame(e) {
   showConfirmBlock(e.target, async () => {
     gameData.isStarted = true
   })
+}
+
+function isHiddenGameHandler() {
+  socketHost.emit('isHiddenGame',selectedGame.isHidden)
 }
 
 </script>
@@ -870,7 +934,8 @@ function startGame(e) {
           <div class="info-awaitRoom">
             <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
             <div class="info-awaitRoom__body">
-              <p v-if="selectedGame.isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке ниже</p>
+              <p v-if="selectedGame.isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке
+                                                                               ниже</p>
               <div v-if="selectedGame.isHost" @click="copyLinkToBuffer" class="info-awaitRoom__link">
                 {{ getURL }}
                 <span>
@@ -899,7 +964,7 @@ function startGame(e) {
               <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
               <div class="info-awaitRoom__min">
                 {{ selectedGame.isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
-                ({{ gameData.gamers.length }}/15)
+                ({{ selectedGame.players.length}}/15)
               </div>
 
               <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
@@ -908,6 +973,11 @@ function startGame(e) {
                 Максимальное количество игроков: 15
               </p>
 
+
+              <div v-if="myProfile.isMVP" class="checkbox info-awaitRoom__hiddenGame">
+                <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"  class="checkbox__input" type="checkbox" value="1" name="form[]">
+                <label for="hiddenGame" class="checkbox__label"><span class="checkbox__text">Приватная игра</span></label>
+              </div>
 
               <div v-if="selectedGame.isHost" class="info-awaitRoom__buttons">
                 <AppButton @click="closeRoom" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
@@ -926,21 +996,21 @@ function startGame(e) {
         </div>
       </div>
     </div>
-    {{selectedGame.isHost}}
     <div v-if="selectedGame.isHost" class="people-awaitRoom">
       <div class="people-awaitRoom__container">
         <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
         <div class="people-awaitRoom__body">
           <ul class="people-awaitRoom__list">
+            {{selectedGame.players}}
             <li class="people-awaitRoom__item linear-border white"
-                v-for="(gamer,index) in gameData.gamers"
-                :key="gamer.id"
+                v-for="(gamer,index) in selectedGame.players"
+                :key="gamer.nickname"
             >
               <div class="people-awaitRoom__item-column">
-                <div class="people-awaitRoom__title">Игрок {{ index + 1 }}</div>
+                <div class="people-awaitRoom__title">{{ +gamer.id=== +myProfile.id? 'Это вы':`Игрок ${index+ 1}`}}</div>
                 <div class="people-awaitRoom__nickname">{{ gamer.nickname }}</div>
               </div>
-              <div v-if="gamer.id!==myProfile.id" @click="removeGamer(index)" class="people-awaitRoom__removeBtn">
+              <div v-if="+gamer.id!==+selectedGame.userId" @click="removeGamer(index,gamer.id)" class="people-awaitRoom__removeBtn">
                 <svg width="14.631836" height="14.627319" viewBox="0 0 14.6318 14.6273" fill="none"
                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                   <defs />
@@ -1828,6 +1898,10 @@ function startGame(e) {
       font-size: 11px;
       font-weight: 600;
     }
+  }
+
+  &__hiddenGame {
+    margin-bottom: 15px !important;
   }
 }
 
