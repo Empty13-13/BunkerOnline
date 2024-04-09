@@ -9,11 +9,16 @@ const ioUserService = require('../service/io-user-service')
 
 module.exports = function(io) {
   io.on('connection', async socket => {
-    
-    let {idRoom, isValidateId} = await ioUserService.validateToken(socket)
+    let data = await ioUserService.validateToken(socket)
+    let isValidateId = null
+    let idRoom = null
+    if (data) {
+      isValidateId = data.isValidateId
+      idRoom = data.idRoom
+    }
     if (!isValidateId || !idRoom) {
       socket.emit("setError",
-        {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 403, functionName: 'createRoom'})
+        {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
       return
     }
     socket.join(`user:${isValidateId}`)
@@ -48,8 +53,8 @@ module.exports = function(io) {
     })
 //========================================================================================================================================================
     socket.on('joinRoom', async () => {
-      
-      let GameData = await getValidateGameData(idRoom, socket, io, isValidateId)
+      //await changeNoregIdToRegId(socket)
+      let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
       if (!GameData) {
         return
       }
@@ -68,7 +73,9 @@ module.exports = function(io) {
         socket.join(idRoom)
         
         if (GameData.isPlayingBefore) {
-          socket.in(idRoom).emit('setAllGameData')
+          socket.emit('startedGame')
+          socket.emit('updateInitialInfo')
+          io.in(idRoom).emit('setAllGameData')
         }
         else {
           if (GameData.isHidden) {
@@ -77,9 +84,13 @@ module.exports = function(io) {
             return
           }
           socket.join(`watchers:${idRoom}`)
+          socket.emit('sendMessage',
+            {
+              message: `Game already start you are watcher`
+            })
+          socket.emit('startedGame')
           socket.to(idRoom).emit('setAwaitRoomData', GameData.watchersCount + 1)
-          socket.emit('getAllGameData')
-          
+          socket.emit('setAllGameData')
         }
       }
       else {
@@ -92,7 +103,7 @@ module.exports = function(io) {
             if (!GameData.isPlayingBefore) {
               let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
               await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
-              GameData.players.push(await getIdAndNicknameFromUser(isValidateId))
+              GameData.players.push(await ioUserService.getIdAndNicknameFromUser(isValidateId))
             }
           }
           else {
@@ -128,7 +139,7 @@ module.exports = function(io) {
       //TODO:Собираем основные данные об игре (Ники игроков, userId ведущего, началась ли игра), если они вообще есть
       //  Все таки нужно эту инфу в БД хранить и оттуда же доставать
       
-      data = await getValidateGameData(idRoom, socket, io, isValidateId)
+      data = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
       
       socket.emit('setAwaitRoomData', data)
       console.log(io.sockets.adapter.rooms)
@@ -147,56 +158,6 @@ module.exports = function(io) {
   })
 }
 
-async function getValidateGameData(idRoom, socket, io, isValidateId) {
-  let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-  if (!gameRoom) {
-    socket.emit("setError",
-      {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-    console.log('inValid idRoom')
-    return null
-  }
-  let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
-  
-  let isStarted = !!gameRoom.isActivated
-  let isPlayingBefore = !!userPlaying
-  let dataUsersPlaying = await getPlayingUsers(idRoom)
-  return {
-    isStarted,
-    isPlayingBefore,
-    countPlayers: dataUsersPlaying.length,
-    hostId: gameRoom.dataValues.hostId,
-    watchersCount: getWatchersCount(io, idRoom),
-    players: dataUsersPlaying,
-    userId: isValidateId,
-    isHidden: !!gameRoom.isHidden
-  }
-  
-}
-
-async function getPlayingUsers(idRoom) {
-  let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-  let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id}})
-  let data = []
-  for (const user of playersInRoom) {
-    let userData = await getIdAndNicknameFromUser(user.userId)
-    if (userData) {
-      data.push(userData)
-    }
-  }
-  console.log(data)
-  return data
-}
-
-async function getIdAndNicknameFromUser(userId) {
-  let data = null
-  if (userId>0) {
-    let userData = await UserModel.User.findOne({where: {id: userId}})
-    data = {id: `${userId}`, nickname: `${userData.nickname}`}
-    return data
-  }
-  data = {id: `${userId}`, nickname: `Гость#${Math.abs(userId)}`}
-  return data
-}
 
 /**
  * @description Узнать количество смотрящий за игрой людей в комнате idRoom
@@ -204,15 +165,3 @@ async function getIdAndNicknameFromUser(userId) {
  * @param io
  * @param idRoom
  */
-function getWatchersCount(io, idRoom) {
-  let count = 0
-  for (const room of io.sockets.adapter.rooms) {
-    if (room[0]===`watchers:${idRoom}`) {
-      //Пример собранных данных. Либо просто data = null
-      count = room.length
-      break
-    }
-  }
-  
-  return count
-}

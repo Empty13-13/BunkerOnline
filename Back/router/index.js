@@ -84,7 +84,7 @@ router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //b
 
 router.post('/generateRoomId', userController.generateRoomId);
 router.post('/userGames', userController.userGames);
-router.post('/allUsersGames', userController.allUsersGames);
+router.post('/allGames', userController.allUsersGames);
 
 //router.get('/loginVK',userController.loginVK);
 //router.get('/callbackVK',userController.callbackVK);

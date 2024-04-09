@@ -33,7 +33,7 @@ const socket = io(import.meta.env.VITE_SERVER_LINK, {
     _retry: false,
   }
 });
-const socketHost = io(import.meta.env.VITE_SERVER_LINK+'host', {
+const socketHost = io(import.meta.env.VITE_SERVER_LINK + 'host', {
   auth: {
     noregToken: authStore.getLocalData('noregToken'),
     token: myProfile.token,
@@ -41,7 +41,7 @@ const socketHost = io(import.meta.env.VITE_SERVER_LINK+'host', {
     _retry: false,
   }
 })
-console.log(import.meta.env.VITE_SERVER_LINK+'host')
+console.log(import.meta.env.VITE_SERVER_LINK + 'host')
 socketHost.close()
 
 
@@ -299,7 +299,7 @@ const gameLoadText = ref('Идет загрузка данных игры...')
 let isActive = ref(null)
 
 const mayStartGame = computed(() => {
-  return gameData.gamers.length>5
+  return selectedGame.players.length>5
 })
 const isReg = computed(() => {
   return access.level!=='noreg'
@@ -311,8 +311,13 @@ onBeforeMount(() => {
   console.log(socket)
 
   socket.on('setError', async data => {
-
-    let {message, status, functionName, vars,color} = data
+    console.log('setError KURVA', data)
+    const message = data.message
+    const status = data.status
+    const functionName = data.functionName
+    const vars = data.vars
+    const color = data.color
+    console.log('setError KURVA', data)
 
     switch(status) {
       case 403: {
@@ -323,7 +328,7 @@ onBeforeMount(() => {
           socket.auth._retry = true
           socket.auth.token = myProfile.token
           socket.connect()
-          setTimeout(() => socket.emit(functionName, vars), 1000)
+          setTimeout(() => socket.emit(functionName, vars || null), 1000)
         }
         else {
           await router.push({name: 'home'})
@@ -344,38 +349,20 @@ onBeforeMount(() => {
     globalPreloader.deactivate()
   })
 
-  socket.on("connect", () => {
-    console.log(socket)
-    console.log('Подключились по Socket.io')
-    globalPreloader.activate()
-
-    if (!socket.auth._retry) {
-      if (selectedGame.isNewGame) {
-        console.log('Создаем комнату')
-        socket.emit('createRoom')
-        selectedGame.isNewGame = false
-      }
-      else {
-        console.log('joinRoom')
-        socket.emit('joinRoom')
-      }
-    }
-  });
-
   socket.on("connect_error", (err) => {
     globalPreloader.deactivate()
     // globalPopup.activate('Ошибка','Сервер перестал отвечать на запросы. Пожалуйста обновите страницу.')
   });
 
-  socket.on('updateInitialInfo',() => {
+  socket.on('updateInitialInfo', () => {
     globalPreloader.activate()
     socket.emit('getAwaitRoomData')
   })
 
-  socket.on('kickOut',async data => {
+  socket.on('kickOut', async data => {
     let {message} = data
-    globalPopup.activate('Сообщение от комнаты','Вас исключили из комнаты')
-    await router.push({name:'home'})
+    globalPopup.activate('Сообщение от комнаты', 'Вас исключили из комнаты')
+    await router.push({name: 'home'})
   })
 
   socket.on('setNoregToken', noRegToken => {
@@ -400,12 +387,13 @@ onBeforeMount(() => {
     else {
       selectedGame.setInitialData(data)
       console.log('setAwaitRoomData', data)
-      if(selectedGame.isHost){
-        if(!socketHost.connected) {
+      if (selectedGame.isHost) {
+        if (!socketHost.connected) {
           socketHost.connect()
         }
-      } else {
-        if(socketHost.connected) {
+      }
+      else {
+        if (socketHost.connected) {
           socketHost.close()
         }
       }
@@ -415,18 +403,88 @@ onBeforeMount(() => {
     globalPreloader.deactivate()
   })
 
-  socket.on('roomClosed',async (data) => {
-    let {message,status} = data
-    if(status===200) {
-      globalPopup.activate('Комната закрыта','','gold')
-      await router.push({name:'home'})
+  socket.on('roomClosed', async (data) => {
+    let {message, status} = data
+    if (status===200) {
+      globalPopup.activate('Комната закрыта', '', 'gold')
+      await router.push({name: 'home'})
     }
   })
 
+  socket.on('sendMessage', data => {
+    const title = data.title
+    const message = data.message
+    const color = data.color
+    globalPopup.activate(title || 'Сообщение от сервера', message || '', color)
+  })
+
+  socket.on('startedGame', data => {
+    console.log('Игра началась')
+    selectedGame.isStarted = true
+  })
+
+  socket.on('setAllGameData',data => {
+    console.log('Приняли дату')
+    globalPreloader.deactivate()
+  })
+
+  socket.on("connect", () => {
+    console.log(socket)
+    console.log('Подключились по Socket.io')
+    globalPreloader.activate()
+
+    if (!socket.auth._retry) {
+      if (selectedGame.isNewGame) {
+        console.log('Создаем комнату')
+        socket.emit('createRoom')
+        selectedGame.isNewGame = false
+      }
+      else {
+        console.log('joinRoom')
+        socket.emit('joinRoom')
+      }
+    }
+  });
+
   //========================================================================================================================================================
 
+  socketHost.on('setError', async data => {
+    const message = data.message
+    const status = data.status
+    const functionName = data.functionName
+    const vars = data.vars
+    const color = data.color
+    console.log('setError KURVA', data)
 
+    switch(status) {
+      case 403: {
+        globalPreloader.activate()
+        if (!socket.auth._retry) {
+          await authStore.refreshToken()
+          socket.close()
+          socket.auth._retry = true
+          socket.auth.token = myProfile.token
+          socket.connect()
+          setTimeout(() => socket.emit(functionName, vars || null), 1000)
+        }
+        else {
+          await router.push({name: 'home'})
+          globalPopup.activate('Ошибка подключения', message, 'red')
+        }
+        break;
+      }
+      case 404: {
+        gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
+        selectedGame.clearData()
+        break;
+      }
+      default: {
+        globalPopup.activate('Ошибка', message, color || 'red')
+      }
+    }
 
+    globalPreloader.deactivate()
+  })
 })
 onMounted(() => {
   socketHost.on('connect', socket => {
@@ -439,6 +497,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   socket.close()
+  socketHost.close()
   selectedGame.clear()
 })
 
@@ -467,7 +526,7 @@ function voteCalc() {
 }
 
 function removeGamer(index, id) {
-  socketHost.emit('kickOutUser',id)
+  socketHost.emit('kickOutUser', id)
   selectedGame.players.splice(index, 1)
 }
 
@@ -506,12 +565,13 @@ function closeRoom(e) {
 
 function startGame(e) {
   showConfirmBlock(e.target, async () => {
-    gameData.isStarted = true
+    globalPreloader.activate()
+    socketHost.emit('startGame')
   })
 }
 
 function isHiddenGameHandler() {
-  socketHost.emit('isHiddenGame',selectedGame.isHidden)
+  socketHost.emit('isHiddenGame', selectedGame.isHidden)
 }
 
 </script>
@@ -961,10 +1021,12 @@ function isHiddenGameHandler() {
             </span>
               </div>
 
-              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру!</p>
+              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру{{
+                  selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname
+                                                                          }}!</p>
               <div class="info-awaitRoom__min">
                 {{ selectedGame.isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
-                ({{ selectedGame.players.length}}/15)
+                ({{ selectedGame.players.length }}/15)
               </div>
 
               <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
@@ -974,9 +1036,12 @@ function isHiddenGameHandler() {
               </p>
 
 
-              <div v-if="myProfile.isMVP" class="checkbox info-awaitRoom__hiddenGame">
-                <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"  class="checkbox__input" type="checkbox" value="1" name="form[]">
-                <label for="hiddenGame" class="checkbox__label"><span class="checkbox__text">Приватная игра</span></label>
+              <div v-if="myProfile.isMVP && selectedGame.isHost && selectedGame.userId>0"
+                   class="checkbox info-awaitRoom__hiddenGame">
+                <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"
+                       class="checkbox__input" type="checkbox" value="1" name="form[]">
+                <label for="hiddenGame" class="checkbox__label"><span
+                    class="checkbox__text">Приватная игра</span></label>
               </div>
 
               <div v-if="selectedGame.isHost" class="info-awaitRoom__buttons">
@@ -1001,16 +1066,18 @@ function isHiddenGameHandler() {
         <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
         <div class="people-awaitRoom__body">
           <ul class="people-awaitRoom__list">
-            {{selectedGame.players}}
             <li class="people-awaitRoom__item linear-border white"
                 v-for="(gamer,index) in selectedGame.players"
                 :key="gamer.nickname"
             >
               <div class="people-awaitRoom__item-column">
-                <div class="people-awaitRoom__title">{{ +gamer.id=== +myProfile.id? 'Это вы':`Игрок ${index+ 1}`}}</div>
+                <div class="people-awaitRoom__title">
+                  {{ +gamer.id=== +selectedGame.userId? 'Это вы':`Игрок ${index + 1}` }}
+                </div>
                 <div class="people-awaitRoom__nickname">{{ gamer.nickname }}</div>
               </div>
-              <div v-if="+gamer.id!==+selectedGame.userId" @click="removeGamer(index,gamer.id)" class="people-awaitRoom__removeBtn">
+              <div v-if="+gamer.id !== +selectedGame.userId" @click="removeGamer(index,gamer.id)"
+                   class="people-awaitRoom__removeBtn">
                 <svg width="14.631836" height="14.627319" viewBox="0 0 14.6318 14.6273" fill="none"
                      xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                   <defs />

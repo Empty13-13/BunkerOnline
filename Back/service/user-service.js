@@ -665,67 +665,85 @@ class UserService {
   }
   
   async userGames(token, noRegToken) {
-    try {
-      let data = []
-      if (token) {
-        const userData = tokenService.validateAccessToken(token)
-        if (!userData) {
-          throw ApiError.UnauthorizedError()
-        }
-        let result = await getGamesData(userData.id)
-        if (result) {
-          data = data.concat(result)
-        }
+    let data = []
+    
+    if (token) {
+      const userData = tokenService.validateAccessToken(token)
+      if (!userData) {
+        throw ApiError.UnauthorizedError()
       }
-      const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
-      if (isValidNoRegToken) {
-        let result = await getGamesData(-Math.abs(isValidNoRegToken.id))
-        if (result) {
-          data = data.concat(result)
-        }
+      let result = await getGamesData(userData.id, data)
+      if (result) {
+        data = data.concat(result)
       }
-      
-      return data
-      
-      
-    } catch(e) {
-      console.log(e)
     }
+    const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
+    if (isValidNoRegToken) {
+      let result = await getGamesData(-Math.abs(isValidNoRegToken.id), data)
+      if (result) {
+        data = data.concat(result)
+      }
+    }
+    
+    return data
     
   }
   
   async allUsersGames() {
-    try {
-      
-      
-      const data = await UserModel.GameRooms.findAll({where: {isStarted: 1, isHidden: 0}})
-      
-      return
-    } catch(e) {
-      console.log(e)
+    
+    
+    const data = await UserModel.GameRooms.findAll({where: {isStarted: 1, isHidden: 0}})
+    if (!data) {
+      return null
     }
+    const dataRooms = getNickName(data)
+    
+    return dataRooms
     
   }
-
-  
-  
 }
 
-async function get
+async function getNickName(data) {
+  let dataRooms = []
+  //console.log('123123123',data)
+  for (const user of data) {
+    let hostId = user.hostId
+    if (hostId<0) {
+      hostId = Math.abs(hostId)
+      dataRooms.push({nickname: `Гость#${hostId}`, idRoom: user.idRoom})
+    }
+    else {
+      const dataUser = await UserModel.User.findOne({where: {id: hostId}})
+      dataRooms.push({nickname: dataUser.nickname, idRoom: user.idRoom})
+    }
+  }
+  return dataRooms
+}
 
-async function getGamesData(userId) {
+async function getGamesData(userId, dataRooms) {
   let data = []
   const userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
   if (userJoinGame) {
     for (const room of userJoinGame) {
+      let isRoomExist = false
       const gameRoom = await UserModel.GameRooms.findOne({where: {id: room.gameRoomId}})
       const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: room.gameRoomId}})
-      data.push({
-        idRoom: gameRoom.idRoom,
-        countPlayers: countPlayers.count,
-        isStarted: !!+gameRoom.isStarted,
-        dataCreate: gameRoom.createdAt
-      })
+      if (dataRooms) {
+        for (let i = 0; i<dataRooms.length; i++) {
+          if (dataRooms[i].idRoom===gameRoom.idRoom) {
+            isRoomExist = true
+            break
+          }
+        }
+      }
+      if(!isRoomExist) {
+        data.push({
+          idRoom: gameRoom.idRoom,
+          countPlayers: countPlayers.count,
+          isStarted: !!+gameRoom.isStarted,
+          dataCreate: gameRoom.createdAt
+        })
+      }
     }
   }
   return data

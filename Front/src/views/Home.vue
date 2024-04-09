@@ -1,5 +1,4 @@
 <script setup>
-import { useAccessStore } from "@/stores/counter.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
@@ -10,11 +9,11 @@ import router from "@/router/index.js";
 import { onBeforeMount, onMounted, ref } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
-import AppConfirm from "@/components/AppConfirm.vue";
 import { useSelectedGame } from "@/stores/game.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import axiosInstance from "@/api.js";
+import AppLoader from "@/App.vue";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -22,25 +21,13 @@ const selectedGame = useSelectedGame()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 
-const gamersData = [
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-  {name: 'nickname228', link: '/game=D389N'},
-]
+const activeGames = ref([])
 const streamersData = [
   {name: 'nickname228'},
   {name: 'nickname228'},
   {name: 'nickname228'},
 ]
 
-const access = useAccessStore()
 const inputId = ref('')
 
 const isOpenHowToPlay = ref(false)
@@ -65,6 +52,8 @@ async function letsGo() {
 
 const showPopup = ref(false)
 const roomData = ref([])
+const loadingActiveGame = ref(true)
+const loadingAllGames = ref(true)
 
 onBeforeMount(() => {
   let params = router.currentRoute.value.query
@@ -85,6 +74,21 @@ onMounted(async () => {
     }
   } catch(e) {
     console.log(e)
+  } finally {
+    loadingActiveGame.value = false
+  }
+
+  try {
+    let data = await axiosInstance.post('/allGames')
+    if(data) {
+      activeGames.value = activeGames.value.concat(data.data)
+      console.log('allGames',data.data, activeGames.value)
+    }
+
+  } catch(e) {
+    console.log(e)
+  } finally {
+    loadingAllGames.value = false
   }
 
 })
@@ -125,7 +129,8 @@ onMounted(async () => {
               </AppButton>
             </div>
           </div>
-          <div class="room__list list-room">
+          <AppLoader v-if="loadingActiveGame"/>
+          <div v-else-if="roomData.length"  class="room__list list-room">
             <TheRoom
                 v-for="room in roomData"
                 :key="room.idRoom"
@@ -138,11 +143,12 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div class="activeGame">
+    <AppLoader v-if="loadingAllGames"/>
+    <div v-else-if="activeGames.length" class="activeGame">
       <div class="activeGame__container">
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
-          <TheList :data="gamersData" title="Активные игры" class="activeGame__game" />
+          <TheList :data="activeGames" title="Активные игры" class="activeGame__game" />
           <!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
       </div>

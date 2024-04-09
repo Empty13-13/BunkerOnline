@@ -53,6 +53,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     watchersCount.value = 0
     players.value = []
     userId.value = 0
+    isHidden.value = false
   }
   function setInitialData(data) {
     hostId.value = data.hostId || hostId.value

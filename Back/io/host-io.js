@@ -38,13 +38,18 @@ module.exports = function(io) {
     let userId = socket.data.userId
     let token = socket.handshake.auth.token
     const gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    if (!gameRoom) {
+      socket.emit("setError",
+        {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+    }
     const gameRoomId = gameRoom.id
+    let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
     console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
     socket.on('closeRoom', async () => {
       
       
       await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
-      await UserModel.RoomSession.destroy({where: {gameRoomId: gameRoomId}})
+      await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
       console.log('RoomClose делаем')
       console.log(io.of('/').in(idRoom.toString()))
       console.log(io.sockets.adapter.rooms)
@@ -52,7 +57,18 @@ module.exports = function(io) {
       io.in(idRoom).disconnectSockets(true);
       console.log(io.sockets.adapter.rooms)
     })
-    socket.on('kickOutUser', async (userId) => {
+    socket.on('kickOutUser', async (Id) => {
+      console.log(`id`, Id, `userId`, userId)
+      if (Id.toString()===userId.toString()) {
+        console.log('SDJFHJKDHFKSDKLFHSDJLKFHSDKLJFHSDLKJFHSDJKLFHSDLKJFSDJKLHLKJDSHFKJLSHFLKJ')
+        socket.emit("setError",
+          {
+            message: `Вы не можете выгнать себя`,
+            status: 400,
+            functionName: 'kickOutUser'
+          })
+        return
+      }
       if (gameRoom.isStarted) {
         socket.emit("setError",
           {
@@ -63,11 +79,11 @@ module.exports = function(io) {
         console.log('Игра уже началась, невозможно выгнать')
         return
       }
-      console.log(`Delete Users ${userId}`)
+      console.log(`Delete Users ${Id}`)
       console.log(gameRoomId)
-      await UserModel.RoomSession.destroy({where: {userId: userId, gameRoomId: gameRoomId}})
-      io.to(`user:${userId}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
-      io.to(`user:${userId}`).disconnectSockets(true)
+      await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
+      io.to(`user:${Id}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
+      io.to(`user:${Id}`).disconnectSockets(true)
       io.in(idRoom).emit('updateInitialInfo')
     })
     socket.on('isHiddenGame', async (isHiddenTrack) => {
@@ -80,10 +96,10 @@ module.exports = function(io) {
               status: 403,
               functionName: 'isHiddenGame'
             })
-            console.log("INVALID TOKEN EPTA")
+          console.log("INVALID TOKEN EPTA")
           return
         }
-
+        
         let userData = await UserModel.User.findOne({where: {id: isValid.id}})
         
         
@@ -119,6 +135,25 @@ module.exports = function(io) {
           status: 400,
           functionName: 'isHiddenGame'
         })
+    })
+    
+    socket.on('startGame', async () => {
+      if (GameData.countPlayers<0) {
+        socket.emit("setError",
+          {
+            message: `Для начала игры нужно минимум 6 игроков`,
+            status: 400,
+            functionName: 'startGame'
+          })
+        return
+        
+      }
+      let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+      room.isStarted = 1
+      room.save()
+      
+      io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+      io.in(idRoom).emit('setAllGameData')
     })
     
   })

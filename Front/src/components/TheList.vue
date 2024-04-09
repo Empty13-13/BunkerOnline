@@ -9,8 +9,8 @@ defineProps(['data','title'])
       <ul class="list__ul">
         <li v-for="item in data" class="list__item item-list">
           <div class="item-list__body">
-            <div class="item-list__title">{{ item.name }}</div>
-            <router-link v-if="item.link" :to="item.link" class="item-list__link">Смотреть</router-link>
+            <div class="item-list__title">{{ item.nickname }}</div>
+            <router-link v-if="item.idRoom" :to="`game=${item.idRoom}`" class="item-list__link">Смотреть</router-link>
           </div>
         </li>
       </ul>
@@ -64,7 +64,7 @@ defineProps(['data','title'])
 
   &__body {
     display: grid;
-    grid-template-columns: 23fr 77fr;
+    grid-template-columns: 25fr 77fr;
     gap: 28px;
   }
 
@@ -74,6 +74,10 @@ defineProps(['data','title'])
 
   &__link {
     color: #696969;
+
+    &:hover{
+      color: white;
+    }
   }
 }
 

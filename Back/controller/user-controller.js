@@ -384,8 +384,6 @@ class UserController {
   }
 
   async userGames(req, res, next) {
-    
-    
     try {
       let token = null
       const accessToken = req.headers.authorization
@@ -393,9 +391,9 @@ class UserController {
         token = accessToken.split(' ')[1]
       }
       const noregToken = req.body.noregToken
-      console.log(token, noregToken)
+      //console.log(token, noregToken)
       const data = await userService.userGames(token, noregToken)
-      console.log(data)
+     // console.log(data)
       res.json(data)
     } catch(e) {
       next(e)
@@ -407,15 +405,9 @@ class UserController {
       
       
       try {
-        let token = null
-        const accessToken = req.headers.authorization
-        if (accessToken) {
-          token = accessToken.split(' ')[1]
-        }
-        const noregToken = req.body.noregToken
-        console.log(token, noregToken)
+        
         const data = await userService.allUsersGames()
-        console.log(data)
+        //console.log(data)
         res.json(data)
       } catch(e) {
         next(e)
