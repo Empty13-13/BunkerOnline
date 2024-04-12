@@ -23,7 +23,6 @@ const io = new Server(http, {
   cors: {
     origin: `${process.env.FRONT_API}`
   },
-  path: '/socket/'
 });
 require('./io/host-io')(io)
 require('./io/users-io')(io)
