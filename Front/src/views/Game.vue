@@ -1044,8 +1044,9 @@ function isHiddenGameHandler() {
                    class="checkbox info-awaitRoom__hiddenGame">
                 <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"
                        class="checkbox__input" type="checkbox" value="1" name="form[]">
-                <label for="hiddenGame" class="checkbox__label"><span
-                    class="checkbox__text">Приватная игра</span></label>
+                <label for="hiddenGame" class="checkbox__label">
+                  <span class="checkbox__text">Приватная игра</span>
+                </label>
               </div>
 
               <div v-if="selectedGame.isHost" class="info-awaitRoom__buttons">

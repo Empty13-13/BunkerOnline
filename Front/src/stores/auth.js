@@ -29,12 +29,13 @@ export const useAuthStore = defineStore('auth', () => {
         {
           withCredentials: isLogin()
         })
+      console.log('AUTH DATA', response)
       
       if (isLogin()) {
         myProfile.token = response.data.accessToken
         myProfile.id = response.data.user.id
         myProfile.nickname = response.data.user.nickname
-        myProfile.access = response.data.accsessLevel.toLowerCase()
+        // myProfile.access = response.data.user.accsessLevel.toLowerCase()
         
         localStorage.setItem('userTokens', JSON.stringify({
           token: myProfile.token,

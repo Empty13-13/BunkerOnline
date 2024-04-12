@@ -31,10 +31,11 @@ module.exports = function(io) {
       if (isRooms) {
         socket.emit("setError",
           {
-            message: `Сервер не смог подтвердить вашу личность. Пожалуйста перезагрузите страницу или перезайдите в аккаунт`,
-            status: 403,
+            message: `Произошла ошибка - комната с таким ID уже существует. Попробуйте ещё раз`,
+            status: 400,
             functionName: 'createRoom'
           })
+        io.in(socket.id).disconnectSockets(true);
         console.log('inValid idRoom')
         return
       }
@@ -81,6 +82,7 @@ module.exports = function(io) {
           if (GameData.isHidden) {
             socket.emit("setError",
               {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+            io.in(socket.id).disconnectSockets(true);
             return
           }
           socket.join(`watchers:${idRoom}`)
@@ -88,9 +90,9 @@ module.exports = function(io) {
             {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
           socket.emit('startedGame')
           GameData.watchersCount += 1
-          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount:GameData.watchersCount})
+          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
           // delete GameData.hostId
-          socket.emit('setAwaitRoomData',GameData)
+          socket.emit('setAwaitRoomData', GameData)
           socket.emit('setAllGameData')
         }
       }
@@ -111,6 +113,7 @@ module.exports = function(io) {
             if (GameData.isHidden) {
               socket.emit("setError",
                 {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+              io.in(socket.id).disconnectSockets(true);
               return
             }
             socket.join(`watchers:${idRoom}`)
@@ -129,40 +132,24 @@ module.exports = function(io) {
               status: 406,
               functionName: 'joinRoom'
             })
+          
+          io.in(socket.id).disconnectSockets(true);
         }
       }
-      
     })
-    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     socket.on('getAwaitRoomData', async () => {
       let data = null
-      
-      //TODO:Собираем основные данные об игре (Ники игроков, userId ведущего, началась ли игра), если они вообще есть
-      //  Все таки нужно эту инфу в БД хранить и оттуда же доставать
       
       data = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
       
       socket.emit('setAwaitRoomData', data)
-      console.log(io.sockets.adapter.rooms)
     })
     
-    socket.on('closeRoom', () => {
-
-    })
     socket.on('disconnect', (reason) => {
       console.log("DISCONNECT")
-      //socket.disconnect()
     })
-    
     
     console.log(io.sockets.adapter.rooms)
   })
 }
-
-
-/**
- * @description Узнать количество смотрящий за игрой людей в комнате idRoom
- * @returns {number}
- * @param io
- * @param idRoom
- */
