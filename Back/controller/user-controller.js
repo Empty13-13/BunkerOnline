@@ -387,6 +387,7 @@ class UserController {
     try {
       let token = null
       const accessToken = req.headers.authorization
+      
       if (accessToken && accessToken.toString().includes('Bearer ')) {
         token = accessToken.split('Bearer ')[1]
       }

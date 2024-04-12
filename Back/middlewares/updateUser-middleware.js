@@ -11,7 +11,10 @@ module.exports = function(accsessLevel) {
       if (!authorizationHeader) {
         return next(ApiError.UnauthorizedError())
       }
-      const accessToken = authorizationHeader.split(' ')[1]
+      let  accessToken = null
+              if (authorizationHeader && authorizationHeader.toString().includes('Bearer ')) {
+                     accessToken = authorizationHeader.split('Bearer ')[1]
+              }
       if (!accessToken) {
         return next(ApiError.UnauthorizedError())
       }

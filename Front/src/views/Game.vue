@@ -303,7 +303,7 @@ const gameLoadText = ref('Идет загрузка данных игры...')
 let isActive = ref(null)
 
 const mayStartGame = computed(() => {
-  return selectedGame.players.length>5
+  return selectedGame.players.length>0
 })
 const isReg = computed(() => {
   return access.level!=='noreg'

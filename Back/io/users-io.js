@@ -85,12 +85,10 @@ module.exports = function(io) {
           }
           socket.join(`watchers:${idRoom}`)
           socket.emit('sendMessage',
-            {
-              message: `Игра уже началась. На данный момент вы являетесь наблюдателем`
-            })
+            {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
+          socket.emit('startedGame')
           GameData.watchersCount += 1
-          GameData.isStarted = true
-          socket.to(idRoom).emit('setAwaitRoomData', GameData.watchersCount)
+          io.in(idRoom).emit('setAwaitRoomData', GameData)
           socket.emit('setAllGameData')
         }
       }
