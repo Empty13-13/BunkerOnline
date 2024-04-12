@@ -89,7 +89,7 @@ module.exports = function(io) {
           socket.emit('startedGame')
           GameData.watchersCount += 1
           socket.to(idRoom).emit('setAwaitRoomData', {watchersCount:GameData.watchersCount})
-          delete GameData.hostId
+          // delete GameData.hostId
           socket.emit('setAwaitRoomData',GameData)
           socket.emit('setAllGameData')
         }
