@@ -129,12 +129,14 @@ module.exports = function(io) {
             })
         }
       }
-      socket.emit("setError",
-        {
-          message: `Invalid access`,
-          status: 400,
-          functionName: 'isHiddenGame'
-        })
+      else {
+        socket.emit("setError",
+          {
+            message: `Invalid access`,
+            status: 400,
+            functionName: 'isHiddenGame'
+          })
+      }
     })
     
     socket.on('startGame', async () => {
