@@ -25,21 +25,24 @@ const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
 const globalPreloader = usePreloaderStore()
 const globalPopup = useGlobalPopupStore()
-const socket = io(import.meta.env.VITE_SERVER_SOCKET_LINK+'/socket/', {
-  auth: {
-    noregToken: authStore.getLocalData('noregToken'),
-    token: myProfile.token,
-    idRoom: router.currentRoute.value.path.split('=')[1],
-    _retry: false,
-  }
-});
-const socketHost = io(import.meta.env.VITE_SERVER_SOCKET_LINK + '/socket/host', {
+console.log('Создаем сокеты')
+const socket = io(import.meta.env.VITE_SERVER_SOCKET_LINK, {
   auth: {
     noregToken: authStore.getLocalData('noregToken'),
     token: myProfile.token,
     idRoom: router.currentRoute.value.path.split('=')[1],
     _retry: false,
   },
+  path: '/socket/'
+});
+const socketHost = io(import.meta.env.VITE_SERVER_SOCKET_LINK + 'host', {
+  auth: {
+    noregToken: authStore.getLocalData('noregToken'),
+    token: myProfile.token,
+    idRoom: router.currentRoute.value.path.split('=')[1],
+    _retry: false,
+  },
+  path: '/socket/'
 })
 console.log(import.meta.env.VITE_SERVER_SOCKET_LINK + 'host')
 console.log('Стартовый сокет:', socket)
