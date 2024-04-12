@@ -88,7 +88,9 @@ module.exports = function(io) {
             {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
           socket.emit('startedGame')
           GameData.watchersCount += 1
-          io.in(idRoom).emit('setAwaitRoomData', GameData)
+          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount:GameData.watchersCount})
+          delete GameData.hostId
+          socket.emit('setAwaitRoomData',GameData)
           socket.emit('setAllGameData')
         }
       }
@@ -145,7 +147,7 @@ module.exports = function(io) {
     })
     
     socket.on('closeRoom', () => {
-    
+
     })
     socket.on('disconnect', (reason) => {
       console.log("DISCONNECT")
