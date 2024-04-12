@@ -153,7 +153,7 @@ class ioUserService {
     for (const user of playersInRoom) {
       let userData = await this.getIdAndNicknameFromUser(user.userId)
       if (userData) {
-        data.push(userData)
+        data.push(userData) 
       }
     }
     console.log(data)

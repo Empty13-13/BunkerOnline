@@ -29,7 +29,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   })
   const isHigherThanDefault = computed(() => {
     return access.value==='vip' || access.value==='mvp' || access.value==='admin'
-  })
+  }) 
   const actionsProfile = useActionsProfileStore()
   
   async function setMyProfileInfo() {

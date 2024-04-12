@@ -387,8 +387,8 @@ class UserController {
     try {
       let token = null
       const accessToken = req.headers.authorization
-      if (accessToken) {
-        token = accessToken.split(' ')[1]
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
       }
       const noregToken = req.body.noregToken
       //console.log(token, noregToken)

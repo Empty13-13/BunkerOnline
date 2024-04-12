@@ -73,8 +73,8 @@ module.exports = function(io) {
         socket.join(idRoom)
         
         if (GameData.isPlayingBefore) {
-          socket.emit('startedGame')
           socket.emit('updateInitialInfo')
+          socket.emit('startedGame')
           io.in(idRoom).emit('setAllGameData')
         }
         else {
@@ -86,10 +86,11 @@ module.exports = function(io) {
           socket.join(`watchers:${idRoom}`)
           socket.emit('sendMessage',
             {
-              message: `Game already start you are watcher`
+              message: `Игра уже началась. На данный момент вы являетесь наблюдателем`
             })
-          socket.emit('startedGame')
-          socket.to(idRoom).emit('setAwaitRoomData', GameData.watchersCount + 1)
+          GameData.watchersCount += 1
+          GameData.isStarted = true
+          socket.to(idRoom).emit('setAwaitRoomData', GameData.watchersCount)
           socket.emit('setAllGameData')
         }
       }

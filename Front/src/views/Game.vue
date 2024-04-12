@@ -39,7 +39,8 @@ const socketHost = io(import.meta.env.VITE_SERVER_LINK + 'host', {
     token: myProfile.token,
     idRoom: router.currentRoute.value.path.split('=')[1],
     _retry: false,
-  }
+  },
+  path: '/socket/'
 })
 console.log(import.meta.env.VITE_SERVER_LINK + 'host')
 socketHost.close()
