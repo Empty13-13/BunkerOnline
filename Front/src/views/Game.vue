@@ -40,6 +40,7 @@ const socketHost = io(import.meta.env.VITE_SERVER_SOCKET_LINK + 'host', {
     idRoom: router.currentRoute.value.path.split('=')[1],
     _retry: false,
   },
+  path: '/socket.io/'
 })
 console.log(import.meta.env.VITE_SERVER_SOCKET_LINK + 'host')
 socketHost.close()
