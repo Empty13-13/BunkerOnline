@@ -6,7 +6,7 @@ import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
 import router from "@/router/index.js";
-import { onBeforeMount, onMounted, ref } from "vue";
+import { onBeforeMount, onMounted, onUnmounted, ref } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
 import { useSelectedGame } from "@/stores/game.js";
@@ -54,6 +54,11 @@ const showPopup = ref(false)
 const roomData = ref([])
 const loadingActiveGame = ref(true)
 const loadingAllGames = ref(true)
+const updateInterval = setInterval(async () => {
+  console.log('Обновляем игры')
+  await updateMyGames()
+  await updateAllGames()
+},30000)
 
 onBeforeMount(() => {
   let params = router.currentRoute.value.query
@@ -63,26 +68,37 @@ onBeforeMount(() => {
 })
 onMounted(async () => {
   console.log('noregToken',authStore.getLocalData('noregToken'))
+  await updateMyGames()
+  await updateAllGames()
+})
+onUnmounted(() => {
+  clearInterval(updateInterval)
+})
+
+async function updateMyGames() {
   try {
     let data = await axiosInstance.post('/userGames', {
       noregToken: authStore.getLocalData('noregToken')
     })
-
+    loadingActiveGame.value = true
+    roomData.value = []
     if(data) {
-      console.log(data)
-      roomData.value = data.data
+      roomData.value = roomData.value.concat(data.data)
     }
   } catch(e) {
     console.log(e)
   } finally {
     loadingActiveGame.value = false
   }
+}
 
+async function updateAllGames() {
   try {
     let data = await axiosInstance.post('/allGames')
+    loadingAllGames.value = true
+    activeGames.value = []
     if(data) {
       activeGames.value = activeGames.value.concat(data.data)
-      console.log('allGames',data.data, activeGames.value)
     }
 
   } catch(e) {
@@ -90,8 +106,7 @@ onMounted(async () => {
   } finally {
     loadingAllGames.value = false
   }
-
-})
+}
 </script>
 
 <template>
