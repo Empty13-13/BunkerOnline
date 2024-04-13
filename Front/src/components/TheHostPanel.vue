@@ -6,8 +6,6 @@ const charItem = ref(null)
 const charInput = ref(null)
 const isOpen = ref(false)
 
-
-
 function activateTimer() {
 
 }
@@ -23,10 +21,19 @@ function charClick(e) {
   console.log(charPerson, charItem, charInput)
 }
 
+//========================================================================================================================================================
+function closeRoom(e) {
+  showConfirmBlock(e.target, async () => {
+    hostSocket.emit('closeRoom')
+  }, 'Вы уверены, что хотите закрыть комнату?')
+}
+
 import AppButton from "@/components/AppButton.vue";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { hostSocket } from "@/socket/sockets.js";
 </script>
 
 <template>
@@ -257,7 +264,7 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
         </div>
         <div class="hostPanel__mainButton mainButton-hostPanel">
           <AppButton color="green">Начать игру заново</AppButton>
-          <AppButton color="red">Закрыть комнату</AppButton>
+          <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
         </div>
       </div>
     </div>

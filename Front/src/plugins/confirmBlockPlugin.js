@@ -1,5 +1,11 @@
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 
+/**
+ *
+ * @param {Node} target
+ * @param {function} agreeFunction
+ * @param {string} [text='Вы подтверждаете действие?']
+ */
 export function showConfirmBlock(target, agreeFunction, text = 'Вы подтверждаете действие?') {
   let confirmStore = useConfirmBlockStore()
   console.log(target.parentNode,target.parentNode.tagName,target.parentNode.tagName === 'button')

@@ -13,7 +13,7 @@ import { useSelectedGame } from "@/stores/game.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import axiosInstance from "@/api.js";
-import AppLoader from "@/App.vue";
+import AppLoader from "@/components/AppLoader.vue";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -184,6 +184,7 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
     <AppPopup v-model="isOpenHowToPlay">
       <template v-slot:title>
         Как играть?
@@ -201,7 +202,6 @@ onMounted(async () => {
       Все очень просто! Присоединяйтесь к нашему <a target="_blank" href="">Discord</a> каналу, где вы всегда найдете
       людей, с которыми отлично проведете время!<br>
     </AppPopup>
-
     <teleport to="#app">
       <TheResetPopup v-if="showPopup" />
     </teleport>
