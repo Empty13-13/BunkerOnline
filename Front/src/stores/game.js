@@ -4,21 +4,7 @@ import axiosInstance from "@/api.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { isObject } from "@vueuse/core";
 import { objIsEmpty } from "@/plugins/functions.js";
-
-export const useUserGames = defineStore('userGames', () => {
-  const myGameIds = ref([])
-  
-  const isHost = computed(() => {
-  
-  })
-  
-  return {
-    myGameIds
-  }
-})
-
 export const useSelectedGame = defineStore('selectedGame', () => {
-  const myProfile = useMyProfileStore()
   const isNewGame = ref(false)
   const gameId = ref(null)
   const isStarted = ref(false)
@@ -27,6 +13,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const players = ref([{id:'asd'}])
   const userId = ref(0)
   const isHidden = ref(false)
+  const gameLoadText =  ref('Идет загрузка данных игры...')
   
   const isHost = computed(() => {
     return hostId.value===userId.value
@@ -83,6 +70,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     isHost,
     isNewGame,
     isGameExist,
+    gameLoadText,
     clearData,
     clear,
     generateGameId,

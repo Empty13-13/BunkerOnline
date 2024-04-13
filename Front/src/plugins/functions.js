@@ -133,12 +133,12 @@ export function getLinkParams() {
   return window
     .location
     .search
-    .replace('?','')
+    .replace('?', '')
     .split('&')
     .reduce(
-      function(p,e){
+      function(p, e) {
         var a = e.split('=');
-        p[ decodeURIComponent(a[0])] = decodeURIComponent(a[1]);
+        p[decodeURIComponent(a[0])] = decodeURIComponent(a[1]);
         return p;
       },
       {}
@@ -150,7 +150,7 @@ export const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
 })
 
-export function isAsync (func) {
+export function isAsync(func) {
   const string = func.toString().trim();
   
   return !!(
@@ -164,8 +164,26 @@ export function isAsync (func) {
   );
 }
 
-export function copyLinkToBuffer() {
-  console.log('copyLink')
-  navigator.clipboard.writeText(window.location.href)
+export async function copyLinkToBuffer() {
+  let result = null
+  await navigator.clipboard.writeText(window.location.href)
+           .then(() => result = true)
+           .catch(() => result = false)
+  return result
+}
+
+export function getLocalData(nameData) {
+  try {
+    let data = localStorage.getItem(nameData)
+    if (data) {
+      let json = JSON.parse(data)
+      if (json) {
+        return json
+      }
+    }
+  } catch(e) {
+    console.log(e.message)
+  }
   
+  return null
 }

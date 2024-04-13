@@ -41,10 +41,12 @@ defineProps(['imgName'])
 
   .bodyBackground {
     overflow: hidden;
+    pointer-events: none;
   }
 
   &__shadows {
     position: absolute;
+    pointer-events: none;
 
     &.right {
       height: 100%;
