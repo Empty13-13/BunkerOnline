@@ -38,7 +38,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
             userSocket.auth._retry = true
             userSocket.auth.token = myProfile.token
             userSocket.connect()
-            setTimeout(() => userSocket.emit(functionName, vars || null), 1000)
+            userSocket.emit(functionName, vars || null)
           }
           else {
             await router.push({name: 'home'})

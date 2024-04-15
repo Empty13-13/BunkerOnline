@@ -47,9 +47,8 @@ module.exports = function(io) {
     console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
     socket.on('closeRoom', async () => {
       
+      await ioUserService.deleteRoomFromDB(idRoom)
       
-      await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
-      await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
       console.log('RoomClose делаем')
       console.log(io.of('/').in(idRoom.toString()))
       console.log(io.sockets.adapter.rooms)

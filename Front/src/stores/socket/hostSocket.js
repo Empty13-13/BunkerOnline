@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
-import { useSelectedGame } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { hostSocket } from "@/socket/sockets.js";
 
 export const useHostSocketStore = defineStore('hostSocket', () => {
@@ -16,6 +16,7 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
   const globalPreloader = usePreloaderStore()
   const globalPopup = useGlobalPopupStore()
   const selectedGame = useSelectedGame()
+  const hostFunctional = useHostFunctionalStore()
   
   function bindEvents() {
     
@@ -36,7 +37,7 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
             hostSocket.auth._retry = true
             hostSocket.auth.token = myProfile.token
             hostSocket.connect()
-            setTimeout(() => hostSocket.emit(functionName, vars || null), 1000)
+            hostSocket.emit(functionName, vars || null)
           }
           else {
             await router.push({name: 'home'})
@@ -89,12 +90,12 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
    * @param {string} funcName
    * @param [args]
    */
-  function emit(funcName,...args) {
-    hostSocket.emit(funcName,...args)
+  function emit(funcName, ...args) {
+    hostSocket.emit(funcName, ...args)
   }
   
   function setConnect() {
-    if (selectedGame.isHost) {
+    if (hostFunctional.haveAccess) {
       if (!hostSocket.connected) {
         connect()
       }

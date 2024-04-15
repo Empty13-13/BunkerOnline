@@ -12,6 +12,11 @@ require('dotenv').config()
 const path = require('path')
 const {Op} = require('sequelize')
 
+/**
+ * @type {number}
+ */
+const timeToCloseRoom = 6 * 60 * 1000
+const timerList = {}//{'B725D':setTimeout(),'A123D':setTimeout()}
 
 class ioUserService {
   async validateToken(socket) {
@@ -46,7 +51,7 @@ class ioUserService {
           socket.emit("setError",
             {
               message: `Сервер не смог подтвердить вашу личность. Пожалуйста перезагрузите страницу или перезайдите в аккаунт`,
-              status: 401,
+              status: 403,
               functionName: 'connection'
             })
           console.log('Невалидный токен')
@@ -153,7 +158,7 @@ class ioUserService {
     for (const user of playersInRoom) {
       let userData = await this.getIdAndNicknameFromUser(user.userId)
       if (userData) {
-        data.push(userData) 
+        data.push(userData)
       }
     }
     console.log(data)
@@ -182,8 +187,35 @@ class ioUserService {
     }
     return count
   }
+  
+  joinRoomAndWatchTimer(socket, idRoom) {
+    socket.join(idRoom)
+    if (timerList[idRoom]) {
+      clearTimeout(timerList[idRoom])
+      delete timerList[idRoom]
+    }
+    console.log('TIMER LIST JOIN',timerList)
+  }
+  
+  disconnectAndSetTimer(io, socket, idRoom) {
+    if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
+      console.log('Комната пустая, удалим через 3 часа')
+      timerList[idRoom] = setTimeout(async () => {
+        await this.deleteRoomFromDB(idRoom)
+        console.log('DELETE ROOMS TIMER')
+      }, timeToCloseRoom)
+      console.log('TIMER LISt DISCONNECT ',timerList)
+    }
+  }
+  
+  async deleteRoomFromDB(idRoom) {
+    await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
+    await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
+  }
+  
 }
 
+/////////////////////////////////////////////
 
 async function getNoregUserId(noRegToken, socket) {
   const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})

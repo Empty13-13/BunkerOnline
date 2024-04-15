@@ -7,6 +7,7 @@ const {logger} = require("sequelize/lib/utils/logger");
 const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
 
+
 module.exports = function(io) {
   io.on('connection', async socket => {
     let data = await ioUserService.validateToken(socket)
@@ -21,13 +22,17 @@ module.exports = function(io) {
         {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
       return
     }
+    
+    
     socket.join(`user:${isValidateId}`)
+    
     
     console.log(`${socket.id} user connected with userId ${isValidateId}`)
     socket.on('createRoom', async () => {
       // let isReg = false
       
       let isRooms = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+      console.log(idRoom,isRooms)
       if (isRooms) {
         socket.emit("setError",
           {
@@ -71,7 +76,7 @@ module.exports = function(io) {
          инфу нужно выдать пользователю
          */
         
-        socket.join(idRoom)
+        ioUserService.joinRoomAndWatchTimer(socket,idRoom)
         
         if (GameData.isPlayingBefore) {
           socket.emit('updateInitialInfo')
@@ -98,7 +103,7 @@ module.exports = function(io) {
       }
       else {
         if (GameData) {
-          socket.join(idRoom)
+          ioUserService.joinRoomAndWatchTimer(socket,idRoom)
           
           if (GameData.countPlayers<15) {
             socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
@@ -119,6 +124,7 @@ module.exports = function(io) {
             socket.join(`watchers:${idRoom}`)
             socket.emit('setError',
               {message: "Комната заполнена. Вы являетесь наблюдателем.", status: 409, color: 'gold'})
+            GameData.watchersCount+=1
           }
           
           //Передаем остальным в комнате новые данные, потому что количество участников прибавилось
@@ -146,10 +152,25 @@ module.exports = function(io) {
       socket.emit('setAwaitRoomData', data)
     })
     
-    socket.on('disconnect', (reason) => {
-      console.log("DISCONNECT")
+    socket.on('disconnecting',(reason)=> {
+      ioUserService.disconnectAndSetTimer(io,socket,idRoom)
     })
+    
+    socket.on('disconnect', (reason,details) => {
+      console.log('DISCONNECT. DETAILS:',details)
+    })
+    
+    
     
     console.log(io.sockets.adapter.rooms)
   })
 }
+
+// {idRoom,step, userId, funcName, lastVar, newVar, isHidden??? }
+//{'B8FDJ',1,8,'changeBody','рост(180)','рост(150)'}
+//{'B8FDJ',2,8,null,null,5}
+//{'B8FDJ',3,all,'changeBody',{1:'110',-5:'110',3:'120'},{1:'156',-5:'160',3:'180'}}
+
+// {idRoom,step, userId, funcName, lastVar, newVar }
+//{'B8FDJ',1,8,'changeBody','рост(180)','рост(150)'}
+//{'B8FDJ',1,-5,'changeBody','рост(110)','рост(180)'}

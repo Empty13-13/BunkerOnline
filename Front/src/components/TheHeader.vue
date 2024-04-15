@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { getClassForAccess, getId, getLinkParams } from "@/plugins/functions.js";
 import AppAvatar from "@/components/AppAvatar.vue";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -26,9 +27,11 @@ onUnmounted(() => {
   window.removeEventListener('scroll', headerScroll)
 })
 
-async function logout() {
-  await authStore.logoutUser()
-  isOpen.value = false
+async function logout(e) {
+  showConfirmBlock(e.target,async () => {
+    await authStore.logoutUser()
+    isOpen.value = false
+  },'Вы уверены, что хотите выйти из аккаунта?')
 }
 
 function headerScroll() {
@@ -384,6 +387,10 @@ function headerScroll() {
     width: 35px;
     height: 35px;
     max-width: 35px;
+
+    &>* {
+      pointer-events: none;
+    }
   }
 }
 

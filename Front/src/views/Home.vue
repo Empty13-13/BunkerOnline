@@ -83,7 +83,9 @@ async function updateMyGames() {
     loadingActiveGame.value = true
     roomData.value = []
     if(data) {
-      roomData.value = roomData.value.concat(data.data)
+      roomData.value = roomData.value.concat(data.data).sort((room1,room2) => {
+        return new Date(room1.dataCreate) - new Date(room2.dataCreate)
+      })
     }
   } catch(e) {
     console.log(e)
@@ -158,12 +160,12 @@ async function updateAllGames() {
         </div>
       </div>
     </div>
-    <AppLoader v-if="loadingAllGames"/>
-    <div v-else-if="activeGames.length" class="activeGame">
+    <div class="activeGame">
       <div class="activeGame__container">
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
-          <TheList :data="activeGames" title="Активные игры" class="activeGame__game" />
+          <AppLoader v-if="loadingAllGames"/>
+          <TheList v-else :data="activeGames" title="Активные игры" class="activeGame__game" />
           <!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
       </div>

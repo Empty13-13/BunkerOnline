@@ -12,7 +12,7 @@ import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { copyLinkToBuffer, getId } from "@/plugins/functions.js";
-import { useSelectedGame } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
@@ -24,16 +24,13 @@ const globalPreloader = usePreloaderStore()
 const globalPopup = useGlobalPopupStore()
 const userSocket = useUserSocketStore()
 const hostSocket = useHostSocketStore()
-
-
-const access = useAccessStore()
+const hostFunctional = useHostFunctionalStore()
 
 const capacity = ref(3)
 
 const firstItem = ['№ Имя', 'num']
 
 const gameData = reactive({
-  isStarted: access.isStarted,
   hostId: 2,
   gamers: [
     {id: 2, nickname: '123456789012345'},
@@ -281,9 +278,6 @@ let isActive = ref(null)
 const mayStartGame = computed(() => {
   return selectedGame.players.length>0
 })
-const isReg = computed(() => {
-  return access.level!=='noreg'
-})
 
 onBeforeMount(() => {
   globalPreloader.activate()
@@ -363,11 +357,15 @@ function startGame(e) {
   showConfirmBlock(e.target, async () => {
     globalPreloader.activate()
     hostSocket.emit('startGame')
-  })
+  },null,'right')
 }
 
 function isHiddenGameHandler() {
   hostSocket.emit('isHiddenGame', selectedGame.isHidden)
+}
+
+function isHostPlayerTooHandler() {
+  hostSocket.emit('isHostPlayerTooGame', hostFunctional.isPlayerToo)
 }
 
 async function clickCopyInput(e) {
@@ -437,7 +435,7 @@ async function clickCopyInput(e) {
           </ul>
         </div>
       </div>
-      <TheHostPanel v-if="selectedGame.isHost" />
+      <TheHostPanel v-if="hostFunctional.haveAccess" />
     </Teleport>
 
     <div id="welcome" class="welcome">
@@ -810,9 +808,9 @@ async function clickCopyInput(e) {
           <div class="info-awaitRoom">
             <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
             <div class="info-awaitRoom__body">
-              <p v-if="selectedGame.isHost" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке
+              <p v-if="hostFunctional.haveAccess" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке
                                                                                ниже</p>
-              <div v-if="selectedGame.isHost" @click="clickCopyInput" class="info-awaitRoom__link">
+              <div v-if="hostFunctional.haveAccess" @click="clickCopyInput" class="info-awaitRoom__link">
                 {{ getURL }}
                 <span>
               <svg width="14.000000" height="14.000000" viewBox="0 0 14 14" fill="none"
@@ -837,22 +835,22 @@ async function clickCopyInput(e) {
             </span>
               </div>
 
-              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру{{
+              <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру{{
                   selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname
                                                                           }}!</p>
               <div class="info-awaitRoom__min">
-                {{ selectedGame.isHost? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
+                {{ hostFunctional.haveAccess? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
                 ({{ selectedGame.players.length }}/15)
               </div>
 
               <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
-              <p v-if="!selectedGame.isHost" class="info-awaitRoom__text">
+              <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">
                 Минимальное количество игроков: 6<br>
                 Максимальное количество игроков: 15
               </p>
 
 
-              <div v-if="myProfile.isMVP && selectedGame.isHost && selectedGame.userId>0"
+              <div v-if="myProfile.isMVP && hostFunctional.haveAccess && selectedGame.userId>0"
                    class="checkbox info-awaitRoom__hiddenGame">
                 <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"
                        class="checkbox__input" type="checkbox" value="1" name="form[]">
@@ -861,7 +859,17 @@ async function clickCopyInput(e) {
                 </label>
               </div>
 
-              <div v-if="selectedGame.isHost" class="info-awaitRoom__buttons">
+              <div v-if="hostFunctional.haveAccess"
+                   class="checkbox info-awaitRoom__hiddenGame">
+                <input id="hostPlayerToo" @change="isHostPlayerTooHandler" v-model="hostFunctional.isPlayerToo"
+                       class="checkbox__input" type="checkbox" value="1" name="form[]">
+                <label for="hostPlayerToo" class="checkbox__label">
+                  <span class="checkbox__text">Ведущий также и игрок</span>
+                </label>
+              </div>
+
+
+              <div v-if="hostFunctional.haveAccess" class="info-awaitRoom__buttons">
                 <AppButton @click="closeRoom" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
                 </AppButton>
                 <button :disabled="!mayStartGame"
@@ -878,7 +886,7 @@ async function clickCopyInput(e) {
         </div>
       </div>
     </div>
-    <div v-if="selectedGame.isHost" class="people-awaitRoom">
+    <div v-if="hostFunctional.haveAccess" class="people-awaitRoom">
       <div class="people-awaitRoom__container">
         <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
         <div class="people-awaitRoom__body">

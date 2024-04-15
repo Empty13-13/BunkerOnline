@@ -15,9 +15,6 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const isHidden = ref(false)
   const gameLoadText =  ref('Идет загрузка данных игры...')
   
-  const isHost = computed(() => {
-    return hostId.value===userId.value
-  })
   const isGameExist = computed(() => {
     return !!(hostId.value && players.value && userId.value);
   })
@@ -67,7 +64,6 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     players,
     userId,
     gameId,
-    isHost,
     isNewGame,
     isGameExist,
     gameLoadText,
@@ -75,5 +71,24 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     clear,
     generateGameId,
     setInitialData,
+  }
+})
+
+export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
+  const selectedGame = useSelectedGame()
+  
+  
+  const isPlayerToo = ref(false)
+  const haveAccess = computed(() => {
+    return selectedGame.hostId === selectedGame.userId
+  })
+  
+  function clear() {
+    isPlayerToo.value = false
+  }
+  
+  return {
+    haveAccess,
+    isPlayerToo,
   }
 })

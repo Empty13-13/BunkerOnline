@@ -3,11 +3,12 @@ defineProps(['data','title'])
 </script>
 
 <template>
-  <div v-if="data && data.length" class="list linear-border white smallBorder">
+  <div class="list linear-border white smallBorder">
     <div class="list__body">
       <h3 class="list__title">{{ title }}</h3>
       <ul class="list__ul">
-        <li v-for="item in data" class="list__item item-list">
+        <li v-if="data.length<1">Список пуст</li>
+        <li v-else v-for="item in data" class="list__item item-list">
           <div class="item-list__body">
             <div class="item-list__title">{{ item.nickname }}</div>
             <router-link v-if="item.idRoom" :to="`game=${item.idRoom}`" class="item-list__link">Смотреть</router-link>
