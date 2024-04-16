@@ -742,6 +742,7 @@ function changeEmailHandler(e) {
   font-size: 30px;
   font-weight: 700;
   line-height: 1.5;
+  flex: 1 1 auto;
 
   @media (max-width: $tablet) {
     display: flex;
@@ -760,9 +761,11 @@ function changeEmailHandler(e) {
     margin-bottom: 5px;
     display: flex;
     align-items: center;
+    gap: 7px;
 
     @media (max-width: $tablet) {
       flex-wrap: wrap;
+      justify-content: center;
     }
     @media (max-width: $mobile) {
       justify-content: center;
