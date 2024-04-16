@@ -6,17 +6,18 @@ import AppButton from "@/components/AppButton.vue";
 import TheGamerInfo from "@/components/TheGamerInfo.vue";
 import TheVoteBlock from "@/components/TheVoteBlock.vue";
 import TheHostPanel from "@/components/TheHostPanel.vue";
-import { useAccessStore } from "@/stores/counter.js";
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { copyLinkToBuffer, getId } from "@/plugins/functions.js";
+import { copyLinkToBuffer } from "@/plugins/functions.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
+import router from "@/router/index.js";
+import { goToBlock, openNavigation, showInfoHandler } from "@/plugins/navigationPlugin.js";
 
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
@@ -295,6 +296,7 @@ onUnmounted(() => {
   hostSocket.close()
 
   selectedGame.clear()
+  hostFunctional.clearData()
 })
 
 function getAccessStr(access) {
@@ -324,25 +326,7 @@ const getURL = computed(() => {
   return window.location.href
 })
 
-function goToBlock(e) {
-  let id = `#${e.target.parentNode.id.replace('BB', '')}`
-  console.log(id)
-  const el = document.querySelector(id)
-
-  let scroll = new SmoothScroll()
-  scroll.animateScroll(el, 'ease', {
-    header: 'header'
-  })
-}
-
 const navBlock = ref()
-
-function openNavigation() {
-  navBlock.value.classList.add('_active')
-  setTimeout(() => {
-    navBlock.value.classList.remove('_active')
-  }, 2000)
-}
 
 /**
  * @description Ниже собраны все функции, которые буду использоваться для всяких кликов, событий и т.п.
@@ -357,7 +341,7 @@ function startGame(e) {
   showConfirmBlock(e.target, async () => {
     globalPreloader.activate()
     hostSocket.emit('startGame')
-  },null,'right')
+  }, null, 'right')
 }
 
 function isHiddenGameHandler() {
@@ -370,22 +354,23 @@ function isHostPlayerTooHandler() {
 
 async function clickCopyInput(e) {
   let element = e.target
-  if(!element.classList.contains('info-awaitRoom__link')) {
+  if (!element.classList.contains('info-awaitRoom__link')) {
     element = element.closest('.info-awaitRoom__link')
   }
   element.classList.remove('_error')
   element.classList.remove('_active')
 
-  if(await copyLinkToBuffer()) {
+  if (await copyLinkToBuffer()) {
     element.classList.add('_active')
-  } else {
+  }
+  else {
     element.classList.add('_error')
   }
 
   setTimeout(() => {
     element.classList.remove('_error')
     element.classList.remove('_active')
-  },1500)
+  }, 1500)
 }
 
 </script>
@@ -405,31 +390,31 @@ async function clickCopyInput(e) {
   </main>
   <main v-else-if="selectedGame.isStarted" class="game">
     <Teleport to="#app">
-      <div @click="openNavigation" v-if="gameData.isStarted" class="navigation">
+      <div @click="openNavigation(navBlock)" class="navigation">
         <div class="navigation__block linear-border white" ref="navBlock">
           <ul class="navigation__list">
-            <li id="welcomeBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">1</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('welcome')" class="navigation__text">1</div>
               <div class="navigation__window">Катаклизм</div>
             </li>
-            <li id="bunkerBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">2</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('bunker')" class="navigation__text">2</div>
               <div class="navigation__window">Бункер</div>
             </li>
-            <li id="gamerInfoBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">3</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('gamerInfo')" class="navigation__text">3</div>
               <div class="navigation__window">Информация обо мне</div>
             </li>
-            <li id="gamerListBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">4</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('gamerList')" class="navigation__text">4</div>
               <div class="navigation__window">Желающие попасть внутрь</div>
             </li>
-            <li id="specBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">5</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('spec')" class="navigation__text">5</div>
               <div class="navigation__window">Таблица со спец возможностями</div>
             </li>
-            <li id="notesBB" class="navigation__item">
-              <div @click="goToBlock" class="navigation__text">6</div>
+            <li @click="showInfoHandler" class="navigation__item">
+              <div @click="goToBlock('notes')" class="navigation__text">6</div>
               <div class="navigation__window">Заметки</div>
             </li>
           </ul>
@@ -809,7 +794,7 @@ async function clickCopyInput(e) {
             <div class="info-awaitRoom__title titleH2">Ожидание игроков</div>
             <div class="info-awaitRoom__body">
               <p v-if="hostFunctional.haveAccess" class="info-awaitRoom__inviteText">Пригласите пользователей по ссылке
-                                                                               ниже</p>
+                                                                                     ниже</p>
               <div v-if="hostFunctional.haveAccess" @click="clickCopyInput" class="info-awaitRoom__link">
                 {{ getURL }}
                 <span>
@@ -837,9 +822,11 @@ async function clickCopyInput(e) {
 
               <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру{{
                   selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname
-                                                                          }}!</p>
+                                                                                }}!</p>
               <div class="info-awaitRoom__min">
-                {{ hostFunctional.haveAccess? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...' }}
+                {{
+                  hostFunctional.haveAccess? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...'
+                }}
                 ({{ selectedGame.players.length }}/15)
               </div>
 
@@ -1740,6 +1727,7 @@ async function clickCopyInput(e) {
     &._active {
       border: 1px solid $greenColorHover
     }
+
     &._error {
       border: 1px solid $redColorHover;
     }
@@ -1910,21 +1898,23 @@ async function clickCopyInput(e) {
     cursor: pointer;
     padding: 10px;
 
-    @media (any-hover: hover) {
-      &:hover {
-        text-decoration: underline;
+    @media (min-width: $mobile) {
+      @media (any-hover: hover) {
+        &:hover {
+          text-decoration: underline;
 
-        & + .navigation__window {
-          opacity: 1;
+          & + .navigation__window {
+            opacity: 1;
+          }
         }
       }
-    }
-    @media (hover: none) {
-      &:active {
-        text-decoration: underline;
+      @media (hover: none) {
+        &:active {
+          text-decoration: underline;
 
-        & + .navigation__window {
-          opacity: 1;
+          & + .navigation__window {
+            opacity: 1;
+          }
         }
       }
     }
@@ -1937,8 +1927,12 @@ async function clickCopyInput(e) {
     font-size: 14px;
     white-space: nowrap;
     opacity: 0;
-    transition: opacity 0.1s ease;
+    transition: opacity 0.4s ease;
     pointer-events: none;
+
+    &._active {
+      opacity: 1;
+    }
   }
 }
 

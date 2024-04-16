@@ -1,35 +1,42 @@
 <script setup="">
 import AppBackground from "@/components/AppBackground.vue";
+import { openNavigation } from "@/plugins/navigationPlugin.js";
+import { ref } from "vue";
 
 const titles = [
-  'История',
-  'Обзор',
-  'Процесс игры',
-  'Количество игроков',
-  'Раунд игры',
-  'Ваш ход',
-  'Голосование',
-  'Коллективное обсуждение',
-  'Победа в игре',
-  'Характеристика персонажа',
+  {name: 'История', link: 'history'},
+  {name: 'Обзор', link: 'review'},
+  {name: 'Процесс игры', link: 'process'},
+  {name: 'Количество игроков', link: 'numberOfPlayers'},
+  {name: 'Раунд игры', link: 'round'},
+  {name: 'Ваш ход', link: 'yourTurn'},
+  {name: 'Голосование', link: 'voting'},
+  {name: 'Коллективное обсуждение', link: 'discussion'},
+  {name: 'Победа в игре', link: 'winCondition'},
+  {name: 'Характеристика персонажа', link: 'characterDescription'},
 ]
+const navBlock = ref()
 
 
 </script>
 
 <template>
   <main class="rules">
-    <AppBackground img-name="await.jpg" />
+    <div class="rules__wrapper">
+      <span>
+        <AppBackground img-name="await.jpg" />
+      </span>
+    </div>
     <div class="rules__container">
       <div class="rules__body">
-        <div class="pagination-rules">
-          <div class="pagination-rules__block linear-border white">
+        <div @click="openNavigation(navBlock)" class="pagination-rules">
+          <div ref="navBlock" class="pagination-rules__block linear-border white">
             <ul class="pagination-rules__list">
               <li class="pagination-rules__item"
-                  v-for="title in titles"
-                  :key="title"
+                  v-for="item in titles"
+                  :key="item.title"
               >
-                <router-link class="pagination-rules__link" to="#">{{ title }}</router-link>
+                <router-link class="pagination-rules__link" :to="`#${item.link}`">{{ item.name }}</router-link>
               </li>
             </ul>
           </div>
@@ -46,7 +53,7 @@ const titles = [
           </p>
           <div class="main-rules__body">
             <ul class="main-rules__mainList">
-              <li>
+              <li id="history">
                 <h2>История</h2>
                 <p>
                   Могли бы вы себе представить как это пережить глобальную катастрофу? Думаю что нет... Для этого был
@@ -57,7 +64,7 @@ const titles = [
                   игру!
                 </p>
               </li>
-              <li>
+              <li id="review">
                 <h2>Обзор</h2>
                 <h3>Катаклизм</h3>
                 <p>Описание текущего для игры катаклизма. Как это произошло, что случилось и четкое понимание того, с
@@ -143,7 +150,7 @@ const titles = [
                    игроков, а
                    так же возможность управлением временным лагерем и таймером.</p>
               </li>
-              <li>
+              <li id="process">
                 <h2>Процесс игры</h2>
                 <p>
                   В первом игровом круге все начинается с представления друг друга (см. Раунд игры).В процессе
@@ -161,7 +168,7 @@ const titles = [
                   попали в бункер, раскрывают свои характеристики. Ведущий подводит итог (см. Победа в игре).
                 </p>
               </li>
-              <li>
+              <li id="numberOfPlayers">
                 <div class="table">
                   <div class="table__body">
                     <div class="table__row">
@@ -197,7 +204,7 @@ const titles = [
                   </div>
                 </div>
               </li>
-              <li>
+              <li id="round">
                 <h2>Раунд игры</h2>
                 <p>
                   Первый раунд ходят по часовой стрелке, начиная с первого игрока который нашел бункер (Цифра в блоке
@@ -208,7 +215,7 @@ const titles = [
                   пока не останется допустимое количество игроков (см. Количество игроков) в бункер.
                 </p>
               </li>
-              <li>
+              <li id="yourTurn">
                 <h2>Ваш ход</h2>
                 <p>
                   Ваш ход — самое время блеснуть! Вам дали время представить своего персонажа.Делайте игру интересной,
@@ -219,7 +226,7 @@ const titles = [
                   (см. Количество игроков)Во все последующие ходы вы открываете по одной характеристике за ход (раунд).
                 </p>
               </li>
-              <li>
+              <li id="voting">
                 <h2>Голосование</h2>
                 <p>
                   В игре есть голосование за исключение человека из временного лагеря.Голосование - обязательный процесс
@@ -273,25 +280,24 @@ const titles = [
                   использовать карты, которые влияют на изменение хода голосования невозможно.
                 </p>
               </li>
-              <li>
+              <li id="discussion">
                 <h2>Коллективное обсуждение</h2>
                 <p>
                   Во время общего обсуждения каждый игрок имеет возможность что-то сказать. Здесь нет ограничений на
                   каждого человека. Общее обсуждение длится 1 минуту.
                 </p>
               </li>
-              <li>
+              <li id="winCondition">
                 <h2>Победа в игре</h2>
                 <p>
                   По завершению последнего голосования, когда определилось нужное количество людей для прохождения в
                   бункер, игра завершается. Игроки, которые попали в бункер и переживут катаклизм - считаются
-                  победителями!Остальные игроки так и остаются возле лагеря поскольку искать другой бункер - нет смысла,
+                  победителями! Остальные игроки так и остаются возле лагеря поскольку искать другой бункер - нет смысла,
                   ведь ситуация с катаклизмом совсем критическая. Некоторые потеряли надежду и решили погибнуть на
-                  месте,
-                  часть все-таки решила испытать удачу и попытаются выжить без бункера...
+                  месте, часть все-таки решила испытать удачу и попытаются выжить без бункера...
                 </p>
               </li>
-              <li>
+              <li id="characterDescription">
                 <h2>Характеристики персонажа</h2>
                 <p>
                   У каждого персонажа есть несколько характеристик, которые он получает в начале игры.Любой из
@@ -350,8 +356,26 @@ const titles = [
 
 .rules {
   padding-top: 130px;
+  position: relative;
+  z-index: 5 !important;
 
   &__container {
+  }
+
+  &__wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+
+    span {
+      display: flex;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   &__body {
@@ -369,7 +393,19 @@ const titles = [
   position: relative;
 
   @media (max-width: $mobile) {
-    flex: 0 0 44%;
+    position: fixed;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: 11px;
+    font-weight: 600;
+    top: 50%;
+    transform: translate(0, -50%);
+    padding: 20px 0;
+    width: 30px;
+    height: 405px;
   }
 
   &__block {
@@ -378,11 +414,28 @@ const titles = [
     max-width: 23%;
 
     @media (max-width: $mobile) {
-      max-width: 45%;
+      position: absolute;
+      display: flex;
+      max-width: 100%;
+      transform: translateX(-95%);
+      transition: transform 0.2s ease;
+      width: 216px;
+      min-width: 216px;
+      left: 0;
+      top: 0;
+
+      &._active {
+        transform: translateX(15px);
+      }
     }
   }
 
   &__list {
+
+    @media (max-width: $mobile) {
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   &__item {
@@ -409,7 +462,7 @@ const titles = [
   padding: 5px;
 
   @media (max-width: $mobile) {
-    flex: 0 0 48%;
+    flex: 1 1 auto;
   }
 
   &::before {

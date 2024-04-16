@@ -230,7 +230,7 @@ function clickRulesHandler(e) {
                        v-model="rulesChecked" @focus="focusInInput">
                 <label for="rules" class="checkbox__label">
                   <span class="checkbox__text">
-                    Я ознакомился с <span @click="clickRulesHandler" class="rules">правилами</span>
+                    Я ознакомился с <span @click="clickRulesHandler" class="mainRules">правилами</span>
                   </span>
                 </label>
               </div>
@@ -454,7 +454,7 @@ function clickRulesHandler(e) {
   margin: 20px auto !important;
 }
 
-.rules {
+.mainRules {
   text-decoration: underline;
 
   &:hover{

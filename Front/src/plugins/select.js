@@ -201,7 +201,6 @@ export function fieldsInit() {
     selects.forEach(select => {
       let placeholder = select.dataset.placeholder;
       let {data, selectedId, itemId} = createDataSelect(select)
-      console.log(selectedId,data,itemId,placeholder)
       
       selectsList.push(
         new Select(select, {
@@ -209,7 +208,7 @@ export function fieldsInit() {
           data,
           selectedId,
           // onSelect: (current) => {
-          //   console.log(current)
+          //   Какое то событие
           // },
           itemId: itemId,
           isRequired: select.hasAttribute('required'),

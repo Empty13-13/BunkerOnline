@@ -358,6 +358,7 @@ function changeEmailHandler(e) {
                           class="naming-profileBlock__blockBtn btn"
                           @mouseover="changeBlocked" @mouseout="changeBlocked"
                           @click="banUser"
+                          :style="isMyProfile?'':'margin-left:7px;'"
                   >
                     <img :src="'/img/icons/'+getBlockButtonImg" alt="">
                   </button>
@@ -511,8 +512,11 @@ function changeEmailHandler(e) {
             </div>
             <div class="subscribe-bottom">
               <div v-if="isMyProfile" class="subscribe-bottom__title">Подписка</div>
-              <div class="subscribe-bottom__block linear-border white">
-                <div v-if="isMyProfile" class="subscribe-bottom__column">
+              <div class="subscribe-bottom__block linear-border white" :class="myProfile.isDefault && isMyProfile?'_newSubscribe':''">
+                <div v-if="myProfile.isDefault && isMyProfile" class="subscribe-bottom__newSubscribe">
+                  <AppButton @click="isPopupOpen=true" color="gold">Оформить подписку</AppButton>
+                </div>
+                <div v-if="isMyProfile && !myProfile.isDefault" class="subscribe-bottom__column">
                   <div class="subscribe-bottom__blockTitle">Ваш текущий статус</div>
                   <div class="subscribe-bottom__body">
                     <div class="subscribe-bottom__access" :class="getClassForAccess(data.access.title)">
@@ -524,7 +528,7 @@ function changeEmailHandler(e) {
                     </div>
                   </div>
                 </div>
-                <div v-if="isMyProfile && data.access.title !== 'admin'" class="subscribe-bottom__column _right">
+                <div v-if="isMyProfile && data.access.title !== 'admin' && !myProfile.isDefault" class="subscribe-bottom__column _right">
                   <div class="subscribe-bottom__date">Действует до<br>{{ data.access.date.toLocaleDateString() }}</div>
                   <div class="subscribe-bottom__extend">
                     <AppButton color="gold">Продлить</AppButton>
@@ -633,9 +637,6 @@ function changeEmailHandler(e) {
   }
   @media (max-width: $mobile) {
     padding: 80px 0;
-  }
-  @media (max-width: $mobileSmall) {
-    padding: 50px 0;
   }
 
   &__container {
@@ -763,12 +764,24 @@ function changeEmailHandler(e) {
     @media (max-width: $tablet) {
       flex-wrap: wrap;
     }
+    @media (max-width: $mobile) {
+      justify-content: center;
+    }
 
     span {
-      margin-left: 7px;
+      //margin-left: 7px;
       display: flex;
       align-items: center;
+      gap: 10px;
 
+      @media (max-width: $mobileSmall) {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        margin-left: 0 !important;
+      }
     }
 
     input {
@@ -1166,6 +1179,35 @@ function changeEmailHandler(e) {
 
     button {
       padding: 12px 50px;
+    }
+  }
+
+  &__block._newSubscribe {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__newSubscribe {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    button {
+      height: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      max-width: 320px;
+
+      @media (max-width: $mobile) {
+        height: 45px;
+        font-size: 12px;
+      }
+      @media (max-width: $mobileSmall) {
+        font-size: 11px;
+        height: 40px;
+      }
     }
   }
 }
