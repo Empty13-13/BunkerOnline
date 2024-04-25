@@ -21,6 +21,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   const isMVP = computed(() => {
     return access.value.toLowerCase() === 'mvp'
   })
+  const isVIP = computed(() => {
+    return access.value.toLowerCase() === 'vip'
+  })
   const isReg = computed(() => {
     return access.value && access.value!=='noreg'
   })
@@ -93,6 +96,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     isMVP,
     isDefault,
     avatarName,
+    isVIP,
     isReg,
     noregToken,
     isNoReg,

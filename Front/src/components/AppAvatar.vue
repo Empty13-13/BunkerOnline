@@ -29,11 +29,26 @@ function editAvatar() {
 }
 
 async function changeFileInput(e) {
+  const vipTypes = ['image/jpeg', 'image/png', 'image/jpg']
+  const mvpTypes = vipTypes.concat(['image/gif'])
+  let accessType = []
   let file = e.target.files[0]
 
+  if(myProfile.isDefault) {
+    globalPopup.activate('Ошибка!','Ваш статус пользователя не позволяет изменять изображения','red')
+    return
+  } else if(myProfile.isVIP) {
+    accessType = accessType.concat(vipTypes)
+  } else if(myProfile.isMVP) {
+    accessType = accessType.concat(mvpTypes)
+  } else {
+    globalPopup.activate('Ошибка!',`Произошла ошибка доступа. Пожалуйста, перезагрузите страницу`,'red')
+    return
+  }
+
   // проверяем тип файла
-  if (!['image/jpeg', 'image/png', 'image/gif','image/jpg'].includes(file.type)) {
-    globalPopup.activate('Ошибка!','Разрешены только изображения формата .jpg, .jpeg, .png и .gif','red')
+  if (!accessType.includes(file.type)) {
+    globalPopup.activate('Ошибка!',`Разрешены только изображения формата ${accessType.join(', ').replaceAll('image/','.')}`,'red')
     e.target.value = '';
     return
   }
@@ -89,8 +104,7 @@ function deleteAvatar(e) {
       <img v-else-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
       <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.svg" alt="">
       <img ref="ownImage" v-else :src="globalLink+href" alt="">
-
-      <div v-if="!blockEdit && (myProfile.isAdmin || myProfile.id === getId)" class="profileEdit-avatar">
+      <div v-if="blockEdit" class="profileEdit-avatar">
         <div @click="editAvatar" class="profileEdit-avatar__img _edit">
           <img src="/img/icons/pencil.png" alt="">
           <input accept=".jpg, .png, .gif, .jpeg" @change="changeFileInput" ref="fileInput" hidden style="display: none"

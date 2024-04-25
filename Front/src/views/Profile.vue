@@ -338,8 +338,9 @@ function changeEmailHandler(e) {
           <div class="profileBlock__top" :class="isMyProfile?'':'center'">
             <div class="profileBlock__naming naming-profileBlock">
               <AppAvatar class="naming-profileBlock__img"
-                         filename="backgrounds/mainClear.jpg"
                          :color="data.access.title"
+                         :block-edit="isMyProfile && myProfile.isHigherThanDefault ||
+                                      !isMyProfile && myProfile.isAdmin"
                          v-model:href="data.avatar"
               />
               <div class="naming-profileBlock__name">
@@ -512,7 +513,8 @@ function changeEmailHandler(e) {
             </div>
             <div class="subscribe-bottom">
               <div v-if="isMyProfile" class="subscribe-bottom__title">Подписка</div>
-              <div class="subscribe-bottom__block linear-border white" :class="myProfile.isDefault && isMyProfile?'_newSubscribe':''">
+              <div class="subscribe-bottom__block linear-border white"
+                   :class="myProfile.isDefault && isMyProfile?'_newSubscribe':''">
                 <div v-if="myProfile.isDefault && isMyProfile" class="subscribe-bottom__newSubscribe">
                   <AppButton @click="isPopupOpen=true" color="gold">Оформить подписку</AppButton>
                 </div>
@@ -528,7 +530,8 @@ function changeEmailHandler(e) {
                     </div>
                   </div>
                 </div>
-                <div v-if="isMyProfile && data.access.title !== 'admin' && !myProfile.isDefault" class="subscribe-bottom__column _right">
+                <div v-if="isMyProfile && data.access.title !== 'admin' && !myProfile.isDefault"
+                     class="subscribe-bottom__column _right">
                   <div class="subscribe-bottom__date">Действует до<br>{{ data.access.date.toLocaleDateString() }}</div>
                   <div class="subscribe-bottom__extend">
                     <AppButton color="gold">Продлить</AppButton>

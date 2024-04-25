@@ -96,7 +96,7 @@ function headerScroll() {
               <div v-if="myProfile.isReg" v-adaptive="['.menu__body',992,0]"
                    class="header__authorization authorization-header">
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__img">
-                  <AppAvatar block-edit :color="myProfile.access" v-model:href="myProfile.avatarName" />
+                  <AppAvatar :color="myProfile.access" v-model:href="myProfile.avatarName" />
                 </router-link>
                 <router-link @click="isOpen=false" :to="`/profile=${myProfile.id}`" class="authorization-header__name"
                              :title="myProfile.nickname">

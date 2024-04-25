@@ -637,7 +637,7 @@ async function clickCopyInput(e) {
                 <!--Блок с профилем-->
                 <div class="table-listGamer__column profile-column" :class="gamer.access">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar :block-edit="true" class="profile-column__img" :color="gamer.access" />
+                  <AppAvatar class="profile-column__img" :color="gamer.access" />
                   <div class="profile-column__texts texts-profile-column">
                     <div class="texts-profile-column__nickname" :title="gamer.nickname">
                       {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
@@ -747,7 +747,7 @@ async function clickCopyInput(e) {
                 <!--Блок с профилем-->
                 <div class="table-listGamer__column profile-column" :class="gamer.access">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar :block-edit="true" class="profile-column__img" :color="gamer.access" />
+                  <AppAvatar class="profile-column__img" :color="gamer.access" />
                   <div class="profile-column__texts texts-profile-column">
                     <div class="texts-profile-column__nickname" :title="gamer.nickname">
                       {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
@@ -784,6 +784,10 @@ async function clickCopyInput(e) {
       </div>
     </div>
     <TheLogs />
+    <div class="watchersIcon"
+    :class="selectedGame.watchersCount>0?'_active':''">
+      <img src="/img/icons/watcher.svg" alt="">
+    </div>
   </main>
   <main v-else>
     <div class="awaitRoom">
@@ -1640,6 +1644,26 @@ async function clickCopyInput(e) {
     }
   }
 }
+
+//========================================================================================================================================================
+.watchersIcon {
+  position: fixed;
+  right: 65px;
+  bottom: 16px;
+  width: 50px;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+
+  img {
+    max-width: 100%;
+  }
+
+  &._active {
+    opacity: 1;
+  }
+}
+
 
 </style>
 
