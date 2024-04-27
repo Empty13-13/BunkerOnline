@@ -227,22 +227,22 @@ body {
 .titleH2 {
   font-size: 30px;
   font-weight: 700;
-  margin-bottom: 50px;
+  padding-bottom: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
 
   @media (max-width: $pc) {
-    margin-bottom: 45px;
+    padding-bottom: 45px;
     font-size: 29px;
   }
   @media (max-width: $tablet) {
-    margin-bottom: 35px;
+    padding-bottom: 35px;
     font-size: 27px;
   }
   @media (max-width: $mobile) {
-    margin-bottom: 25px;
+    padding-bottom: 25px;
     font-size: 25px;
   }
 

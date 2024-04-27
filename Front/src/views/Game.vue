@@ -785,7 +785,7 @@ async function clickCopyInput(e) {
     </div>
     <TheLogs />
     <div class="watchersIcon"
-    :class="selectedGame.watchersCount>0?'_active':''">
+         :class="selectedGame.watchersCount>0?'_active':''">
       <img src="/img/icons/watcher.svg" alt="">
     </div>
   </main>
@@ -824,24 +824,24 @@ async function clickCopyInput(e) {
             </span>
               </div>
 
-              <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">Вы успешно зарегистрировались в игру{{
-                  selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname
-                                                                                }}!</p>
+              <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">
+                Вы успешно зарегистрировались в игру
+                {{ selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname }}!
+              </p>
               <div class="info-awaitRoom__min">
                 {{
-                  hostFunctional.haveAccess? 'Чтобы начать игру нужно как минимум 6 человек.':'Ожидаем других игроков...'
+                  hostFunctional.haveAccess? `Чтобы начать игру нужно как минимум ${selectedGame.minPlayers} человек.`:'Ожидаем других игроков...'
                 }}
-                ({{ selectedGame.players.length }}/15)
+                ({{ selectedGame.players.length }}/{{ selectedGame.maxPlayers }})
               </div>
 
-              <!--              <p v-if="!isHost" class="info-awaitRoom__text bold">Ожидаем других игроков</p>-->
               <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">
-                Минимальное количество игроков: 6<br>
-                Максимальное количество игроков: 15
+                Минимальное количество игроков: {{ selectedGame.minPlayers }}<br>
+                Максимальное количество игроков: {{ selectedGame.maxPlayers }}
               </p>
 
 
-              <div v-if="myProfile.isMVP && hostFunctional.haveAccess && selectedGame.userId>0"
+              <div v-if="(myProfile.isMVP || myProfile.isAdmin) && hostFunctional.haveAccess && selectedGame.userId>0"
                    class="checkbox info-awaitRoom__hiddenGame">
                 <input id="hiddenGame" @change="isHiddenGameHandler" v-model="selectedGame.isHidden"
                        class="checkbox__input" type="checkbox" value="1" name="form[]">
@@ -850,10 +850,13 @@ async function clickCopyInput(e) {
                 </label>
               </div>
 
-              <div v-if="hostFunctional.haveAccess"
-                   class="checkbox info-awaitRoom__hiddenGame">
-                <input id="hostPlayerToo" @change="isHostPlayerTooHandler" v-model="hostFunctional.isPlayerToo"
-                       class="checkbox__input" type="checkbox" value="1" name="form[]">
+              <div
+                  v-if="hostFunctional.haveAccess && !(!hostFunctional.isPlayerToo && selectedGame.players.length>=selectedGame.maxPlayers)"
+                  class="checkbox info-awaitRoom__hiddenGame">
+                <input id="hostPlayerToo" class="checkbox__input" type="checkbox" value="1" name="form[]"
+                       @change="isHostPlayerTooHandler"
+                       v-model="hostFunctional.isPlayerToo"
+                >
                 <label for="hostPlayerToo" class="checkbox__label">
                   <span class="checkbox__text">Ведущий также и игрок</span>
                 </label>
@@ -909,6 +912,10 @@ async function clickCopyInput(e) {
           </ul>
         </div>
       </div>
+    </div>
+    <div class="watchersIcon"
+         :class="selectedGame.watchersCount>0?'_active':''">
+      <img src="/img/icons/watcher.svg" alt="">
     </div>
   </main>
 </template>
@@ -1092,23 +1099,18 @@ async function clickCopyInput(e) {
 .listGamer {
   background: #131313;
   padding-top: 50px;
-  padding-bottom: 130px;
 
   @media (max-width: $pc) {
     padding-top: 43px;
-    padding-bottom: 110px;
   }
   @media (max-width: $tablet) {
-    padding-top: 46px;
-    padding-bottom: 90px;
+    padding-top: 35px;
   }
   @media (max-width: $mobile) {
-    padding-top: 48px;
-    padding-bottom: 70px;
+    padding-top: 25px;
   }
   @media (max-width: $mobileSmall) {
-    padding-top: 50px;
-    padding-bottom: 50px;
+    padding-top: 25px;
   }
 
   &__container {
@@ -1132,6 +1134,20 @@ async function clickCopyInput(e) {
 
 .table-listGamer {
   width: 1300px;
+  padding-bottom: 130px;
+
+  @media (max-width: $pc) {
+    padding-bottom: 110px;
+  }
+  @media (max-width: $tablet) {
+    padding-bottom: 90px;
+  }
+  @media (max-width: $mobile) {
+    padding-bottom: 70px;
+  }
+  @media (max-width: $mobileSmall) {
+    padding-bottom: 50px;
+  }
 
   &__row {
     border-bottom: 1px solid #323232;
@@ -1475,16 +1491,17 @@ async function clickCopyInput(e) {
 }
 
 .now-voting {
-  margin-bottom: 80px;
 
-  @media (max-width: $tablet) {
-    margin-bottom: 50px;
-  }
 
   &__title {
   }
 
   &__body {
+    padding-bottom: 80px;
+
+    @media (max-width: $tablet) {
+      padding-bottom: 50px;
+    }
   }
 
   &__voteList {
@@ -1592,18 +1609,19 @@ async function clickCopyInput(e) {
 
   &__block {
     padding: 64px 50px 90px 50px;
+    padding-bottom: 0 !important;
 
     @media (max-width: $pc) {
       padding: 60px 45px;
     }
     @media (max-width: $tablet) {
-      padding: 55px 40px;
+      padding: 45px 40px;
     }
     @media (max-width: $mobile) {
-      padding: 45px 30px;
+      padding: 35px 30px;
     }
     @media (max-width: $mobileSmall) {
-      padding: 35px 20px;
+      padding: 25px 20px;
     }
   }
 
@@ -1613,6 +1631,10 @@ async function clickCopyInput(e) {
 
   &__body {
     display: grid;
+    padding-bottom: 90px;
+    @media (max-width: $mobile) {
+      padding-bottom: 60px;
+    }
   }
 
   &__textarea {
