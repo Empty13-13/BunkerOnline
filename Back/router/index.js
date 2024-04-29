@@ -14,6 +14,7 @@ const ApiError = require('../exceptions/api-error')
 const mailService = require('../service/mail-service')
 const UserModel = require('../model/models')
 
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
@@ -85,6 +86,8 @@ router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //b
 router.post('/generateRoomId', userController.generateRoomId);
 router.post('/userGames', userController.userGames);
 router.post('/allGames', userController.allUsersGames);
+router.get('/test', userController.test);
+
 
 //router.get('/loginVK',userController.loginVK);
 //router.get('/callbackVK',userController.callbackVK);

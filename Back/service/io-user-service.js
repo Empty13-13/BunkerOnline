@@ -15,7 +15,7 @@ const {Op} = require('sequelize')
 /**
  * @type {number}
  */
-const timeToCloseRoom = 6 * 60 * 1000
+const timeToCloseRoom = 6*60 * 60 * 1000
 const timerList = {}//{'B725D':setTimeout(),'A123D':setTimeout()}
 
 class ioUserService {
@@ -135,7 +135,9 @@ class ioUserService {
       return null
     }
     let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
-    
+    let hostData = await UserModel.RoomSession.findOne({where:{gameRoomId: gameRoom.id,userId:gameRoom.dataValues.hostId}})
+    let isHostPlayer = !!hostData.isPlayer
+
     let isStarted = !!gameRoom.isStarted
     let isPlayingBefore = !!userPlaying
     let dataUsersPlaying = await this.getPlayingUsers(idRoom)
@@ -147,13 +149,14 @@ class ioUserService {
       watchersCount: this.getWatchersCount(io, idRoom),
       players: dataUsersPlaying,
       userId: isValidateId,
-      isHidden: !!gameRoom.isHidden
+      isHidden: !!gameRoom.isHidden,
+      isHostPlayer: isHostPlayer
     }
   }
   
   async getPlayingUsers(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id}})
+    let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id,isPlayer:1}})
     let data = []
     for (const user of playersInRoom) {
       let userData = await this.getIdAndNicknameFromUser(user.userId)

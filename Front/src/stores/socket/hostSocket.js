@@ -6,7 +6,7 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
-import { hostSocket } from "@/socket/sockets.js";
+import { hostSocket, userSocket } from "@/socket/sockets.js";
 
 export const useHostSocketStore = defineStore('hostSocket', () => {
   const connected = ref(false)
@@ -37,7 +37,11 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
             hostSocket.auth._retry = true
             hostSocket.auth.token = myProfile.token
             hostSocket.connect()
-            hostSocket.emit(functionName, vars || null)
+            if(vars) {
+              hostSocket.emit(functionName, ...vars)
+            } else {
+              hostSocket.emit(functionName)
+            }
           }
           else {
             await router.push({name: 'home'})

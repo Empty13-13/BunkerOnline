@@ -52,6 +52,7 @@ class UserService {
     const hashPassword = await bcrypt.hash(password, 3)
     const activationLink = uuid.v4()
     const user = await UserModel.User.create({nickname, email, password: hashPassword, activationLink})
+    await UserModel.UserUsePack.create({userId:user.id,chartPackId:1})
     // const userData = await UserModel.User.findOne({where: {email}})
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
@@ -248,7 +249,7 @@ class UserService {
           nickname += user.id.toString()
         }
         user.nickname = nickname
-        user.save()
+        await user.save()
         userDto = new UserDto(user)
         
       }
@@ -276,7 +277,7 @@ class UserService {
     
     if (!candidateDisUser.isActivated) {
       candidateDisUser.isActivated = 1
-      candidateDisUser.save()
+     await candidateDisUser.save()
     }
     
     const userDto1 = new UserDto(candidateDisUser)
@@ -407,7 +408,7 @@ class UserService {
     file.mv(process.env.STATIC_PATH + "\\" + avatarName)
     console.log(user.avatar)
     user.avatar = avatarName
-    user.save()
+   await user.save()
     console.log(user.avatar)
     return avatarName
   }
@@ -429,7 +430,7 @@ class UserService {
         console.log(e)
       }
       user.avatar = null
-      user.save()
+     await user.save()
     }
     return user
   }
@@ -513,7 +514,7 @@ class UserService {
     const isChange = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
     if (isChange) {
       isChange.changeNickname = 1
-      isChange.save()
+     await isChange.save()
     }
     
     return user
@@ -613,9 +614,9 @@ class UserService {
         [{input: 'userId', type: 'resetPassword'}])
     }
     resetPasswordDb.isChange = 1
-    resetPasswordDb.save()
+   await resetPasswordDb.save()
     user.password = hashPassword
-    user.save()
+    await user.save()
     
     
   }
@@ -639,11 +640,11 @@ class UserService {
     }
     const activationLink = uuid.v4()
     resetPasswordDb.isChange = 1
-    resetPasswordDb.save()
+   await resetPasswordDb.save()
     user.activationLink = activationLink
     user.email = email
     user.isActivated = 0
-    user.save()
+    await user.save()
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
   }

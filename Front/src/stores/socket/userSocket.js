@@ -38,7 +38,11 @@ export const useUserSocketStore = defineStore('userSocket', () => {
             userSocket.auth._retry = true
             userSocket.auth.token = myProfile.token
             userSocket.connect()
-            userSocket.emit(functionName, vars || null)
+            if(vars) {
+              userSocket.emit(functionName, ...vars)
+            } else {
+              userSocket.emit(functionName)
+            }
           }
           else {
             await router.push({name: 'home'})
@@ -81,15 +85,19 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     
     userSocket.on('joinedRoom', data => {
       globalPreloader.activate()
+      console.log('Делаем getAwaitRoomData')
       userSocket.emit('getAwaitRoomData')
     })
     
     userSocket.on('setAwaitRoomData', data => {
-      globalPreloader.activate()
       if (!data) {
         selectedGame.gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
       }
       else {
+        if(data.hostId && data.userId) {
+          globalPreloader.activate()
+          console.log('Включаем прелоадер, т.к. обновляем глобальные данные')
+        }
         selectedGame.setInitialData(data)
         console.log('setAwaitRoomData', data)
       }
@@ -114,10 +122,11 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.on('startedGame', data => {
       console.log('Игра началась')
       selectedGame.isStarted = true
+      userSocket.emit('loadAllGameData')
     })
     
     userSocket.on('setAllGameData', data => {
-      console.log('Приняли дату')
+      console.log('Приняли все данные по игре', data)
       globalPreloader.deactivate()
     })
     

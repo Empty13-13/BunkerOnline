@@ -25,9 +25,7 @@ onBeforeUnmount(() => {
 })
 
 function mouseover(e) {
-  timer = setTimeout(() => {
-    showWindow(e)
-  }, 500)
+  showWindow(e)
 }
 
 function mouseout() {

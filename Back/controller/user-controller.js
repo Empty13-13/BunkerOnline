@@ -3,6 +3,7 @@ const {validationResult} = require('express-validator')
 const ApiError = require('../exceptions/api-error')
 const axios = require('axios')
 const uuid = require('uuid')
+const playerDataService = require('../service/playerData-service')
 require('dotenv').config()
 
 class UserController {
@@ -76,6 +77,11 @@ class UserController {
       next(e)
     }
   }
+    async test(req, res, next) {
+    let chartPlayerIdBase = await playerDataService.getDataPackId(1,'profession')
+
+    res.json(chartPlayerIdBase)
+    }
   
   async refresh(req, res, next) {
     try {

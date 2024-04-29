@@ -41,6 +41,7 @@ module.exports = function(io) {
     if (!gameRoom) {
       socket.emit("setError",
         {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+      return
     }
     const gameRoomId = gameRoom.id
     let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
@@ -83,7 +84,7 @@ module.exports = function(io) {
       await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
       io.to(`user:${Id}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
       io.to(`user:${Id}`).disconnectSockets(true)
-      io.in(idRoom).emit('updateInitialInfo')
+      io.in(idRoom).emit('setAwaitRoomData', {players:await ioUserService.getPlayingUsers(idRoom)})
     })
     socket.on('isHiddenGame', async (isHiddenTrack) => {
       if (token) {
@@ -93,7 +94,8 @@ module.exports = function(io) {
             {
               message: `Invalid access`,
               status: 403,
-              functionName: 'isHiddenGame'
+              functionName: 'isHiddenGame',
+              vars:[isHiddenTrack]
             })
           console.log("INVALID TOKEN EPTA")
           return
@@ -117,14 +119,15 @@ module.exports = function(io) {
               })
           }
           room.isHidden = isHidden
-          room.save()
+          await room.save()
         }
         else {
           socket.emit("setError",
             {
               message: `Invalid access`,
               status: 403,
-              functionName: 'isHiddenGame'
+              functionName: 'isHiddenGame',
+              vars:[isHiddenTrack]
             })
         }
       }
@@ -136,6 +139,53 @@ module.exports = function(io) {
             functionName: 'isHiddenGame'
           })
       }
+    })
+    
+    socket.on('isHostPlayerTooGame', async (Track) => {
+
+      let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom, isStarted: 0}})
+      if (!gameRoom) {
+        socket.emit("setError",
+          {
+            message: `Room is Started || Invalid Room`,
+            status: 404,
+            functionName: 'isHostPlayerTooGame'
+          })
+        return
+      }
+      let countPlayer = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+
+      if (countPlayer.count<15 || !Track) {
+        let isHostPlayerTooGame = 0
+        if (Track) {
+          isHostPlayerTooGame = 1
+        }
+        let user = await UserModel.RoomSession.findOne({where: {userId: userId,gameRoomId: gameRoom.id}})
+        if (!user) {
+          socket.emit("setError",
+            {
+              message: `Invalid user`,
+              status: 403,
+              functionName: 'isHostPlayerTooGame',
+              vars:[Track]
+            })
+          return
+        }
+        user.isPlayer = isHostPlayerTooGame
+        await user.save()
+        let dataPlayer = await ioUserService.getPlayingUsers(idRoom)
+       
+        io.in(idRoom).emit('setAwaitRoomData',{players:dataPlayer,isHostPlayer:!!isHostPlayerTooGame})
+      }
+      else {
+        socket.emit("setError",
+          {
+            message: `Limit size room`,
+            status: 400,
+            functionName: 'isHostPlayerTooGame'
+          })
+      }
+
     })
     
     socket.on('startGame', async () => {
@@ -151,7 +201,7 @@ module.exports = function(io) {
       }
       let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
       room.isStarted = 1
-      room.save()
+      await room.save()
       
       io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
       io.in(idRoom).emit('setAllGameData')
