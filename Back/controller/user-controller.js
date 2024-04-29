@@ -77,11 +77,12 @@ class UserController {
       next(e)
     }
   }
-    async test(req, res, next) {
-    let chartPlayerIdBase = await playerDataService.getDataPackId(1,'profession')
+
+  async test(req, res, next) {
+    let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
 
     res.json(chartPlayerIdBase)
-    }
+  }
   
   async refresh(req, res, next) {
     try {
@@ -400,7 +401,7 @@ class UserController {
       const noregToken = req.body.noregToken
       //console.log(token, noregToken)
       const data = await userService.userGames(token, noregToken)
-     // console.log(data)
+      // console.log(data)
       res.json(data)
     } catch(e) {
       next(e)
@@ -409,18 +410,18 @@ class UserController {
   }
   
   async allUsersGames(req, res, next) {
-      
-      
-      try {
-        
-        const data = await userService.allUsersGames()
-        //console.log(data)
-        res.json(data)
-      } catch(e) {
-        next(e)
-      }
-      
+
+
+    try {
+
+      const data = await userService.allUsersGames()
+      //console.log(data)
+      res.json(data)
+    } catch(e) {
+      next(e)
     }
+
+  }
   
   
 }

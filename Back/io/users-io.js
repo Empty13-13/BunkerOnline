@@ -299,10 +299,26 @@ module.exports = function(io) {
  addInfo = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'addInfo')
  spec1 = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'spec1')
  spec2 = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'spec2')
- profession = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'profession') // ВОТ ЭТА ХУЙНЯ ПОД ВОПРОСОМ!!!
+ profession = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'profession') // ВОТ ЭТА ХУЙНЯ ПОД ВОПРОСОМ!!! Лучше отдельную функцию для профессии сделать
  
  //И дальше нужно записать эту ерунду либо сразу в БД, либо сначала в объект, а потом циклом через объект записать в БД
  //Но один хер тебе нужно всё в объект складывать, чтобы потом мне отдать всё что нужно
+ 
+ 
+ //Дальше по такому же принципу формируем данные для бункера. Можешь тоже отдельную функцию сделать
+ //Или в существующей функции сделать доп проверки которые нужны
+ 
+ //После того как всё создал, нужно всё поместить в результат следующего формата:
+ {
+  bunker:{bunkerSize:'200кв.м',maxSurvivor:'1 год',...},
+  players:{
+    //Данные для пользователя, который запрашивает их
+    8:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:false},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:false},...}
+    
+    //Данные других пользователей (ещё не открытые характеристики просто не отправляешь здесь}
+    -12:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:true},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:true},...}
+  }
+ }
  
 }
 
@@ -319,8 +335,14 @@ function getRandomData(pack1,priorityPack1,priorityPack2,name) {
       Проверяем не пустой ли пункт с профессиями у usedPack.professions
       Если есть, тогда записывай в результат и удаляй этот пункт откуда взял, если нет то просто снова делаем цикл
     } else {
-      Проверяем не пустой ли пункт name у usedPack.playerData или usedPack.bunker
-      Если есть, тогда записывай в результат и удаляй этот пункт откуда взял, если нет то просто снова делаем цикл
+      if(usedPack.playerData[name].length) {
+        let nameArray = usedPack.playerData.filter(item => item.name===name)
+        let index=getRandomInt(0,nameArray.length-1)
+        resultText = nameArray[index]
+        index = usedPack.playerData.indexOf(nameArray[index])
+        
+        usedPack.playerData[name].splice(index,1) //Удаляем элемент который взяли (надо загуглить как правильно удалить)
+      }
     }
   }
   
@@ -357,7 +379,7 @@ function getRandomPack(pack1,priorityPack1,priorityPack2){
  if(!priorityPack2) {
  return priorityPack1
  }
- if(getRandomInt(0,100)<=50) {
+ if(getRandomInt(0,100)<=25) {
  return priorityPack1
  } else {
  return priorityPack2
