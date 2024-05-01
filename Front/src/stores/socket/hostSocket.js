@@ -7,6 +7,7 @@ import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { hostSocket, userSocket } from "@/socket/sockets.js";
+import { switchError } from "@/logics/socketLogic.js";
 
 export const useHostSocketStore = defineStore('hostSocket', () => {
   const connected = ref(false)
@@ -21,43 +22,7 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
   function bindEvents() {
     
     hostSocket.on('setError', async data => {
-      const message = data.message
-      const status = data.status
-      const functionName = data.functionName
-      const vars = data.vars
-      const color = data.color
-      console.log('setError KURVA HOSTSOCKET', data)
-      
-      switch(status) {
-        case 403: {
-          globalPreloader.activate()
-          if (!hostSocket.auth._retry) {
-            await authStore.refreshToken()
-            hostSocket.close()
-            hostSocket.auth._retry = true
-            hostSocket.auth.token = myProfile.token
-            hostSocket.connect()
-            if(vars) {
-              hostSocket.emit(functionName, ...vars)
-            } else {
-              hostSocket.emit(functionName)
-            }
-          }
-          else {
-            await router.push({name: 'home'})
-            globalPopup.activate('Ошибка подключения', message, 'red')
-          }
-          break;
-        }
-        case 404: {
-          selectedGame.gameLoadText = `Комната "${router.currentRoute.value.params.id}" не найдена`
-          selectedGame.clearData()
-          break;
-        }
-        default: {
-          globalPopup.activate('Ошибка', message, color || 'red')
-        }
-      }
+      await switchError(data) 
       
       globalPreloader.deactivate()
     })

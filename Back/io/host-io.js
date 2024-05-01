@@ -4,6 +4,7 @@ const ApiError = require('../exceptions/api-error')
 const {logger} = require("sequelize/lib/utils/logger");
 const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
+const playerDataService = require('../service/playerData-service')
 
 
 module.exports = function(io) {
@@ -189,22 +190,35 @@ module.exports = function(io) {
     })
     
     socket.on('startGame', async () => {
-      if (GameData.countPlayers<0) {
-        socket.emit("setError",
+      try {
+        if (GameData.countPlayers<0) {
+          socket.emit("setError",
+            {
+              message: `Для начала игры нужно минимум 6 игроков`,
+              status: 400,
+              functionName: 'startGame'
+            })
+          return
+        }
+        io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+        
+        const data = await playerDataService.createDataGame(idRoom)
+        console.log(data)
+        
+        let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        room.isStarted = 1
+        await room.save()
+        
+        io.in(idRoom).emit('setAllGameData',data)
+      } catch(e) {
+        io.in(idRoom).emit("setError",
           {
-            message: `Для начала игры нужно минимум 6 игроков`,
-            status: 400,
+            message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
+            status: 512,
             functionName: 'startGame'
           })
-        return
-        
+        console.log(e)
       }
-      let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      room.isStarted = 1
-      await room.save()
-      
-      io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-      io.in(idRoom).emit('setAllGameData')
     })
     
   })

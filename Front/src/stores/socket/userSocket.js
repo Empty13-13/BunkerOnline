@@ -8,6 +8,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useSelectedGame } from "@/stores/game.js";
 import { userSocket } from "@/socket/sockets.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
+import { switchError } from "@/logics/socketLogic.js";
 
 export const useUserSocketStore = defineStore('userSocket', () => {
   const connected = ref(false)
@@ -21,44 +22,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
   
   function bindEvents() {
     userSocket.on('setError', async data => {
-      console.log('setError KURVA', data)
-      const message = data.message
-      const status = data.status
-      const functionName = data.functionName
-      const vars = data.vars
-      const color = data.color
-      console.log('setError KURVA', data)
-      
-      switch(status) {
-        case 403: {
-          globalPreloader.activate()
-          if (!userSocket.auth._retry) {
-            await authStore.refreshToken()
-            userSocket.close()
-            userSocket.auth._retry = true
-            userSocket.auth.token = myProfile.token
-            userSocket.connect()
-            if(vars) {
-              userSocket.emit(functionName, ...vars)
-            } else {
-              userSocket.emit(functionName)
-            }
-          }
-          else {
-            await router.push({name: 'home'})
-            globalPopup.activate('Ошибка подключения', message, 'red')
-          }
-          break;
-        }
-        case 404: {
-          selectedGame.gameLoadText = `Комната "${router.currentRoute.value.params.id}" не найдена`
-          selectedGame.clearData()
-          break;
-        }
-        default: {
-          globalPopup.activate('Ошибка', message, color || 'red')
-        }
-      }
+      await switchError(data)
       
       globalPreloader.deactivate()
     })
@@ -121,12 +85,13 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     
     userSocket.on('startedGame', data => {
       console.log('Игра началась')
-      selectedGame.isStarted = true
+      globalPreloader.activate()
       userSocket.emit('loadAllGameData')
     })
     
     userSocket.on('setAllGameData', data => {
       console.log('Приняли все данные по игре', data)
+      selectedGame.isStarted = true
       globalPreloader.deactivate()
     })
     

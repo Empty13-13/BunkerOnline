@@ -147,7 +147,7 @@ export function getLinkParams() {
 }
 
 export const getId = computed(() => {
-  return +router.currentRoute.value.path.split('=')[1]
+  return router.currentRoute.value.path.split('=')[1]
 })
 
 export function isAsync(func) {
@@ -186,4 +186,12 @@ export function getLocalData(nameData) {
   }
   
   return null
+}
+
+export function setLocalData(nameData,data) {
+  try {
+    localStorage.setItem(nameData, JSON.stringify(data))
+  } catch(e) {
+    console.log(e.message)
+  }
 }

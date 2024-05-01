@@ -164,12 +164,12 @@ async function keyDownNickname(e) {
 
 onBeforeMount(async () => {
   globalPreloader.activate()
-  oldId = getId.value
+  oldId = +getId.value
   let params = getLinkParams()
   if (params['account'] && params['account']==="connected") {
     await authStore.refreshToken()
     if (!localStorage.getItem('userId')) {
-      myProfile.id = getId.value
+      myProfile.id = +getId.value
       localStorage.setItem('userId', myProfile.id.toString())
     }
     await myProfile.setMyProfileInfo()
@@ -185,14 +185,14 @@ onMounted(async () => {
   globalPreloader.deactivate()
 })
 onBeforeUpdate(async () => {
-  if (oldId!==getId.value) {
+  if (oldId!==+getId.value) {
     destroyAll()
   }
 })
 onUpdated(async () => {
-  if (oldId!==getId.value) {
+  if (oldId!==+getId.value) {
     globalPreloader.activate()
-    oldId = getId.value
+    oldId = +getId.value
     await updateProfileInfo()
     fieldsInit()
 
@@ -234,7 +234,7 @@ async function saveProfileInfoHandler(e) {
     body.text = aboutInput.value.value
   }
 
-  let response = await authStore.updateProfileInfo(getId.value, body)
+  let response = await authStore.updateProfileInfo(+getId.value, body)
   if (response && response.status && response.status===200) {
     saveBtnText.value = 'Сохранили!'
   }
@@ -248,7 +248,7 @@ async function saveProfileInfoHandler(e) {
 }
 
 async function updateProfileInfo() {
-  let userInfo = await actionsProfile.getUserInfo(getId.value)
+  let userInfo = await actionsProfile.getUserInfo(+getId.value)
   if (!userInfo) {
     await router.push('/')
     // globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')

@@ -70,14 +70,15 @@ const GameRooms = sequelize.define('gameRooms', {
   hostId: {type: DataTypes.INTEGER},
   isStarted: {type: DataTypes.TINYINT, defaultValue: 0},
   isHidden: {type: DataTypes.TINYINT, defaultValue: 0},
-  bunkerSize: {type: DataTypes.STRING},
-  maxSurvivor: {type: DataTypes.STRING},
-  catastrophe: {type: DataTypes.STRING},
-  bunkerTime: {type: DataTypes.STRING},
-  bunkerLocation: {type: DataTypes.STRING},
-  bunkerBedroom: {type: DataTypes.STRING},
-  bunkerItems: {type: DataTypes.STRING},
-  bunkerFood: {type: DataTypes.STRING}
+  bunkerSize: {type: DataTypes.INTEGER},
+  maxSurvivor: {type: DataTypes.INTEGER},
+  catastrophe: {type: DataTypes.INTEGER},
+  bunkerTime: {type: DataTypes.INTEGER},
+  bunkerLocation: {type: DataTypes.INTEGER},
+  bunkerBedroom: {type: DataTypes.INTEGER},
+  bunkerItems: {type: DataTypes.INTEGER},
+  bunkerFood: {type: DataTypes.INTEGER},
+  imageId: {type: DataTypes.INTEGER}
 })
 
 const RoomSession = sequelize.define('roomSession', {
@@ -146,6 +147,13 @@ const SystemSettings = sequelize.define('systemSettings', {
   value: {type: DataTypes.INTEGER}
 })
 
+const CatastropheImage = sequelize.define('catastropheImage', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  imageName: {type: DataTypes.STRING},
+  catastropheId: {type: DataTypes.INTEGER}
+})
+
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
@@ -184,5 +192,6 @@ module.exports = {
   ProfessionChartPack,
   Profession,
   UserUsePack,
-  SystemSettings
+  SystemSettings,
+  CatastropheImage
 }

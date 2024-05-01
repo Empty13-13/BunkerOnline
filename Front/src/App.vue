@@ -29,7 +29,19 @@ onBeforeMount(async () => {
     console.log("setMyProfileInfo APP",params)
     await myProfile.setMyProfileInfo()
   }
-  console.log(myProfile.isReg);
+
+  /**
+   * @description Автоматическая отчистка LocalStorage на старые записи в заметках, которые были сделаны 3 дня назад
+   */
+  for(let i=0; i<localStorage.length; i++) {
+    let key = localStorage.key(i);
+    if(key.includes('note:game=')) {
+      let data = getLocalData(key)
+      if(data && data.date && ((new Date()) - new Date(data.date))>2.592e+8) {
+        localStorage.removeItem(key)
+      }
+    }
+  }
 })
 
 
@@ -41,7 +53,7 @@ import AppUpButton from "@/components/AppUpButton.vue";
 import { computed, onBeforeMount, onMounted, onServerPrefetch, onUpdated, ref } from "vue";
 import AppLoader from "@/components/AppLoader.vue";
 import AppPreloader from "@/components/AppPreloader.vue";
-import { getId, getLinkParams } from "@/plugins/functions.js";
+import { getId, getLinkParams, getLocalData } from "@/plugins/functions.js";
 import router from "@/router/index.js";
 import AppConfirm from "@/components/AppConfirm.vue";
 import AppPopup from "@/components/AppPopup.vue";

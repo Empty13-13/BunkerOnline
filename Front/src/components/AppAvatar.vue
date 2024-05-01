@@ -39,7 +39,7 @@ async function changeFileInput(e) {
     return
   } else if(myProfile.isVIP) {
     accessType = accessType.concat(vipTypes)
-  } else if(myProfile.isMVP) {
+  } else if(myProfile.isMVP || myProfile.isAdmin) {
     accessType = accessType.concat(mvpTypes)
   } else {
     globalPopup.activate('Ошибка!',`Произошла ошибка доступа. Пожалуйста, перезагрузите страницу`,'red')
@@ -63,12 +63,12 @@ async function changeFileInput(e) {
     showLoader.value=true
     const formData = new FormData()
     formData.append('file', file)
-    let response = await actionsProfile.uploadAvatar(getId.value, formData)
+    let response = await actionsProfile.uploadAvatar(+getId.value, formData)
     if(response) {
       console.log(href.value, response.data.link)
       href.value = response.data.link
 
-      if (getId.value===myProfile.id) {
+      if (+getId.value===myProfile.id) {
         myProfile.avatarName = response.data.link
       }
     } else {
@@ -86,10 +86,10 @@ async function changeFileInput(e) {
 
 function deleteAvatar(e) {
   showConfirmBlock(e.target,async () => {
-    await actionsProfile.deleteAvatar(getId.value)
+    await actionsProfile.deleteAvatar(+getId.value)
     href.value = ''
 
-    if (getId.value===myProfile.id) {
+    if (+getId.value===myProfile.id) {
       myProfile.avatarName = ""
     }
   },'Вы действительно хотите удалить аватар?')

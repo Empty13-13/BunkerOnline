@@ -6,7 +6,7 @@ import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
 import router from "@/router/index.js";
-import { onBeforeMount, onMounted, onUnmounted, ref } from "vue";
+import { onBeforeMount, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
 import { useSelectedGame } from "@/stores/game.js";
@@ -14,6 +14,8 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import axiosInstance from "@/api.js";
 import AppLoader from "@/components/AppLoader.vue";
+import { getId, getLocalData } from "@/plugins/functions.js";
+import { set, useWindowFocus } from "@vueuse/core";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -54,11 +56,8 @@ const showPopup = ref(false)
 const roomData = ref([])
 const loadingActiveGame = ref(true)
 const loadingAllGames = ref(true)
-const updateInterval = setInterval(async () => {
-  console.log('Обновляем игры')
-  await updateMyGames()
-  await updateAllGames()
-},30000)
+let updateInterval = null
+const windowFocus = useWindowFocus()
 
 onBeforeMount(() => {
   let params = router.currentRoute.value.query
@@ -70,10 +69,29 @@ onMounted(async () => {
   console.log('noregToken',authStore.getLocalData('noregToken'))
   await updateMyGames()
   await updateAllGames()
+  setIntervalIfPageFocused()
 })
 onUnmounted(() => {
   clearInterval(updateInterval)
 })
+
+watch(windowFocus, () => {
+  setIntervalIfPageFocused()
+})
+
+function setIntervalIfPageFocused(){
+  if(windowFocus.value) {
+    console.log('Ставим интервал')
+    updateInterval = setInterval(async () => {
+      console.log('Обновляем игры')
+      await updateMyGames()
+      await updateAllGames()
+    },30000)
+  } else {
+    console.log('Убираем интервал')
+    clearInterval(updateInterval)
+  }
+}
 
 async function updateMyGames() {
   try {

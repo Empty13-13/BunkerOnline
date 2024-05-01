@@ -1,5 +1,5 @@
 <script setup="">
-import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watchEffect } from "vue";
 import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -10,7 +10,7 @@ import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { copyLinkToBuffer } from "@/plugins/functions.js";
+import { copyLinkToBuffer, getId, getLinkParams, getLocalData, setLocalData } from "@/plugins/functions.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
@@ -28,6 +28,7 @@ const hostSocket = useHostSocketStore()
 const hostFunctional = useHostFunctionalStore()
 
 const capacity = ref(3)
+const noteTextArea = ref(null)
 
 const firstItem = ['№ Имя', 'num']
 
@@ -289,7 +290,11 @@ onBeforeMount(() => {
   hostSocket.setConnect()
 })
 onMounted(() => {
-
+  watchEffect(() => {
+    if (noteTextArea.value) {
+      noteTextArea.value.value = getLocalData(`note:game=${getId.value}`)?getLocalData(`note:game=${getId.value}`).text:''
+    }
+  })
 })
 onUnmounted(() => {
   userSocket.close()
@@ -371,6 +376,14 @@ async function clickCopyInput(e) {
     element.classList.remove('_error')
     element.classList.remove('_active')
   }, 1500)
+}
+
+let timerNoteInput = setTimeout(()=> {},500)
+function noteInputHandler(e) {
+  clearTimeout(timerNoteInput)
+  timerNoteInput = setTimeout(()=> {
+    setLocalData(`note:game=${getId.value}`, {text:e.target.value,date:+(new Date())})
+  },500)
 }
 
 </script>
@@ -776,7 +789,7 @@ async function clickCopyInput(e) {
           <h2 v-slide class="notes__title titleH2">Заметки</h2>
           <div slidebody>
             <div class="notes__body">
-              <textarea id="" cols="30" rows="10" class="notes__textarea" placeholder="Ваши заметки"></textarea>
+              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea" placeholder="Ваши заметки"></textarea>
               <div class="notes__textarea-warning">* После обновления страницы данные будут сохранены!</div>
             </div>
           </div>

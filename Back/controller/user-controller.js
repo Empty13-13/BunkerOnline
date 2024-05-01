@@ -79,9 +79,27 @@ class UserController {
   }
 
   async test(req, res, next) {
-    let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
-
-    res.json(chartPlayerIdBase)
+    // let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
+    let systemData = await playerDataService.getSystemSettingsData()
+    const hostPack = await playerDataService.hostUsePack(1, systemData)
+//     const {
+//       hostBaseDataPacksData,
+//       hostAdvanceDataPacksData,
+//       systemDataPacksData
+//     } = await playerDataService.dataForPlayer(hostPack, systemData)
+//     let usePack = hostPack
+//     const result = await playerDataService.createDataPlayer(hostBaseDataPacksData, hostAdvanceDataPacksData, systemDataPacksData, usePack, 1,1, 0,1, systemData)
+//     const data = {
+//       players:{}
+//     }
+//     data.players = Object.assign(data.players,result.result)result
+    const {hostBaseDataPacksBunker, hostAdvanceDataPacksBunker} = await playerDataService.dataForBunker(hostPack,
+      systemData)
+    const result = await playerDataService.createDataBunker([2, 3, 5, 6, 6, 7], systemData, hostBaseDataPacksBunker,
+      hostAdvanceDataPacksBunker)
+  //  const le = await playerDataService.getDataBunkerFromId(result)
+   console.log(result)
+   res.json(result)
   }
   
   async refresh(req, res, next) {
