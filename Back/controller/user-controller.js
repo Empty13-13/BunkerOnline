@@ -81,7 +81,7 @@ class UserController {
   async test(req, res, next) {
     // let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
     let systemData = await playerDataService.getSystemSettingsData()
-    const hostPack = await playerDataService.hostUsePack(1, systemData)
+    const hostPack = await playerDataService.hostUsePack(1)
 //     const {
 //       hostBaseDataPacksData,
 //       hostAdvanceDataPacksData,
