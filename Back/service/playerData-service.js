@@ -53,7 +53,7 @@ class playerDataService {
     this.systemSettings = await this.getSystemSettingsData()
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
-    
+    console.log('hostPackIds!!!!!!!!!!', hostPackIds)
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id, isPlayer: 1}})
     const data = {
       players: {},
@@ -228,7 +228,7 @@ class playerDataService {
       spec2: spec2,
       profession: profession
     }
-    console.log('CreateDataPlayer',result)
+    // console.log('CreateDataPlayer', result)
     return result
   }
   
@@ -258,10 +258,10 @@ class playerDataService {
     
     let whileCount = 0
     while (!result) {
-      if (whileCount>150) {
+      if (whileCount>10) {
         throw ('Loop error')
       }
-      this.getRandomPack(false,name)
+      this.getRandomPack(false, name)
       let nameArray = this.usedPack.chartBunkerData.filter(item => item.name===name)
       
       if (nameArray.length) {
@@ -283,16 +283,15 @@ class playerDataService {
       name = 'card'
     }
     while (!result.text) {
-      if (countWhile>1) {
+      if (countWhile>10) {
         throw ('Loop throw')
       }
-      this.getRandomPack(isUsedSystemAdvancePack,name)
+      this.getRandomPack(isUsedSystemAdvancePack, name)
+      // console.log('PROFESSION PACK LENGTH', this.usedPack.professionData.length);
       
       if (name==='profession') {
-        // console.log('USED PACK',this.usedPack)
         let nameArray = this.usedPack.professionData.filter(item => {
           let resAge = +item.minAmateurAge || +this.systemSettings.minAmateurAge
-          // console.log(resAge,resAge<=+age)
           return resAge<= +age
         })
         console.log('PROFESIA KURVA', nameArray.length)
@@ -311,11 +310,8 @@ class playerDataService {
           console.log(' ')
           console.log(' ')
           console.log(' ')
-          // console.log(index, this.usedPack.professionData[index], nameArray[index])
           this.usedPack.professionData.splice(index, 1)
-          console.log(result.text,this.usedPack.professionData)
-          // console.log(this.usedPack.professionData)
-          // console.log(index, this.usedPack.professionData[index], nameArray[index])
+          console.log(result.text, this.usedPack.professionData)
           console.log(' ')
           console.log(' ')
           console.log(' ')
@@ -337,6 +333,7 @@ class playerDataService {
       }
       countWhile += 1
     }
+    
     switch(name) {
       case 'body':
         result.text += ` (Рост: ${this.getRandomInt(this.systemSettings.minHeight, this.systemSettings.maxHeight)} см.)`
@@ -364,7 +361,6 @@ class playerDataService {
         break;
     }
     
-    console.log(this.usedPack['usedPack'])
     return result
   }
   
@@ -399,36 +395,54 @@ class playerDataService {
   getRandomPack(isUsedSystemAdvancePack = false, name) {
     let packs = []
     let usedPacks = []
-
+    
     // {chartPlayerData[{id,name,text},{id,name,text},{id,name,text},.....],chartBunkerData:[{id,name,text},{id,name,text},....],profession[{id,description,text,...},......]}
-
+    
     if (isUsedSystemAdvancePack && this.systemAdvancePack) {
+      //  console.log('SYSTEMADVANCEPACK')
       usedPacks.push({status: 'advanceSystem', body: this.systemAdvancePack})
     }
     if (this.basePack) {
-      usedPacks.push({status: 'base', body: this.basePack})
+      if ((typeof this.basePack)==='object' && !objIsEmpty(this.basePack)) {
+        // console.log('BASEPACK')
+        usedPacks.push({status: 'base', body: this.basePack})
+      }
     }
     if (this.advancePack) {
-      usedPacks.push({status: 'advance', body: this.advancePack})
+      if ((typeof this.advancePack)==='object' && !objIsEmpty(this.advancePack)) {
+        // console.log('ADVANCEPACK')
+        usedPacks.push({status: 'advance', body: this.advancePack})
+      }
     }
     
+    console.log('USED PACKS', usedPacks)
     for (let pack of usedPacks) {
       if (!objIsEmpty(pack.body)) {
+        console.log('/////////////////////////////////')
+        console.log(name==='profession' && !!pack.body.professionData)
+        console.log((name.includes('bunker') || name.includes('catastrophe')) &&
+          !!pack.body.chartBunkerData &&
+          !!pack.body.chartBunkerData.find(item => item.name===name))
+        console.log(pack.body.chartPlayerData)
         if (name==='profession' && !!pack.body.professionData) {
           packs.push(pack)
+          console.log('STATUS', pack.status)
         }
         else if ((name.includes('bunker') || name.includes('catastrophe')) &&
           !!pack.body.chartBunkerData &&
-          !!pack.body.chartBunkerData.find(item => item.name ===name)) {
+          !!pack.body.chartBunkerData.find(item => item.name===name)) {
           packs.push(pack)
+          console.log('STATUS2', pack.status)
         }
-        else if (!!pack.body.chartPlayerData && !!pack.body.chartPlayerData.find(item => item.name ===name)) {
+        else if (!!pack.body.chartPlayerData && !!pack.body.chartPlayerData.find(item => item.name===name)) {
           packs.push(pack)
+          console.log('STATUS3', pack.status)
         }
       }
     }
     
     if (packs.length>0) {
+      console.log('PACKSSSSSSSS', packs.length)
       let advancePacks = packs.filter(pack => pack.status.includes('advance'))
       let basePacks = packs.filter(pack => pack.status==='base')
       if (advancePacks.length>0 && basePacks.length>0) {
@@ -437,30 +451,55 @@ class playerDataService {
           return
         }
         else {
+          if (advancePacks.length===1) {
+            if (advancePacks[0].status==='advanceSystem') {
+              this.usedPack = this.systemAdvancePack
+              return
+            }
+            else {
+              this.usedPack = this.advancePack
+              return
+            }
+          }
           let advancePack = advancePacks[this.getRandomInt(0, advancePacks.length - 1)].body
-          if(advancePack.status === 'advanceSystem'){
+          if (advancePack.status==='advanceSystem') {
             this.usedPack = this.systemAdvancePack
             return
-          } else {
+          }
+          else {
             this.usedPack = this.advancePack
             return
           }
         }
-      } else if(advancePacks.length>0) {
+      }
+      else if (advancePacks.length>0) {
+        console.log('PACKSSSSSSSS2', advancePacks.length)
+        if (advancePacks.length===1) {
+          if (advancePacks[0].status==='advanceSystem') {
+            this.usedPack = this.systemAdvancePack
+            return
+          }
+          else {
+            this.usedPack = this.advancePack
+            return
+          }
+        }
         let advancePack = advancePacks[this.getRandomInt(0, advancePacks.length - 1)].body
-        if(advancePack.status === 'advanceSystem'){
+        if (advancePack.status==='advanceSystem') {
           this.usedPack = this.systemAdvancePack
           return
-        } else {
+        }
+        else {
           this.usedPack = this.advancePack
           return
         }
-      } else {
+      }
+      else {
         this.usedPack = this.basePack
         return
       }
     }
-    
+    console.log('isUsedBasePackssssssssssssssssssssssssssssssssss')
     this.usedPack = this.systemBasePack
   }
   
@@ -478,13 +517,15 @@ class playerDataService {
   
   async collectAndSetDataForPlayer(hostPack, players) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
-    console.log('//////////////////')
-    console.log(baseIdPack, advanceIdPack)
-    console.log('//////////////////')
+    // console.log('//////////////////')
+    //console.log(baseIdPack, advanceIdPack)
+    // console.log('//////////////////')
     
-    console.log('!baseIdPack.includes(this.systemSettings.basePack)',!baseIdPack.includes(this.systemSettings.basePack))
-    this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
-    if (!baseIdPack.includes(this.systemSettings.basePack)) {
+    // console.log('!baseIdPack.includes(this.systemSettings.basePack)',
+    //    !baseIdPack.includes(this.systemSettings.basePack))
+    // this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
+    console.log('collectAndSetDataForPlayer',baseIdPack.includes(+this.systemSettings.basePack))
+    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
       this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
       console.log('Сделали системный пак')
     }
@@ -492,10 +533,10 @@ class playerDataService {
     
     if (!advanceIdPack.includes(this.systemSettings.advancePack)) {
       for (let player of players) {
-        console.log('playr.id', player.userId)
+        // console.log('playr.id', player.userId)
         if (player.userId>0) {
           let user = await UserModel.User.findOne({where: {id: player.userId}})
-          console.log('/////////////////////////////////////////////////', user.isUsedSystemAdvancePack)
+          //  console.log('/////////////////////////////////////////////////', user.isUsedSystemAdvancePack)
           if (user.isUsedSystemAdvancePack) {
             usePriorityAccess = true
             break;
@@ -505,7 +546,7 @@ class playerDataService {
     }
     this.basePack = await this.getDataPackData(baseIdPack, 'all')
     this.advancePack = await this.getDataPackData(advanceIdPack, 'all')
-    console.log('usePriorityAccess', usePriorityAccess)
+    // console.log('usePriorityAccess', usePriorityAccess)
     if (usePriorityAccess) {
       this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'all')
     }
@@ -542,9 +583,14 @@ class playerDataService {
       }
       const packs = await UserModel.UserUsePack.findAll({where: {userId: hostId}})
       if (packs) {
+        
+        
         for (let pack of packs) {
           if (this.systemSettings.basePack!==pack.chartPackId && this.systemSettings.advancePack!==pack.chartPackId) {
-            dataPack.push(pack.chartPackId)
+            let checkPack = await UserModel.ChartPack.findOne({where:{id:pack.chartPackId}})
+            if(!checkPack.isHidden) {
+              dataPack.push(pack.chartPackId)
+            }
           }
         }
       }
@@ -583,7 +629,7 @@ class playerDataService {
   async getDataPackData(dataPackId, track = null) {
 
 //  let chartPlayerId = await UserModel.PlayerChartPack.findAll({where: {chartPackId:{[Op.or]: dataPackId, }}})
-    console.log('TRACK', track)
+    //  console.log('TRACK', track)
     switch(track) {
       case 'player':
         let playersChart = await UserModel.PlayerChartPack.findAll(
@@ -595,7 +641,7 @@ class playerDataService {
         }
         let dataPlayerChart = await UserModel.ChartPlayer.findAll(
           {attributes: ['id', 'name', 'text'], where: {id: dataPlayer}})
-        console.log(dataPlayer)
+        //  console.log(dataPlayer)
         return dataPlayerChart
       case 'bunker':
         let bunkerChart = await UserModel.BunkerChartPack.findAll(
@@ -680,7 +726,20 @@ class playerDataService {
         })
         let chartBunkerData = await UserModel.ChartBunker.findAll(
           {attributes: ['id', 'name', 'text'], where: {id: dataChartBunkerId}, raw: true})
-        return {chartPlayerData: chartPlayerData, chartBunkerData: chartBunkerData, professionData: professionData}
+        let result = {}
+        if (!objIsEmpty(chartBunkerData)) {
+          result.chartBunkerData = chartBunkerData
+        }
+        if (!objIsEmpty(professionData)) {
+          result.professionData = professionData
+        }
+        if (!objIsEmpty(chartPlayerData)) {
+          result.chartPlayerData = chartPlayerData
+        }
+        if(objIsEmpty(result)){
+          return null
+        }
+        return result
     }
     
   }
