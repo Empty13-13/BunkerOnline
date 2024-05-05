@@ -1,5 +1,15 @@
 <script setup="">
-import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watchEffect } from "vue";
+import {
+  computed,
+  onBeforeMount,
+  onBeforeUpdate,
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  reactive,
+  ref,
+  watchEffect
+} from "vue";
 import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
@@ -10,7 +20,7 @@ import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { copyLinkToBuffer, getId, getLinkParams, getLocalData, setLocalData } from "@/plugins/functions.js";
+import { copyLinkToBuffer, getId, getLinkParams, getLocalData, objIsEmpty, setLocalData } from "@/plugins/functions.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
@@ -292,7 +302,8 @@ onBeforeMount(() => {
 onMounted(() => {
   watchEffect(() => {
     if (noteTextArea.value) {
-      noteTextArea.value.value = getLocalData(`note:game=${getId.value}`)?getLocalData(`note:game=${getId.value}`).text:''
+      noteTextArea.value.value = getLocalData(`note:game=${getId.value}`)? getLocalData(
+          `note:game=${getId.value}`).text:''
     }
   })
 })
@@ -345,9 +356,51 @@ function closeRoom(e) {
 function startGame(e) {
   showConfirmBlock(e.target, async () => {
     globalPreloader.activate()
-    hostSocket.emit('startGame')
+    if (selectedGame.isCreateCustomGame) {
+      let allData = {}
+      selectedGame.players.forEach(player => {
+        let body = document.querySelector(`[data-id="${player.id}"]`)
+        if (body) {
+          const charNames = [
+            'sex',
+            'body',
+            'trait',
+            'profession',
+            'health',
+            'hobbies',
+            'phobia',
+            'inventory',
+            'backpack',
+            'addInfo',
+            'spec1',
+            'spec2'
+          ]
+          let playerData = {}
+          charNames.forEach(char => {
+            let inputValue = body.querySelector(`#${char}`)
+            if(inputValue && inputValue.value) {
+              playerData[char] = inputValue.value || null
+            } else {
+              playerData[char] = null
+            }
+          })
+
+          allData[player.id] = playerData
+        }
+      })
+      console.log(allData)
+      if(!objIsEmpty(allData)) {
+        hostSocket.emit('startGame', allData)
+        selectedGame.isCreateCustomGame=false
+      } else {
+        globalPopup.activate('Ошибка','Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
+      }
+    } else {
+      hostSocket.emit('startGame')
+    }
   }, null, 'right')
 }
+
 
 function isHiddenGameHandler() {
   hostSocket.emit('isHiddenGame', selectedGame.isHidden)
@@ -378,12 +431,18 @@ async function clickCopyInput(e) {
   }, 1500)
 }
 
-let timerNoteInput = setTimeout(()=> {},500)
+let timerNoteInput = setTimeout(() => {
+}, 500)
+
 function noteInputHandler(e) {
   clearTimeout(timerNoteInput)
-  timerNoteInput = setTimeout(()=> {
-    setLocalData(`note:game=${getId.value}`, {text:e.target.value,date:+(new Date())})
-  },500)
+  timerNoteInput = setTimeout(() => {
+    setLocalData(`note:game=${getId.value}`, {text: e.target.value, date: +(new Date())})
+  }, 500)
+}
+
+function createCustomGame() {
+  selectedGame.isCreateCustomGame = true
 }
 
 </script>
@@ -789,7 +848,8 @@ function noteInputHandler(e) {
           <h2 v-slide class="notes__title titleH2">Заметки</h2>
           <div slidebody>
             <div class="notes__body">
-              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea" placeholder="Ваши заметки"></textarea>
+              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea"
+                        placeholder="Ваши заметки"></textarea>
               <div class="notes__textarea-warning">* После обновления страницы данные будут сохранены!</div>
             </div>
           </div>
@@ -803,7 +863,7 @@ function noteInputHandler(e) {
     </div>
   </main>
   <main v-else>
-    <div class="awaitRoom">
+    <div v-if="!selectedGame.isCreateCustomGame" class="awaitRoom">
       <AppBackground img-name="await.jpg" />
       <div class="awaitRoom__container">
         <div class="awaitRoom__body">
@@ -886,6 +946,13 @@ function noteInputHandler(e) {
                 >
                   Начать игру
                 </button>
+                <button v-if="myProfile.isMVP || myProfile.isAdmin" :disabled="!mayStartGame"
+                        class="info-awaitRoom__btn startBtn"
+                        :class="mayStartGame?'btn gold':''"
+                        @click="createCustomGame"
+                >
+                  Создать кастомную игру
+                </button>
               </div>
               <p v-else class="info-awaitRoom__text small">Только ведущий может начать игру</p>
             </div>
@@ -893,7 +960,7 @@ function noteInputHandler(e) {
         </div>
       </div>
     </div>
-    <div v-if="hostFunctional.haveAccess" class="people-awaitRoom">
+    <div v-if="hostFunctional.haveAccess && !selectedGame.isCreateCustomGame" class="people-awaitRoom">
       <div class="people-awaitRoom__container">
         <div class="people-awaitRoom__title titleH2">Кандидаты в бункер</div>
         <div class="people-awaitRoom__body">
@@ -926,9 +993,34 @@ function noteInputHandler(e) {
         </div>
       </div>
     </div>
-    <div class="watchersIcon"
+    <div v-if="!selectedGame.isCreateCustomGame" class="watchersIcon"
          :class="selectedGame.watchersCount>0?'_active':''">
       <img src="/img/icons/watcher.svg" alt="">
+    </div>
+    <div v-if="selectedGame.isCreateCustomGame" class="customGame">
+      <div class="customGame__container">
+        <div class="customGame__body">
+          <AppButton @click="selectedGame.isCreateCustomGame=false" class="customGame_backBtn" color="gold"
+                     icon-name="backArrow.svg" />
+          <div class="customGame__tables tables-customGame">
+            <TheGamerInfo is-create="true"
+                          v-for="player in selectedGame.players"
+                          :key="player.id"
+                          :nickname="player.nickname"
+                          :id="player.id"
+            />
+          </div>
+          <div class="customGame__bottom">
+            <button :disabled="!mayStartGame"
+                    class="info-awaitRoom__btn startBtn"
+                    :class="mayStartGame?'btn green':''"
+                    @click="startGame"
+            >
+              Начать кастомную игру
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </template>
@@ -1799,6 +1891,10 @@ function noteInputHandler(e) {
   &__buttons {
     display: flex;
     gap: 30px;
+
+    @media (max-width: 800px) {
+      flex-wrap: wrap;
+    }
 
     @media (max-width: 500px) {
       flex-direction: column;

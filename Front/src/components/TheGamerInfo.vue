@@ -1,21 +1,49 @@
 <script setup="">
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
-defineProps(['specItems', 'isReg'])
+defineProps(['specItems', 'isReg', 'isCreate','nickname','id'])
 
 const itemsName = [
   ['Пол', 'sex'],
-  ['Телосложение', 'physique'],
+  ['Телосложение', 'body'],
   ['Человеческая черта', 'trait'],
-  ['Профессия', 'profession', "Какое то всплывающее окно"],
+  ['Профессия', 'profession', `
+  Дилетант – до 3 месяцев;<br>
+Стажер – от 3 месяцев до 1 года;<br>
+Любитель – от 1 до 2 лет;<br>
+Опытный – от 2 до 5 лет;<br>
+Эксперт – от 5 до 10 лет;<br>
+Профессионал – более 10 лет.
+  `],
   ['Здоровье', 'health'],
-  ['Хобби / Увлечения', 'hobbies', "Какое то всплывающее окно"],
+  ['Хобби / Увлечения', 'hobbies', `
+  Дилетант – до 3 месяцев;<br>
+Новичок – от 3 месяцев до 1 года;<br>
+Любитель – от 1 до 2 лет;<br>
+Продвинутый – от 2 до 5 лет;<br>
+Мастер (гуру) – более 5 лет.
+  `],
   ['Фобия / Страх', 'phobia'],
   ['Крупный инвентарь', 'inventory'],
   ['Рюкзак', 'backpack'],
   ['Дополнительные сведения', 'addInfo'],
 ]
-const isCreate = false
+
+// const inputsData = reactive({
+//   sex:null,
+//   body:null,
+//   trait:null,
+//   profession:null,
+//   health:null,
+//   hobbies:null,
+//   phobia:null,
+//   inventory:null,
+//   backpack:null,
+//   addInfo:null,
+//   spec1:null,
+//   spec2:null,
+// })
+// defineExpose({id:props.id,inputsData})
 
 // const specItems = [
 //   {title: 'Раскрыть характеристику “человеческая черта” у другого игрока', isReload: true, isLocked: true},
@@ -23,7 +51,7 @@ const isCreate = false
 // ]
 const features = {
   sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-  physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
+  body: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
   trait: {title: "Брезгливый", isReload: true, isLocked: true},
   profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
   health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
@@ -33,8 +61,6 @@ const features = {
   backpack: {title: "Консервы", isReload: true, isLocked: true},
   addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
 }
-
-import AppButton from "@/components/AppButton.vue";
 </script>
 
 <template>
@@ -43,9 +69,9 @@ import AppButton from "@/components/AppButton.vue";
       <div class="gamerInfo__block linear-border white">
         <h2 v-slide class="gamerInfo__title titleH2">
           Информация о
-          <span> НикИгрока</span>
+          <span>{{ nickname }}</span>
         </h2>
-        <div slidebody>
+        <div slidebody :data-id="id">
           <div v-if="isCreate" class="gamerInfo__body">
             <div class="gamerInfo__column">
               <div
@@ -55,14 +81,14 @@ import AppButton from "@/components/AppButton.vue";
               >
                 <div class="item-gamerInfo__title">
                   {{ itemsName[index - 1][0] }}
-                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
+                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :html="itemsName[index - 1][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                <textarea :id="'input'+(index-1)" maxlength="70" placeholder="Введите характеристику" type="text"
+                <textarea :id="itemsName[index-1][1].toString()" maxlength="70" placeholder="Введите характеристику" type="text"
                           class="item-gamerInfo__input"></textarea>
-                  <button class="item-gamerInfo__open">
-                    <img src="/img/icons/lock-closed.png" alt="">
-                  </button>
+<!--                  <button class="item-gamerInfo__open">-->
+<!--                    <img src="/img/icons/lock-closed.png" alt="">-->
+<!--                  </button>-->
                 </div>
               </div>
             </div>
@@ -74,14 +100,14 @@ import AppButton from "@/components/AppButton.vue";
               >
                 <div class="item-gamerInfo__title">
                   {{ itemsName[index + 4][0] }}
-                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
+                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :html="itemsName[index + 4][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                <textarea :id="'input'+(index+4)" maxlength="70" placeholder="Введите характеристику"
+                <textarea :id="itemsName[index+4][1].toString()" maxlength="70" placeholder="Введите характеристику"
                           class="item-gamerInfo__input"></textarea>
-                  <button class="item-gamerInfo__open">
-                    <img src="/img/icons/lock-closed.png" alt="">
-                  </button>
+<!--                  <button class="item-gamerInfo__open">-->
+<!--                    <img src="/img/icons/lock-closed.png" alt="">-->
+<!--                  </button>-->
                 </div>
 
               </div>
@@ -96,12 +122,12 @@ import AppButton from "@/components/AppButton.vue";
               >
                 <div class="item-gamerInfo__title">
                   {{ itemsName[index - 1][0] }}
-                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :text="itemsName[index - 1][2]" />
+                  <AppSmallInfo v-if="itemsName[index - 1].length>2" :html="itemsName[index - 1][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
                   <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
                   <AppSmallInfo v-if="features[itemsName[index - 1][1]].info"
-                                :text="features[itemsName[index - 1][1]].info" />
+                                :html="features[itemsName[index - 1][1]].info" />
                   <button v-if="features[itemsName[index-1][1]].isReload && isReg" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
@@ -152,11 +178,11 @@ import AppButton from "@/components/AppButton.vue";
                 Спец. возможность {{ item }}
               </div>
               <div class="item-gamerInfo__description">
-              <textarea :id="'specInput'+(item-1)" maxlength="150" placeholder="Введите характеристику"
+              <textarea :id="`spec${item}`" maxlength="150" placeholder="Введите характеристику"
                         class="item-gamerInfo__input"></textarea>
-                <button class="item-gamerInfo__open">
-                  <img src="/img/icons/lock-closed.png" alt="">
-                </button>
+<!--                <button class="item-gamerInfo__open">-->
+<!--                  <img src="/img/icons/lock-closed.png" alt="">-->
+<!--                </button>-->
               </div>
             </div>
           </div>

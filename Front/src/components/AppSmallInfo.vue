@@ -7,6 +7,11 @@ defineProps({
     type: Boolean,
     required: false,
     default: false,
+  },
+  html: {
+    type: String,
+    required:false,
+    default:false
   }
 })
 
@@ -20,8 +25,10 @@ onMounted(() => {
   mainBlock.value.addEventListener('mouseout', mouseout)
 })
 onBeforeUnmount(() => {
-  mainBlock.value.removeEventListener('mouseover', mouseover)
-  mainBlock.value.removeEventListener('mouseout', mouseout)
+  if(mainBlock && mainBlock.value) {
+    mainBlock.value.removeEventListener('mouseover', mouseover)
+    mainBlock.value.removeEventListener('mouseout', mouseout)
+  }
 })
 
 function mouseover(e) {
@@ -74,7 +81,8 @@ function showWindow(e) {
          ref="block"
          :class="{isDown}"
     >
-      <p>{{ text }}</p>
+      <p v-if="html" v-html="html"></p>
+      <p v-else>{{text}}</p>
     </div>
   </div>
 </template>

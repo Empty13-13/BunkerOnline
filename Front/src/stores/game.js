@@ -18,6 +18,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const gameLoadText = ref('Идет загрузка данных игры...')
   const maxPlayers = ref(15)
   const minPlayers = ref(6)
+  const isCreateCustomGame = ref(false)
   
   const hostFunctional = useHostFunctionalStore()
   
@@ -92,6 +93,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     gameLoadText,
     minPlayers,
     maxPlayers,
+    isCreateCustomGame,
     clearData,
     clear,
     generateGameId,
