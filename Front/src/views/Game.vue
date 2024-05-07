@@ -21,7 +21,7 @@ import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { copyLinkToBuffer, getId, getLinkParams, getLocalData, objIsEmpty, setLocalData } from "@/plugins/functions.js";
-import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
@@ -36,8 +36,8 @@ const globalPopup = useGlobalPopupStore()
 const userSocket = useUserSocketStore()
 const hostSocket = useHostSocketStore()
 const hostFunctional = useHostFunctionalStore()
+const selectedGameData = useSelectedGameData()
 
-const capacity = ref(3)
 const noteTextArea = ref(null)
 
 const firstItem = ['№ Имя', 'num']
@@ -64,16 +64,30 @@ const gameData = reactive({
 })
 const itemsName = [
   ['Пол', 'sex'],
-  ['Телосложение', 'physique'],
+  ['Телосложение', 'body'],
   ['Человеческая черта', 'trait'],
-  ['Профессия', 'profession', "Какое то всплывающее окно с очень очень большим количеством текста прям ну очень много текста здесь будет, максимально много. Это нужно для проверки"],
+  ['Профессия', 'profession', `
+  Дилетант – до 3 месяцев;<br>
+Стажер – от 3 месяцев до 1 года;<br>
+Любитель – от 1 до 2 лет;<br>
+Опытный – от 2 до 5 лет;<br>
+Эксперт – от 5 до 10 лет;<br>
+Профессионал – более 10 лет.
+  `],
   ['Здоровье', 'health'],
-  ['Хобби / Увлечения', 'hobbies', "Какое то всплывающее окно"],
+  ['Хобби / Увлечения', 'hobbies', `
+  Дилетант – до 3 месяцев;<br>
+Новичок – от 3 месяцев до 1 года;<br>
+Любитель – от 1 до 2 лет;<br>
+Продвинутый – от 2 до 5 лет;<br>
+Мастер (гуру) – более 5 лет.
+  `],
   ['Фобия / Страх', 'phobia'],
   ['Крупный инвентарь', 'inventory'],
   ['Рюкзак', 'backpack'],
-  ['Доп. сведения', 'addInfo'],
+  ['Дополнительные сведения', 'addInfo'],
 ]
+
 const gamerData = [
   {
     nickname: 'Никнейм1234567', imgLink: '', access: 'vip', isDead: false, id: 1,
@@ -272,8 +286,8 @@ const gamerData = [
   },
 ]
 const specItems = [
-  {title: 'Раскрыть характеристику “человеческая черта” у другого игрока', isReload: true, isLocked: true},
-  {title: 'У вас есть информация о том, где находится склад с продуктами', isReload: true, isLocked: true},
+  ['Спец. возможность 1','spec1'],
+  ['Спец. возможность 2','spec2'],
 ]
 const votedData = {
   votedList: [
@@ -391,7 +405,7 @@ function startGame(e) {
       console.log(allData)
       if(!objIsEmpty(allData)) {
         hostSocket.emit('startGame', allData)
-        selectedGame.isCreateCustomGame=false
+        // selectedGame.isCreateCustomGame=false
       } else {
         globalPopup.activate('Ошибка','Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
       }
@@ -503,16 +517,8 @@ function createCustomGame() {
             Катаклизм
           </h1>
           <p slideBody class="welcome__subtitle">
-            Равным образом новая модель организационной деятельности обеспечивает широкому
-            кругу (специалистов) участие в формировании модели развития. Повседневная
-            практика показывает, что консультация с широким активом требуют от нас анализа
-            систем массового участия. С другой стороны реализация намеченных плановых заданий
-            представляет собой интересный эксперимент проверки позиций, занимаемых
-            участниками в отношении поставленных задач. Задача организации, в особенности же
-            укрепление и развитие структуры позволяет выполнять важные задания по разработке
-            позиций, занимаемых участниками в отношении поставленных задач.
+            {{selectedGameData.bunkerData.catastrophe}}
           </p>
-
         </div>
       </div>
     </div>
@@ -523,19 +529,18 @@ function createCustomGame() {
           <div slidebody>
             <div class="bunker__body">
               <div class="bunker__column text">
-                <p class="bunker__description">Неизвестно когда был построен. Водятся летучие мысли. Находится под
-                                               госпиталем, у всех выживших общая комната.</p>
+                <p class="bunker__description">{{selectedGameData.bunkerData.bunkerCreated}}. {{selectedGameData.bunkerData.bunkerLocation}}. {{selectedGameData.bunkerData.bunkerBedroom}}</p>
                 <div class="bunker__items items-bunker">
                   <div class="items-bunker__title">В бункере присутствует:</div>
                   <ul class="items-bunker__list">
-                    <li class="items-bunker__item">Тренажерный зал</li>
-                    <li class="items-bunker__item">Пулемет с 500 патронами</li>
-                    <li class="items-bunker__item">Сауна</li>
+                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[0] }}</li>
+                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[1] }}</li>
+                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[2] }}</li>
                   </ul>
                 </div>
                 <p class="bunker__capacity">
                   Количество мест:
-                  <span>{{ capacity }}</span>
+                  <span>{{ selectedGameData.bunkerData.maxSurvivor }}</span>
                 </p>
               </div>
               <div class="bunker__column tabs">
@@ -590,7 +595,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Размер бункера</h4>
-                      <p class="block-tabs__description">140 кв. м.</p>
+                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerSize}}</p>
                     </div>
                   </div>
                 </div>
@@ -629,7 +634,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Время нахождения</h4>
-                      <p class="block-tabs__description">1 год 6 месяцев</p>
+                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerTime}}</p>
                     </div>
                   </div>
                 </div>
@@ -668,7 +673,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Количество еды</h4>
-                      <p class="block-tabs__description">на 1 год и 9 месяцев</p>
+                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerFood}}</p>
                     </div>
                   </div>
                 </div>
@@ -678,12 +683,16 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <TheGamerInfo id="gamerInfo" :specItems="specItems" :isReg="myProfile.isReg" />
+    <TheGamerInfo id="gamerInfo"
+                  :data="selectedGameData.playersData[selectedGame.userId]"
+                  :isReg="myProfile.isReg"
+                  :nickname="selectedGameData.userData[selectedGame.userId].nickname"
+    />
     <div id="gamerList" class="listGamer">
       <div class="listGamer__container">
         <h2 v-slide class="listGamer__title titleH2">
           Желающие попасть в бункер:
-          <span> 1/6</span>
+          <span> {{selectedGameData.getAlivePlayers.length}}/{{Object.keys(selectedGameData.userData).length-1}}</span>
         </h2>
         <div slidebody>
           <div class="wrapper-listGamer">
@@ -698,36 +707,35 @@ function createCustomGame() {
                     class="table-listGamer__column"
                 >
                   {{ item[0] }}
-                  <AppSmallInfo v-if="item.length>2" :text="item[2]" :is-down="true" />
+                  <AppSmallInfo v-if="item.length>2" :html="item[2]" :is-down="true" />
                 </div>
               </div>
               <div class="table-listGamer__row"
-                   v-for="(gamer,index ) in gamerData"
-                   :key="gamer.id"
-                   :class="[gamer.access,{dead:gamer.isDead}]"
+                   v-for="(data,id,index) in selectedGameData.userData"
+                   :key="id"
+                   :class="[data.accessLevel,{dead:!data.isAlive}]"
               >
-                <!--Блок с профилем-->
-                <div class="table-listGamer__column profile-column" :class="gamer.access">
+<!--                Блок с профилем-->
+                <div class="table-listGamer__column profile-column" :class="data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar class="profile-column__img" :color="gamer.access" />
+                  <AppAvatar v-model:href="data.avatar" class="profile-column__img" :color="data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
-                    <div class="texts-profile-column__nickname" :title="gamer.nickname">
-                      {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
+                    <div class="texts-profile-column__nickname" :title="data.nickname">
+                      {{ data.nickname }}
                     </div>
-                    <div class="texts-profile-column__access">{{ getAccessStr(gamer.access) }}</div>
-                    <div class="texts-profile-column__banish" :class="{dead:gamer.isDead}">
-                      {{ gamer.isDead? 'вернуть':'изгнать' }}
+                    <div class="texts-profile-column__access">{{ getAccessStr(data.accessLevel) }}</div>
+                    <div class="texts-profile-column__banish" :class="{dead:!data.isAlive}">
+                      {{ !data.isAlive? 'вернуть':'изгнать' }}
                     </div>
                   </div>
                 </div>
-
                 <!--Остальные характеристики-->
                 <div class="table-listGamer__column"
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  {{ gamer[item[1]].title }}
-                  <AppSmallInfo v-if="gamer[item[1]].info" :text="gamer[item[1]].info" />
+                  {{ selectedGameData.getCharForPlayer(id,item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])" :text="selectedGameData.getDescriptionForChar(id,item[1])" />
                 </div>
               </div>
             </div>
@@ -811,30 +819,31 @@ function createCustomGame() {
                 </div>
               </div>
               <div
-                  v-for="(gamer,index ) in gamerData"
-                  :key="gamer.id"
+                  v-for="(data,id,index ) in selectedGameData.userData"
+                  :key="id"
                   class="table-listGamer__row"
-                  :class="[gamer.access,{dead:gamer.isDead}]"
+                  :class="[data.accessLevel,{dead:!data.isAlive}]"
               >
                 <!--Блок с профилем-->
-                <div class="table-listGamer__column profile-column" :class="gamer.access">
+                <div class="table-listGamer__column profile-column" :class="data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar class="profile-column__img" :color="gamer.access" />
+                  <AppAvatar v-model:href="data.avatar" class="profile-column__img" :color="data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
-                    <div class="texts-profile-column__nickname" :title="gamer.nickname">
-                      {{ gamer.access==='noreg'? 'Гость №' + index:gamer.nickname }}
+                    <div class="texts-profile-column__nickname" :title="data.nickname">
+                      {{ data.nickname }}
                     </div>
-                    <div class="texts-profile-column__access">{{ getAccessStr(gamer.access) }}</div>
+                    <div class="texts-profile-column__access">{{ getAccessStr(data.accessLevel) }}</div>
                   </div>
                 </div>
 
                 <!--Остальные характеристики-->
                 <div
                     v-for="item in specItems"
-                    :key="item.title"
+                    :key="item[1]"
                     class="table-listGamer__column"
                 >
-                  {{ item.title }}
+                  {{ selectedGameData.getCharForPlayer(id,item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])" :text="selectedGameData.getDescriptionForChar(id,item[1])" />
                 </div>
               </div>
             </div>
@@ -951,7 +960,7 @@ function createCustomGame() {
                         :class="mayStartGame?'btn gold':''"
                         @click="createCustomGame"
                 >
-                  Создать кастомную игру
+                  <span class="text">Создать кастомную игру</span>
                 </button>
               </div>
               <p v-else class="info-awaitRoom__text small">Только ведущий может начать игру</p>
@@ -997,11 +1006,11 @@ function createCustomGame() {
          :class="selectedGame.watchersCount>0?'_active':''">
       <img src="/img/icons/watcher.svg" alt="">
     </div>
-    <div v-if="selectedGame.isCreateCustomGame" class="customGame">
+    <div v-show="selectedGame.isCreateCustomGame" class="customGame">
       <div class="customGame__container">
         <div class="customGame__body">
-          <AppButton @click="selectedGame.isCreateCustomGame=false" class="customGame_backBtn" color="gold"
-                     icon-name="backArrow.svg" />
+          <AppButton @click="selectedGame.isCreateCustomGame=false" class="customGame_backBtn" border="true" color="gold"
+                     icon-name="upButton.png" />
           <div class="customGame__tables tables-customGame">
             <TheGamerInfo is-create="true"
                           v-for="player in selectedGame.players"
@@ -1993,6 +2002,47 @@ function createCustomGame() {
   }
 }
 
+.customGame {
+  margin-top: 100px;
+  margin-bottom: 100px;
+
+  &_backBtn {
+    position: fixed;
+    top: 100px;
+    left: calc(50% - 680px);
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+
+    @media (max-width:1400px){
+      left: 20px;
+    }
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      transform: rotate(-90deg);
+    }
+  }
+
+  &__container {
+  }
+
+  &__body {
+  }
+
+  &__bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    button {
+      max-width: 220px;
+    }
+  }
+}
+.tables-customGame {
+}
 </style>
 
 <!--Навигация-->

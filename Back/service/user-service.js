@@ -52,7 +52,7 @@ class UserService {
     const hashPassword = await bcrypt.hash(password, 3)
     const activationLink = uuid.v4()
     const user = await UserModel.User.create({nickname, email, password: hashPassword, activationLink})
-    await UserModel.UserUsePack.create({userId:user.id,chartPackId:1})
+    await UserModel.UserUsePack.create({userId: user.id, chartPackId: 1})
     // const userData = await UserModel.User.findOne({where: {email}})
     await mailService.sendactivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`)
     
@@ -277,7 +277,7 @@ class UserService {
     
     if (!candidateDisUser.isActivated) {
       candidateDisUser.isActivated = 1
-     await candidateDisUser.save()
+      await candidateDisUser.save()
     }
     
     const userDto1 = new UserDto(candidateDisUser)
@@ -408,7 +408,7 @@ class UserService {
     file.mv(process.env.STATIC_PATH + "\\" + avatarName)
     console.log(user.avatar)
     user.avatar = avatarName
-   await user.save()
+    await user.save()
     console.log(user.avatar)
     return avatarName
   }
@@ -430,7 +430,7 @@ class UserService {
         console.log(e)
       }
       user.avatar = null
-     await user.save()
+      await user.save()
     }
     return user
   }
@@ -514,7 +514,7 @@ class UserService {
     const isChange = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
     if (isChange) {
       isChange.changeNickname = 1
-     await isChange.save()
+      await isChange.save()
     }
     
     return user
@@ -614,7 +614,7 @@ class UserService {
         [{input: 'userId', type: 'resetPassword'}])
     }
     resetPasswordDb.isChange = 1
-   await resetPasswordDb.save()
+    await resetPasswordDb.save()
     user.password = hashPassword
     await user.save()
     
@@ -640,7 +640,7 @@ class UserService {
     }
     const activationLink = uuid.v4()
     resetPasswordDb.isChange = 1
-   await resetPasswordDb.save()
+    await resetPasswordDb.save()
     user.activationLink = activationLink
     user.email = email
     user.isActivated = 0
@@ -692,12 +692,65 @@ class UserService {
   
   async allUsersGames() {
     
-    
     const data = await UserModel.GameRooms.findAll({where: {isStarted: 1, isHidden: 0}})
     if (!data) {
       return null
     }
     const dataRooms = getNickName(data)
+    
+    return dataRooms
+    
+  }
+  
+  async allPacks(token) {
+    
+    const userData = tokenService.validateAccessToken(token)
+    if (!userData) {
+      throw ApiError.UnauthorizedError()
+    }
+    let systemData = {}
+    let systemSettings = await UserModel.SystemSettings.findAll({where: {nameSetting: ['basePack', 'advancePack']}})
+    for (let item of systemSettings) {
+      systemData[item.nameSetting] = item.value
+      
+    }
+    const packs = await UserModel.ChartPack.findAll({
+      attributes: ['id', 'namePack', 'status', 'text'],
+      where: {isHidden: 1, id: {[Op.ne]: [systemData.advancePack, systemData.basePack]}}
+    })
+
+    console.log(packs)
+    if (!packs) {
+      return null
+    }
+    let alivePacks = []
+    for (let item of packs) {
+      if (item.id!==systemData.basePack && item.id!==systemData.advancePack) {
+        alivePacks.push(item.id)
+      }
+    }
+    const userPacks = await UserModel.UserUsePack.findOne({where: {userId: userData.id, chartPackId: alivePacks}})
+    let data = []
+    let user = await UserModel.User.findOne({where: {id: userData.id}})
+    const systemPacks = await UserModel.ChartPack.findAll({where:{id:[systemData.basePack,systemData.advancePack]}})
+    for(let item of systemPacks){
+      let dataPacks = {}
+      dataPacks.id = item.id
+      dataPacks.namePack = item.namePack
+      dataPacks.status = item.status
+      dataPacks.text = item.text
+      dataPacks.isUse = false
+      if (item.id===systemData.basePack && user.isUsedSystemBasePack) {
+        dataPacks.isUse = true
+      }
+      else if (item.id===systemData.advancePack && user.isUsedSystemAdvancePack) {
+        dataPacks.isUse = true
+      }
+      data.push(dataPacks)
+      }
+      
+
+    console.log(data)
     
     return dataRooms
     
@@ -737,7 +790,7 @@ async function getGamesData(userId, dataRooms) {
           }
         }
       }
-      if(!isRoomExist) {
+      if (!isRoomExist) {
         data.push({
           idRoom: gameRoom.idRoom,
           countPlayers: countPlayers.count,

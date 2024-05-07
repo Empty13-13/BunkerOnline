@@ -440,6 +440,26 @@ class UserController {
     }
 
   }
+
+  async allPacks(req, res, next) {
+
+
+      try {
+        let token = null
+              const accessToken = req.headers.authorization
+        console.log(accessToken)
+              if (accessToken && accessToken.toString().includes('Bearer ')) {
+                token = accessToken.split('Bearer ')[1]
+              }
+
+        const data = await userService.allPacks(token)
+        //console.log(data)
+        res.json(data)
+      } catch(e) {
+        next(e)
+      }
+
+    }
   
   
 }

@@ -1,7 +1,8 @@
 <script setup="">
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
-defineProps(['specItems', 'isReg', 'isCreate','nickname','id'])
+let props = defineProps(['data', 'isReg', 'isCreate','nickname','id'])
+console.log('props.specItems',props.data)
 
 const itemsName = [
   ['Пол', 'sex'],
@@ -29,6 +30,11 @@ const itemsName = [
   ['Дополнительные сведения', 'addInfo'],
 ]
 
+const specItems = [
+  ['Спец. возможность 1','spec1'],
+  ['Спец. возможность 2','spec2'],
+]
+
 // const inputsData = reactive({
 //   sex:null,
 //   body:null,
@@ -45,10 +51,6 @@ const itemsName = [
 // })
 // defineExpose({id:props.id,inputsData})
 
-// const specItems = [
-//   {title: 'Раскрыть характеристику “человеческая черта” у другого игрока', isReload: true, isLocked: true},
-//   {title: 'У вас есть информация о том, где находится склад с продуктами', isReload: true, isLocked: true},
-// ]
 const features = {
   sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
   body: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
@@ -125,13 +127,13 @@ const features = {
                   <AppSmallInfo v-if="itemsName[index - 1].length>2" :html="itemsName[index - 1][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                  <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
-                  <AppSmallInfo v-if="features[itemsName[index - 1][1]].info"
-                                :html="features[itemsName[index - 1][1]].info" />
-                  <button v-if="features[itemsName[index-1][1]].isReload && isReg" class="item-gamerInfo__reload">
+                  <p class="item-gamerInfo__text">{{ data[itemsName[index - 1][1]].text }}</p>
+                  <AppSmallInfo v-if="data[itemsName[index - 1][1]].description"
+                                :html="data[itemsName[index - 1][1]].description" />
+                  <button v-if="!data[itemsName[index-1][1]].isMVPRefresh && isReg" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
-                  <button v-if="features[itemsName[index-1][1]].isLocked" class="item-gamerInfo__open">
+                  <button v-if="!data[itemsName[index-1][1]].isOpen" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
                   <button v-else class="item-gamerInfo__open">
@@ -151,13 +153,13 @@ const features = {
                   <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                  <p class="item-gamerInfo__text">{{ features[itemsName[index - 1][1]].title }}</p>
-                  <AppSmallInfo v-if="features[itemsName[index + 4][1]].info"
-                                :text="features[itemsName[index + 4][1]].info" />
-                  <button v-if="isReg" class="item-gamerInfo__reload">
-                    <img v-if="features[itemsName[index+4][1]].isReload" src="/img/icons/reload.png" alt="">
+                  <p class="item-gamerInfo__text">{{ data[itemsName[index + 4][1]].text }}</p>
+                  <AppSmallInfo v-if="data[itemsName[index + 4][1]].description"
+                                :text="data[itemsName[index + 4][1]].description" />
+                  <button v-if="!data[itemsName[index+4][1]].isMVPRefresh" class="item-gamerInfo__reload">
+                    <img src="/img/icons/reload.png" alt="">
                   </button>
-                  <button v-if="features[itemsName[index+4][1]].isLocked" class="item-gamerInfo__open">
+                  <button v-if="!data[itemsName[index+4][1]].isOpen" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
                   <button v-else class="item-gamerInfo__open">
@@ -196,11 +198,11 @@ const features = {
                 Спец. возможность {{ item }}
               </div>
               <div class="item-gamerInfo__description">
-                <p class="item-gamerInfo__text">{{ specItems[item - 1].title }}</p>
-                <button v-if="isReg" class="item-gamerInfo__reload">
-                  <img v-if="specItems[item - 1].isReload" src="/img/icons/reload.png" alt="">
+                <p class="item-gamerInfo__text">{{ data[specItems[item - 1][1]].text }}</p>
+                <button v-if="!data[specItems[item - 1][1]].isMVPRefresh" class="item-gamerInfo__reload">
+                  <img src="/img/icons/reload.png" alt="">
                 </button>
-                <button v-if="specItems[item-1].isLocked" class="item-gamerInfo__open">
+                <button v-if="!data[specItems[item - 1][1]].isOpen" class="item-gamerInfo__open">
                   <img src="/img/icons/lock-closed.png" alt="">
                 </button>
                 <button v-else class="item-gamerInfo__open">
@@ -404,6 +406,7 @@ const features = {
     display: flex;
     max-width: 100%;
     padding: 5px;
+    border-radius: 8px;
 
     @media (max-width: $mobileSmall) {
       width: 166px;

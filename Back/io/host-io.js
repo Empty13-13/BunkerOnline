@@ -1,11 +1,10 @@
-const uuid = require('uuid')
 const tokenService = require('../service/token-service')
 const ApiError = require('../exceptions/api-error')
 const {logger} = require("sequelize/lib/utils/logger");
 const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
 const playerDataService = require('../service/playerData-service')
-
+const systemFunction = require('../systemFunction/systemFunction')
 
 module.exports = function(io) {
   // const userIo = io
@@ -85,7 +84,7 @@ module.exports = function(io) {
       await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
       io.to(`user:${Id}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
       io.to(`user:${Id}`).disconnectSockets(true)
-      io.in(idRoom).emit('setAwaitRoomData', {players:await ioUserService.getPlayingUsers(idRoom)})
+      io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
     })
     socket.on('isHiddenGame', async (isHiddenTrack) => {
       if (token) {
@@ -96,7 +95,7 @@ module.exports = function(io) {
               message: `Invalid access`,
               status: 403,
               functionName: 'isHiddenGame',
-              vars:[isHiddenTrack]
+              vars: [isHiddenTrack]
             })
           console.log("INVALID TOKEN EPTA")
           return
@@ -128,7 +127,7 @@ module.exports = function(io) {
               message: `Invalid access`,
               status: 403,
               functionName: 'isHiddenGame',
-              vars:[isHiddenTrack]
+              vars: [isHiddenTrack]
             })
         }
       }
@@ -143,7 +142,7 @@ module.exports = function(io) {
     })
     
     socket.on('isHostPlayerTooGame', async (Track) => {
-
+      
       let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom, isStarted: 0}})
       if (!gameRoom) {
         socket.emit("setError",
@@ -155,28 +154,28 @@ module.exports = function(io) {
         return
       }
       let countPlayer = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-
+      
       if (countPlayer.count<15 || !Track) {
         let isHostPlayerTooGame = 0
         if (Track) {
           isHostPlayerTooGame = 1
         }
-        let user = await UserModel.RoomSession.findOne({where: {userId: userId,gameRoomId: gameRoom.id}})
+        let user = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
         if (!user) {
           socket.emit("setError",
             {
               message: `Invalid user`,
               status: 403,
               functionName: 'isHostPlayerTooGame',
-              vars:[Track]
+              vars: [Track]
             })
           return
         }
         user.isPlayer = isHostPlayerTooGame
         await user.save()
         let dataPlayer = await ioUserService.getPlayingUsers(idRoom)
-       
-        io.in(idRoom).emit('setAwaitRoomData',{players:dataPlayer,isHostPlayer:!!isHostPlayerTooGame})
+        
+        io.in(idRoom).emit('setAwaitRoomData', {players: dataPlayer, isHostPlayer: !!isHostPlayerTooGame})
       }
       else {
         socket.emit("setError",
@@ -186,40 +185,105 @@ module.exports = function(io) {
             functionName: 'isHostPlayerTooGame'
           })
       }
-
+      
     })
     
-    socket.on('startGame', async () => {
-      try {
-        if (GameData.countPlayers<0) {
-          socket.emit("setError",
+    socket.on('startGame', async (playersData) => {
+        try {
+          if (GameData.countPlayers<0) {
+            socket.emit("setError",
+              {
+                message: `Для начала игры нужно минимум 6 игроков`,
+                status: 400,
+                functionName: 'startGame'
+              })
+            return
+          }
+          if (playersData) {
+            let userData = await UserModel.User.findOne({where: {id: userId}})
+            if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
+              const forbiddenWords = await UserModel.BlackListWords.findAll()
+              let wrongData = {}
+              
+              
+              for (let playerId in playersData) {
+                let wrongInput = []
+                for (let key in playersData[playerId]) {
+                  if (playersData[playerId][key]!==null) {
+                    //  console.log('PROVERKA',key,playersData[playerId])
+                    forbiddenWords.forEach(word => {
+                      if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
+                        word.word.toLowerCase())) {
+                        wrongInput.push(key)
+                        //  console.log('ERRRRRRRRRRRRRRORRRRRRR', wrongInput)
+                      }
+                    })
+                  }
+                }
+                
+                if (wrongInput.length>0) {
+                  wrongData[playerId] = wrongInput
+                }
+
+                
+              }
+              //console.log(wrongData)
+              if (!systemFunction.objIsEmpty(wrongData)) {
+                socket.emit("setError",
+                  {
+                    message: `В полях используются запрещенные слова`,
+                    status: 514,
+                    functionName: 'startGame',
+                    wrongData: wrongData
+                  })
+                return
+              }
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: `Access Denied`,
+                  status: 513,
+                  functionName: 'startGame'
+                })
+              return
+            }
+          }
+          //Проверка на MVP если playersData не пустой
+
+          //  console.log('Проверка на ХУЙ пройдена успешно')
+          io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+
+          const data = await playerDataService.createDataGame(idRoom, playersData)
+          console.log(data)
+          
+          let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+          room.isStarted = 1
+          await room.save()
+          let sendData = {}
+          sendData.userData = data.userData
+          sendData.bunkerData = data.bunkerData
+          sendData.players = {}
+          for (let playerId in data.players) {
+            sendData.players = {}
+            sendData.players[playerId] = data.players[playerId]
+            
+            io.to(`user:${playerId}`).emit('setAllGameData', sendData)
+            // console.log(sendData)
+          }
+          // io.in(idRoom).emit('setAllGameData', data)
+        } catch
+          (e) {
+          io.in(idRoom).emit("setError",
             {
-              message: `Для начала игры нужно минимум 6 игроков`,
-              status: 400,
+              message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
+              status: 512,
               functionName: 'startGame'
             })
-          return
+          console.log(e)
         }
-        io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-        
-        const data = await playerDataService.createDataGame(idRoom)
-        console.log(data)
-        
-        let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        room.isStarted = 1
-        await room.save()
-        
-        io.in(idRoom).emit('setAllGameData',data)
-      } catch(e) {
-        io.in(idRoom).emit("setError",
-          {
-            message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
-            status: 512,
-            functionName: 'startGame'
-          })
-        console.log(e)
       }
-    })
+    )
     
   })
   

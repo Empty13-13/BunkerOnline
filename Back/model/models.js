@@ -76,7 +76,9 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerTime: {type: DataTypes.INTEGER},
   bunkerLocation: {type: DataTypes.INTEGER},
   bunkerBedroom: {type: DataTypes.INTEGER},
-  bunkerItems: {type: DataTypes.INTEGER},
+  bunkerItems1: {type: DataTypes.INTEGER},
+  bunkerItems2: {type: DataTypes.INTEGER},
+  bunkerItems3: {type: DataTypes.INTEGER},
   bunkerFood: {type: DataTypes.INTEGER},
   imageId: {type: DataTypes.INTEGER}
 })
@@ -98,7 +100,9 @@ const RoomSession = sequelize.define('roomSession', {
   backpack: {type: DataTypes.STRING},
   addInfo: {type: DataTypes.STRING},
   spec1: {type: DataTypes.STRING},
-  spec2: {type: DataTypes.STRING}
+  spec2: {type: DataTypes.STRING},
+  isMVPRefresh:{type: DataTypes.TINYINT},
+  isAlive:{type: DataTypes.TINYINT, defaultValue: 1}
 })
 
 const ChartPlayer = sequelize.define('chartPlayer', {

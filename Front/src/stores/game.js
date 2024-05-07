@@ -38,7 +38,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
       isStarted.value = false
     }
   }
-
+  
   function clearData() {
     hostId.value = 0
     isStarted.value = false
@@ -47,7 +47,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     userId.value = 0
     isHidden.value = false
   }
-
+  
   function setInitialData(data) {
     if (data.hasOwnProperty('hostId')) {
       hostId.value = data.hostId
@@ -73,10 +73,11 @@ export const useSelectedGame = defineStore('selectedGame', () => {
       hostFunctional.isPlayerToo = data.isHostPlayer
     }
   }
-
+  
   function clear() {
     gameId.value = null
     isNewGame.value = false
+    isCreateCustomGame.value = false
     clearData()
   }
   
@@ -121,3 +122,75 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   }
 })
 
+export const useSelectedGameData = defineStore('selectedGameData', () => {
+  const bunkerData = ref({
+    bunkerBedroom: "",
+    bunkerCreated: "",
+    bunkerFood: "",
+    bunkerItems: [],
+    bunkerLocation: "",
+    bunkerSize: 0,
+    bunkerTime: "",
+    catastrophe: "",
+    imageName: "",
+    maxSurvivor: 0
+  })
+  const playersData = ref({})
+  const userData = ref({})
+  
+  const getAlivePlayers = computed(() => {
+    let players = []
+    for(let key in userData.value) {
+      userData.value[key].isAlive?players.push(userData.value[key]):''
+    }
+    return players
+  })
+  
+  function setData(data) {
+    if(!data || objIsEmpty(data)) {
+      return
+    }
+    if(data.hasOwnProperty('bunkerData')) {
+      console.log(data.bunkerData)
+      for(let key in data.bunkerData) {
+        bunkerData.value[key] = data.bunkerData[key]
+      }
+    }
+    if(data.hasOwnProperty('players')) {
+      for(let key in data.players) {
+        playersData.value[key] = data.players[key]
+      }
+    }
+    if(data.hasOwnProperty('userData')) {
+      for(let key in data.userData) {
+        userData.value[key] = data.userData[key]
+      }
+    }
+  }
+  
+  function getCharForPlayer(id,item) {
+    if(playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen){
+      return playersData.value[id][item].text
+    } else {
+      return null
+    }
+  }
+  
+  function getDescriptionForChar(id,item) {
+    if(playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen && playersData.value[id][item].description){
+      return playersData.value[id][item].description 
+    } else {
+      return null
+    }
+  }
+  
+  return {
+    bunkerData,
+    playersData,
+    userData,
+    getAlivePlayers,
+    setData,
+    getCharForPlayer,
+    getDescriptionForChar,
+  }
+})

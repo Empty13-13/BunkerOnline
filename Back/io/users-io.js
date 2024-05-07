@@ -67,6 +67,9 @@ module.exports = function(io) {
       }
       
       if (GameData.isStarted) {
+         const data = await playerDataService.joinGameData(idRoom, isValidateId)
+         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',data)
+        
         /*
          Если игра началась, то в любом случае подключаем пользователя. Либо как игрока, если он
          был до этого в игре (и тогда обновляем всем находящимся в игре данные, чтобы подгрузить нужную
@@ -82,7 +85,7 @@ module.exports = function(io) {
         if (GameData.isPlayingBefore) {
           socket.emit('updateInitialInfo')
           socket.emit('startedGame')
-          io.in(idRoom).emit('setAllGameData')
+          socket.emit('setAllGameData', data)
         }
         else {
           if (GameData.isHidden) {
