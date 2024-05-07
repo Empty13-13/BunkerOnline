@@ -716,24 +716,30 @@ class UserService {
     }
     const packs = await UserModel.ChartPack.findAll({
       attributes: ['id', 'namePack', 'status', 'text'],
-      where: {isHidden: 1, id: {[Op.ne]: [systemData.advancePack, systemData.basePack]}}
+      where: {isHidden: 1, id:{
+        [Op.and]: [
+          {[Op.ne]: systemData.basePack},
+          {[Op.ne]: systemData.advancePack}
+        ]
+      }}
     })
 
-    console.log(packs)
+    console.log('PACKS',packs)
     if (!packs) {
       return null
     }
     let alivePacks = []
     for (let item of packs) {
-      if (item.id!==systemData.basePack && item.id!==systemData.advancePack) {
-        alivePacks.push(item.id)
-      }
+
+      alivePacks.push(item.id)
+
     }
-    const userPacks = await UserModel.UserUsePack.findOne({where: {userId: userData.id, chartPackId: alivePacks}})
+    const userPacks = await UserModel.UserUsePack.findAll({where: {userId: userData.id, chartPackId: alivePacks}})
     let data = []
     let user = await UserModel.User.findOne({where: {id: userData.id}})
-    const systemPacks = await UserModel.ChartPack.findAll({where:{id:[systemData.basePack,systemData.advancePack]}})
-    for(let item of systemPacks){
+    console.log(userPacks)
+    const systemPacks = await UserModel.ChartPack.findAll({where: {id: [systemData.basePack, systemData.advancePack]}})
+    for (let item of systemPacks) {
       let dataPacks = {}
       dataPacks.id = item.id
       dataPacks.namePack = item.namePack
@@ -747,12 +753,28 @@ class UserService {
         dataPacks.isUse = true
       }
       data.push(dataPacks)
+    }
+    if (packs) {
+      for (let item of packs) {
+        let dataPacks = {}
+        dataPacks.id = item.id
+        dataPacks.namePack = item.namePack
+        dataPacks.status = item.status
+        dataPacks.text = item.text
+        dataPacks.isUse = false
+        if (userPacks) {
+          for (let pack of userPacks) {
+            if (item.id===pack.chartPackId) {
+              dataPacks.isUse = true
+            }
+          }
+        }
+        data.push(dataPacks)
       }
-      
+    }
 
-    console.log(data)
     
-    return dataRooms
+    return data
     
   }
 }

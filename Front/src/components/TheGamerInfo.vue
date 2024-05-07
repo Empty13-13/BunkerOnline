@@ -150,7 +150,7 @@ const features = {
               >
                 <div class="item-gamerInfo__title">
                   {{ itemsName[index + 4][0] }}
-                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :text="itemsName[index + 4][2]" />
+                  <AppSmallInfo v-if="itemsName[index + 4].length>2" :html="itemsName[index + 4][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
                   <p class="item-gamerInfo__text">{{ data[itemsName[index + 4][1]].text }}</p>

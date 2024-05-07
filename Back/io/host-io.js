@@ -12,7 +12,10 @@ module.exports = function(io) {
   
   host.use(async (socket, next) => {
     console.log('TRYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
-    let {idRoom, isValidateId} = await ioUserService.validateToken(socket)
+    let tokenData = await ioUserService.validateToken(socket)
+    let idRoom = tokenData.idRoom
+    let isValidateId = tokenData.isValidateId
+    
     if (!isValidateId || !idRoom) {
       console.log("io.of('/host') invalid token")
       next(new Error("invalid token"))
