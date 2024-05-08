@@ -13,7 +13,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const hostId = ref(0)
   const watchersCount = ref(0)
   const players = ref([{id: 'asd'}])
-  const userId = ref(0)
+  const userId = ref(-1)
   const isHidden = ref(false)
   const isHostPlayer = ref(true)
   const gameLoadText = ref('Идет загрузка данных игры...')
@@ -110,7 +110,6 @@ export const useSelectedGame = defineStore('selectedGame', () => {
 
 export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   const selectedGame = useSelectedGame()
-  
   
   const isPlayerToo = ref(true)
   const haveAccess = computed(() => {
