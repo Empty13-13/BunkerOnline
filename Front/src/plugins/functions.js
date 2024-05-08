@@ -197,6 +197,10 @@ export function setLocalData(nameData,data) {
 }
 
 export function getCountObject(object) {
+  console.log(object,object['<target>'])
+  if(object.target) {
+    object = object.target
+  }
   let count=0
   for (let i of object) {
     count++
