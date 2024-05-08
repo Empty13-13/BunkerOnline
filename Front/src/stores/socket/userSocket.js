@@ -66,8 +66,8 @@ export const useUserSocketStore = defineStore('userSocket', () => {
         selectedGame.setInitialData(data)
         console.log('setAwaitRoomData', data)
       }
+      // hostSocket.setConnect()
       
-      hostSocket.setConnect()
       
       globalPreloader.deactivate()
     })
