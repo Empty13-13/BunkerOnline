@@ -128,13 +128,14 @@ class ioUserService {
       
       let noregUserId = await getNoregUserId(noRegToken, socket)
       if (!noregUserId) {
-        console.log('Havent noregToken')
+        console.log('Havent noregToken 2')
         //Создавай новый токен и клади его в БД
         
         noRegToken = uuid.v4()
         socket.handshake.auth.noregToken = noRegToken.toString()
         socket.emit('setNoregToken', noRegToken)
         await UserModel.NoRegUsers.create({noRegToken: noRegToken})
+        noregUserId = await getNoregUserId(noRegToken, socket)
         
         // socket.emit("setError",
         //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
