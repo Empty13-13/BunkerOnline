@@ -20,6 +20,7 @@ module.exports = function(io) {
       idRoom = tokenData.idRoom
     }
     
+    console.log('TOKEN DATA:',tokenData,socket)
     if (!isValidateId || !idRoom) {
       console.log("io.of('/host') invalid token")
       next(new Error("invalid token"))
