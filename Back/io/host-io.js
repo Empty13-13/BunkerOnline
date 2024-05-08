@@ -20,6 +20,10 @@ module.exports = function(io) {
       idRoom = tokenData.idRoom
     }
     
+    /*
+     let {isValidateId,idRoom} = await ioUserService.validateToken(socket)
+     */
+    
     console.log('TOKEN DATA:',tokenData,socket)
     if (!isValidateId || !idRoom) {
       console.log("io.of('/host') invalid token")

@@ -128,9 +128,17 @@ class ioUserService {
       
       let noregUserId = await getNoregUserId(noRegToken, socket)
       if (!noregUserId) {
-        socket.emit("setError",
-          {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
-        return null
+        console.log('Havent noregToken')
+        //Создавай новый токен и клади его в БД
+        
+        noRegToken = uuid.v4()
+        socket.handshake.auth.noregToken = noRegToken.toString()
+        socket.emit('setNoregToken', noRegToken)
+        await UserModel.NoRegUsers.create({noRegToken: noRegToken})
+        
+        // socket.emit("setError",
+        //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
+        // return null
       }
       console.log('Connected with noRegToken', noregUserId)
       isValidateId = noregUserId

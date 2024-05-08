@@ -66,6 +66,7 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
   function setConnect() {
     if (hostFunctional.haveAccess) {
       if (!hostSocket.connected) {
+        console.log('Соединяем с хостом')
         connect()
       }
     }
