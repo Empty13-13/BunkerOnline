@@ -26,7 +26,7 @@ class ioUserService {
     let hostPack = await playerDataService.hostUsePack(hostId)
     let packs = await UserModel.ChartPack.findAll({where:{id:hostPack,ageRestriction:1}})
     let result = false
-    if(packs){
+    if(packs.length>0){
       result = true
     }
     return result
