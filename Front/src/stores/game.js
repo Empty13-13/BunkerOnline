@@ -113,7 +113,7 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   
   const isPlayerToo = ref(true)
   const haveAccess = computed(() => {
-    return selectedGame.hostId===selectedGame.userId
+    return !!selectedGame.hostId && selectedGame.hostId===selectedGame.userId
   })
   
   function clearData() {
