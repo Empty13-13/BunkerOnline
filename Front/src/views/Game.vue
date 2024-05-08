@@ -20,7 +20,15 @@ import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { copyLinkToBuffer, getId, getLinkParams, getLocalData, objIsEmpty, setLocalData } from "@/plugins/functions.js";
+import {
+  copyLinkToBuffer,
+  getCountObject,
+  getId,
+  getLinkParams,
+  getLocalData,
+  objIsEmpty,
+  setLocalData
+} from "@/plugins/functions.js";
 import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
@@ -692,7 +700,7 @@ function createCustomGame() {
       <div class="listGamer__container">
         <h2 v-slide class="listGamer__title titleH2">
           Желающие попасть в бункер:
-          <span> {{selectedGameData.getAlivePlayers.length}}/{{Object.keys(selectedGameData.userData).length-1}}</span>
+          <span> {{selectedGameData.getAlivePlayers.length}}/{{getCountObject(selectedGameData.userData)}}</span>
         </h2>
         <div slidebody>
           <div class="wrapper-listGamer">

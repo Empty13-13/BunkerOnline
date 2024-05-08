@@ -195,3 +195,11 @@ export function setLocalData(nameData,data) {
     console.log(e.message)
   }
 }
+
+export function getCountObject(object) {
+  let count=0
+  for (let i of object) {
+    count++
+  }
+  return count
+}
