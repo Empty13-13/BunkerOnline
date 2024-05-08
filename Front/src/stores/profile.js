@@ -1,9 +1,10 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from "@/api.js";
 import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useAuthStore } from "@/stores/auth.js";
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 export const useMyProfileStore = defineStore('myProfile', () => {
   const token = ref(null)
@@ -12,6 +13,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   const access = ref("noreg")
   const avatarName = ref('')
   const noregToken = ref(null)
+  const basePacks = ref([])
+  const advancePacks = ref([])
+  const showLoaderForPacks = ref(false)
   const isAdmin = computed(() => {
     return access.value==='admin'
   })
@@ -19,10 +23,10 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     return access.value==='default'
   })
   const isMVP = computed(() => {
-    return access.value.toLowerCase() === 'mvp'
+    return access.value.toLowerCase()==='mvp'
   })
   const isVIP = computed(() => {
-    return access.value.toLowerCase() === 'vip'
+    return access.value.toLowerCase()==='vip'
   })
   const isReg = computed(() => {
     return access.value && access.value!=='noreg'
@@ -32,8 +36,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   })
   const isHigherThanDefault = computed(() => {
     return access.value==='vip' || access.value==='mvp' || access.value==='admin'
-  }) 
+  })
   const actionsProfile = useActionsProfileStore()
+  const globalPopup = useGlobalPopupStore()
   
   async function setMyProfileInfo() {
     const preloader = usePreloaderStore()
@@ -50,7 +55,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         
         const authStore = useAuthStore()
         let noregTokenLocal = authStore.getLocalData('noregToken')
-        if(noregToken) {
+        if (noregToken) {
           noregToken.value = noregTokenLocal
         }
       } catch(e) {
@@ -66,11 +71,78 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     
     preloader.deactivate()
   }
+  async function setMyPacks() {
+    try {
+      showLoaderForPacks.value = true
+      let packs = await axiosInstance.post(`/allPacks`)
+      if (packs && packs.data && packs.data.length) {
+        basePacks.value = []
+        advancePacks.value = []
+        
+        for (let i = 0; i<packs.data.length; i++) {
+          let pack = packs.data[i]
+          // if(!isHigherThanDefault.value) {
+          //   pack.disabled=true
+          // }
+          if(!!pack.status) {
+            advancePacks.value.push(pack)
+          } else {
+            basePacks.value.push(pack)
+          }
+        }
+        
+        console.log(basePacks.value)
+        console.log(advancePacks.value)
+      }
+    } catch(e) {
+      console.log(e.message)
+    } finally {
+      showLoaderForPacks.value = false
+    }
+  }
+  
+  async function changePacks(pack) {
+    if(pack.status===0 && !pack.isUse && basePacks.value.filter(item => item.isUse).length<1) {
+      pack.isUse=true
+      globalPopup.activate('Информация','У вас должен быть включен хотя бы один базовый пак')
+      return
+    }
+    if(isDefault.value) {
+      pack.isUse=!pack.isUse
+      globalPopup.activate('Информация','Чтобы изменять паки, вам нужно пробрести подписку','gold')
+      return
+    } else if(isVIP.value) {
+      if(pack.status===0) {
+        basePacks.value.forEach(item => item.isUse=false)
+        pack.isUse=true
+      } else {
+        if(pack.isUse) {
+          advancePacks.value.forEach(item => item.isUse = false)
+          pack.isUse=true
+        }
+      }
+    }
+    
+    
+    try {
+      showLoaderForPacks.value=true
+      await axiosInstance.post('/changePack',{id:pack.id,isUse:pack.isUse})
+      if(pack.isUse && pack.ageRestriction) {
+        globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете что вы достигли совершеннолетнего возраста','red')
+      }
+    } catch(e) {
+      await setMyPacks()
+      console.log(e)
+      globalPopup.activate('Ошибка изменения паков',e.response.data.message)
+    } finally {
+      showLoaderForPacks.value=false
+    }
+  }
   
   function setNoregToken(token) {
     const authStore = useAuthStore()
     noregToken.value = token
-    authStore.setLocalData('noregToken',token)
+    authStore.setLocalData('noregToken', token)
   }
   
   function clearUserInfo() {
@@ -79,6 +151,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     nickname.value = ''
     access.value = 'noreg'
     avatarName.value = ''
+    basePacks.value = []
+    advancePacks.value = []
     
     localStorage.removeItem('userTokens')
     localStorage.removeItem('userId')
@@ -88,6 +162,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     setMyProfileInfo,
     clearUserInfo,
     setNoregToken,
+    setMyPacks,
+    changePacks,
+    showLoaderForPacks,
     token,
     id,
     nickname,
@@ -96,6 +173,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     isMVP,
     isDefault,
     avatarName,
+    basePacks,
+    advancePacks,
     isVIP,
     isReg,
     noregToken,

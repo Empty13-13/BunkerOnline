@@ -10,7 +10,6 @@ const confirmBlock = ref(null)
 
 
 onMounted(() => {
-  console.log(confirmBlock.value)
   confirmStore.width = confirmBlock.value.clientWidth
 })
 

@@ -31,7 +31,7 @@ class UserController {
     try {
       
       const errors = validationResult(req)
-      console.log(req)
+     // console.log(req)
       if (!errors.isEmpty()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'nickname', type: 'Error validate'}]))
       }
@@ -51,11 +51,11 @@ class UserController {
   
   async logout(req, res, next) {
     try {
-      console.log(req)
+    //  console.log(req)
       const {refreshToken} = req.cookies
       const token = await userService.logout(refreshToken)
       res.clearCookie('refreshToken', {httpOnly: true, sameSite: 'Lax'})
-      console.log(token)
+  //    console.log(token)
       return res.json(token)
     } catch(e) {
       next(e)
@@ -70,18 +70,18 @@ class UserController {
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
-      console.log(userData)
+    //  console.log(userData)
       res.redirect(redirect_url)
       
     } catch(e) {
       next(e)
     }
   }
-
+  
   async test(req, res, next) {
     // let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
-    let systemData = await playerDataService.getSystemSettingsData()
-    const hostPack = await playerDataService.hostUsePack(1)
+    await playerDataService.setStatisticGame('NDNU3')
+   // const hostPack = await playerDataService.hostUsePack(1)
 //     const {
 //       hostBaseDataPacksData,
 //       hostAdvanceDataPacksData,
@@ -93,19 +93,19 @@ class UserController {
 //       players:{}
 //     }
 //     data.players = Object.assign(data.players,result.result)result
-    const {hostBaseDataPacksBunker, hostAdvanceDataPacksBunker} = await playerDataService.dataForBunker(hostPack,
-      systemData)
-    const result = await playerDataService.createDataBunker([2, 3, 5, 6, 6, 7], systemData, hostBaseDataPacksBunker,
-      hostAdvanceDataPacksBunker)
-  //  const le = await playerDataService.getDataBunkerFromId(result)
-   console.log(result)
-   res.json(result)
+    // const {hostBaseDataPacksBunker, hostAdvanceDataPacksBunker} = await playerDataService.dataForBunker(hostPack,
+    //    systemData)
+    //   const result = await playerDataService.createDataBunker([2, 3, 5, 6, 6, 7], systemData, hostBaseDataPacksBunker,
+    //    hostAdvanceDataPacksBunker)
+    //  const le = await playerDataService.getDataBunkerFromId(result)
+    //  console.log(result)
+    // res.json(result)
   }
   
   async refresh(req, res, next) {
     try {
       const {refreshToken} = req.cookies
-      console.log(req.cookies)
+    //  console.log(req.cookies)
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
@@ -231,7 +231,7 @@ class UserController {
       
       // console.log(file)
       const userId = req.params.id
-      console.log(userId)
+    //  console.log(userId)
       const user = await userService.uploadAvatar(file, userId)
       return res.json({link: user})
       
@@ -329,7 +329,7 @@ class UserController {
       if (result.type.toString()!=="password") {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
-      console.log(userId, result.userId)
+    //  console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
@@ -359,7 +359,7 @@ class UserController {
       if (result.type.toString()!=="email") {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
-      console.log(userId, result.userId)
+     // console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
@@ -386,7 +386,7 @@ class UserController {
       
       const result = await userService.reset(user.email, type)
       
-      console.log(result)
+   //   console.log(result)
       const status = {status: 200, statusText: 'OK'}
       res.json(status)
     } catch(e) {
@@ -400,14 +400,14 @@ class UserController {
     
     try {
       const roomLink = await userService.gen_roomLink()
-      console.log(roomLink)
+     // console.log(roomLink)
       return res.json({link: roomLink})
     } catch(e) {
       next(e)
     }
     
   }
-
+  
   async userGames(req, res, next) {
     try {
       let token = null
@@ -428,38 +428,59 @@ class UserController {
   }
   
   async allUsersGames(req, res, next) {
-
-
+    
+    
     try {
-
+      
       const data = await userService.allUsersGames()
       //console.log(data)
       res.json(data)
     } catch(e) {
       next(e)
     }
-
+    
   }
-
+  
   async allPacks(req, res, next) {
-
-
-      try {
-        let token = null
-              const accessToken = req.headers.authorization
-        console.log(accessToken)
-              if (accessToken && accessToken.toString().includes('Bearer ')) {
-                token = accessToken.split('Bearer ')[1]
-              }
-
-        const data = await userService.allPacks(token)
-        //console.log(data)
-        res.json(data)
-      } catch(e) {
-        next(e)
+    
+    
+    try {
+      let token = null
+      const accessToken = req.headers.authorization
+    //  console.log(accessToken)
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
       }
-
+      
+      const data = await userService.allPacks(token)
+      //console.log(data)
+      res.json(data)
+    } catch(e) {
+      next(e)
     }
+    
+  }
+  
+  async changePack(req, res, next) {
+    
+    
+    try {
+      let {id, isUse} = req.body
+      let token = null
+      const accessToken = req.headers.authorization
+  //    console.log(accessToken)
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
+      }
+      
+      const data = await userService.changePack(token, id, isUse)
+      //console.log(data)
+      res.json(data)
+    } catch(e) {
+      next(e)
+    }
+    
+  }
   
   
 }

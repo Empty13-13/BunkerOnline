@@ -11,14 +11,29 @@ const fs = require('fs')
 require('dotenv').config()
 const path = require('path')
 const {Op} = require('sequelize')
+const playerDataService = require('../service/playerData-service')
 
 /**
  * @type {number}
  */
-const timeToCloseRoom = 6*60 * 60 * 1000
+const timeToCloseRoom = 6 * 60 * 60 * 1000
 const timerList = {}//{'B725D':setTimeout(),'A123D':setTimeout()}
 
 class ioUserService {
+  
+  async isAgeRestriction(hostId) {
+    await playerDataService.getSystemSettingsData()
+    let hostPack = await playerDataService.hostUsePack(hostId)
+    let packs = await UserModel.ChartPack.findAll({where:{id:hostPack,ageRestriction:1}})
+    let result = false
+    if(packs){
+      result = true
+    }
+    return result
+    
+  }
+  
+  
   async validateToken(socket) {
     try {
       let token = socket.handshake.auth.token
@@ -42,7 +57,7 @@ class ioUserService {
         await UserModel.NoRegUsers.create({noRegToken: noRegToken})
       }
       
-      console.log("TOKEN:::::", token)
+    //  console.log("TOKEN:::::", token)
       if (token) {
         console.log('Join to Token trigger')
         const userData = tokenService.validateAccessToken(token)
@@ -109,7 +124,7 @@ class ioUserService {
         return {idRoom, isValidateId}
       }
       
-      console.log('LET SEE noregToken userID')
+     // console.log('LET SEE noregToken userID')
       
       let noregUserId = await getNoregUserId(noRegToken, socket)
       if (!noregUserId) {
@@ -131,13 +146,14 @@ class ioUserService {
     if (!gameRoom) {
       socket.emit("setError",
         {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-      console.log('inValid idRoom')
+     // console.log('inValid idRoom')
       return null
     }
     let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
-    let hostData = await UserModel.RoomSession.findOne({where:{gameRoomId: gameRoom.id,userId:gameRoom.dataValues.hostId}})
+    let hostData = await UserModel.RoomSession.findOne(
+      {where: {gameRoomId: gameRoom.id, userId: gameRoom.dataValues.hostId}})
     let isHostPlayer = !!hostData.isPlayer
-
+    let isAgeRestriction = await this.isAgeRestriction(gameRoom.dataValues.hostId)
     let isStarted = !!gameRoom.isStarted
     let isPlayingBefore = !!userPlaying
     let dataUsersPlaying = await this.getPlayingUsers(idRoom)
@@ -150,13 +166,14 @@ class ioUserService {
       players: dataUsersPlaying,
       userId: isValidateId,
       isHidden: !!gameRoom.isHidden,
-      isHostPlayer: isHostPlayer
+      isHostPlayer: isHostPlayer,
+      isAgeRestriction:isAgeRestriction
     }
   }
   
   async getPlayingUsers(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id,isPlayer:1}})
+    let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
     let data = []
     for (const user of playersInRoom) {
       let userData = await this.getIdAndNicknameFromUser(user.userId)
@@ -164,7 +181,7 @@ class ioUserService {
         data.push(userData)
       }
     }
-    console.log(data)
+   // console.log(data)
     return data
   }
   
@@ -197,7 +214,7 @@ class ioUserService {
       clearTimeout(timerList[idRoom])
       delete timerList[idRoom]
     }
-    console.log('TIMER LIST JOIN',timerList)
+    console.log('TIMER LIST JOIN', timerList)
   }
   
   disconnectAndSetTimer(io, socket, idRoom) {
@@ -207,13 +224,19 @@ class ioUserService {
         await this.deleteRoomFromDB(idRoom)
         console.log('DELETE ROOMS TIMER')
       }, timeToCloseRoom)
-      console.log('TIMER LISt DISCONNECT ',timerList)
+      console.log('TIMER LISt DISCONNECT ', timerList)
     }
   }
   
   async deleteRoomFromDB(idRoom) {
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    
+    if (gameRoom.isStarted) {
+      await playerDataService.setStatisticGame(idRoom)
+    }
     await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
     await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
+    
   }
   
 }

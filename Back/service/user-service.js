@@ -103,7 +103,7 @@ class UserService {
     if (isBlock) {
       throw ApiError.BadRerquest('Пользователь заблокирован', [{input: 'nickname', type: 'user Blocked'}])
     }
-    console.log(user)
+    // console.log(user)
     const isPassEquals = await bcrypt.compare(password, user.password)
     if (!isPassEquals) {
       throw ApiError.BadRerquest('Неверный пароль', [{input: 'password', type: 'Wrong password'}])
@@ -154,12 +154,12 @@ class UserService {
     let isUser = false
     if (refreshToken) {
       const tokenData = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
-      console.log(refreshToken)
+      //  console.log(refreshToken)
       if (!tokenData) {
         throw ApiError.UnauthorizedError()
       }
       const thisUser = await UserModel.User.findOne({where: {id: tokenData.userId}})
-      console.log(thisUser.id, userId)
+      //   console.log(thisUser.id, userId)
       if (thisUser.id.toString()===userId.toString()) {
         isUser = true
       }
@@ -190,7 +190,7 @@ class UserService {
       isBan = true
     }
     users.dataValues.isBanned = isBan
-    console.log(isBdayHidden, isAdmin, isUser)
+    //   console.log(isBdayHidden, isAdmin, isUser)
     if (isBdayHidden && !isAdmin && !isUser) {
       delete users.dataValues.birthday
     }
@@ -220,17 +220,17 @@ class UserService {
     // res.send('Logged In: ' + JSON.stringify(resp.data));
     
     
-    console.log()
+    //  console.log()
     const access_token = resp.data['access_token']
     const token_type = resp.data['token_type']
-    console.log(access_token, token_type)
+    //  console.log(access_token, token_type)
     const user = await axios.get('https://discord.com/api/v10/users/@me', {
       headers:
         {
           'Authorization': `Bearer ${access_token}`,
         }
     })
-    console.log(user.data)
+    // console.log(user.data)
     const userId = user.data['id']
     let nickname = user.data['username']
     const email = user.data['email']
@@ -386,7 +386,7 @@ class UserService {
   async uploadAvatar(file, userId) {
     const extension = (path.extname(file['name'])).toLowerCase()
     //const type = file['name'].replace('image/','')
-    console.log(extension)
+    //  console.log(extension)
     const user = await UserModel.User.findOne({where: {id: userId}})
     const avatarName = uuid.v4() + `${extension}`
     
@@ -395,7 +395,7 @@ class UserService {
     }
     
     if (user.avatar) {
-      console.log("LOL")
+      //  console.log("LOL")
       try {
         fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
       } catch(e) {
@@ -406,10 +406,10 @@ class UserService {
     
     
     file.mv(process.env.STATIC_PATH + "\\" + avatarName)
-    console.log(user.avatar)
+    //  console.log(user.avatar)
     user.avatar = avatarName
     await user.save()
-    console.log(user.avatar)
+    //  console.log(user.avatar)
     return avatarName
   }
   
@@ -423,7 +423,7 @@ class UserService {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
     }
     if (user.avatar) {
-      console.log("LOL")
+      //   console.log("LOL")
       try {
         fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
       } catch(e) {
@@ -439,7 +439,7 @@ class UserService {
     if (objIsEmpty(data)) {
       throw ApiError.BadRerquest('Data missing', [])
     }
-    console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
+    //  console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
     
     // const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
     // if (!id) {
@@ -459,13 +459,13 @@ class UserService {
         user[key] = data[key]
       }
       else {
-        console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
+        // console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
       }
       
       
     }
     const newUser = await user.save()
-    console.log(newUser.nickname)
+    //  console.log(newUser.nickname)
     return user
     
     
@@ -476,7 +476,7 @@ class UserService {
     if (objIsEmpty(data)) {
       throw ApiError.BadRerquest('Data missing', [])
     }
-    console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
+    //  console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
     
     // const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
     // if (!id) {
@@ -503,13 +503,13 @@ class UserService {
         user[key] = data[key]
       }
       else {
-        console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
+        //   console.log('Попытка смена недопустимого параметра', 'Параметр:', key, 'Значение:', data[key])
       }
       
       
     }
     const newUser = await user.save()
-    console.log(newUser.nickname)
+    //  console.log(newUser.nickname)
     
     const isChange = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
     if (isChange) {
@@ -525,7 +525,7 @@ class UserService {
   async resetProfile(refreshToken) {
     if (refreshToken) {
       const tokenData = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
-      console.log(refreshToken)
+      //    console.log(refreshToken)
       if (!tokenData) {
         throw ApiError.UnauthorizedError()
       }
@@ -549,12 +549,12 @@ class UserService {
     }
     const resetLink = uuid.v4()
     const tokenLinkExp = Date.now() + 60 * 60000
-    console.log(new Date())
+    //  console.log(new Date())
     
-    console.log("qweqweqwe", tokenLinkExp)
+    //  console.log("qweqweqwe", tokenLinkExp)
     const alreadyReset = await UserModel.ResetPassword.findOne(
       {where: {userId: candidate.id, tokenLinkExp: {[Op.gt]: Date.now()}, isChange: 0, type: type}})
-    console.log(alreadyReset)
+    //  console.log(alreadyReset)
     if (alreadyReset) {
       if (alreadyReset.type.toString()==='password') {
         throw ApiError.BadRerquest(
@@ -702,6 +702,114 @@ class UserService {
     
   }
   
+  async changePack(token, idPack, isUse) {
+    
+    const userData = tokenService.validateAccessToken(token)
+    if (!userData) {
+      throw ApiError.UnauthorizedError()
+    }
+    let isSystemPack = false
+    let systemData = {}
+    let systemSettings = await UserModel.SystemSettings.findAll({where: {nameSetting: ['basePack', 'advancePack']}})
+    for (let item of systemSettings) {
+      systemData[item.nameSetting] = item.value
+      if (item.value===idPack) {
+        isSystemPack = true
+      }
+    }
+    let user = await UserModel.User.findOne({where: {id: userData.id}})
+    let userUsePack = await UserModel.UserUsePack.findAll({where: {userId: user.id}})
+    let userPacks = []
+    for (let item of userUsePack) {
+      userPacks.push(item.chartPackId)
+    }
+    const packs = await UserModel.ChartPack.findAll({
+      attributes: ['id', 'namePack', 'status', 'text'],
+      where: {
+        isHidden: 0, id: {
+          [Op.and]: [
+            {[Op.ne]: systemData.basePack},
+            {[Op.ne]: systemData.advancePack},
+            userPacks
+          ]
+        }
+      }
+    })
+    
+    
+    let basePack = []
+    let advancePack = []
+    
+    for (let pack of packs) {
+      if (!!pack.status) {
+        advancePack.push(pack.id)
+      }
+      else {
+        basePack.push(pack.id)
+      }
+    }
+    let isUseBaseSystemPack = false
+    let isUseAdvanceSystemPack = false
+    
+    if (user.isUsedSystemBasePack) {
+      basePack.push(systemData.basePack)
+      isUseBaseSystemPack = true
+    }
+    if (user.isUsedSystemAdvancePack) {
+      advancePack.push(systemData.advancePack)
+      isUseAdvanceSystemPack = true
+    }
+    let thisPack = await UserModel.ChartPack.findOne({where: {id: idPack}})
+    
+    console.log(advancePack, basePack)
+    if (isUse) {
+      if (isSystemPack && thisPack.status===1) {
+        user.isUsedSystemAdvancePack = 1
+        //await user.save()
+        console.log('LOOOL')
+      }
+      else if (isSystemPack && thisPack.status===0) {
+        user.isUsedSystemBasePack = 1
+        //await user.save()
+      }
+      else {
+        await UserModel.UserUsePack.create({userId: user.id, chartPackId: idPack})
+      }
+      if (user.accsessLevel.toString()==='vip') {
+        if (isUseBaseSystemPack && thisPack.status===0) {
+          user.isUsedSystemBasePack = 0
+          // await user.save()
+        }
+        else if (isUseAdvanceSystemPack && thisPack.status===1) {
+          user.isUsedSystemAdvancePack = 0
+          //  await user.save()
+        }
+        else if (thisPack.status===0) {
+          await UserModel.UserUsePack.destroy({where: {userId: user.id, chartPackId: basePack[0]}})
+        }
+        else if (thisPack.status===1 && advancePack.length!==0) {
+          await UserModel.UserUsePack.destroy({where: {userId: user.id, chartPackId: advancePack[0]}})
+        }
+      }
+      await user.save()
+    }
+    else {
+      if (thisPack.status===0 && basePack.length<=1) {
+        throw ApiError.BadRerquest(`У вас должен быть включен хотя бы один базовый пак`)
+      }
+      if (isSystemPack && thisPack.status===1) {
+        user.isUsedSystemAdvancePack = 0
+      }
+      else if (isSystemPack && thisPack.status===0) {
+        user.isUsedSystemBasePack = 0
+      }
+      else {
+        await UserModel.UserUsePack.destroy({where: {userId: user.id, chartPackId: thisPack.id}})
+      }
+      await user.save()
+    }
+  }
+  
   async allPacks(token) {
     
     const userData = tokenService.validateAccessToken(token)
@@ -715,30 +823,31 @@ class UserService {
       
     }
     const packs = await UserModel.ChartPack.findAll({
-      attributes: ['id', 'namePack', 'status', 'text'],
-      where: {isHidden: 1, id:{
-        [Op.and]: [
-          {[Op.ne]: systemData.basePack},
-          {[Op.ne]: systemData.advancePack}
-        ]
-      }}
+      attributes: ['id','ageRestriction', 'namePack', 'status', 'text'],
+      where: {
+        isHidden: 0, id: {
+          [Op.and]: [
+            {[Op.ne]: systemData.basePack},
+            {[Op.ne]: systemData.advancePack}
+          ]
+        }
+      }
     })
-
-    console.log('PACKS',packs)
+    
+    //   console.log('PACKS',packs)
     if (!packs) {
       return null
     }
     let alivePacks = []
     for (let item of packs) {
-
       alivePacks.push(item.id)
-
     }
     const userPacks = await UserModel.UserUsePack.findAll({where: {userId: userData.id, chartPackId: alivePacks}})
     let data = []
     let user = await UserModel.User.findOne({where: {id: userData.id}})
-    console.log(userPacks)
-    const systemPacks = await UserModel.ChartPack.findAll({where: {id: [systemData.basePack, systemData.advancePack]}})
+    //   console.log(userPacks)
+    const systemPacks = await UserModel.ChartPack.findAll(
+      {where: {id: [systemData.basePack, systemData.advancePack]}})
     for (let item of systemPacks) {
       let dataPacks = {}
       dataPacks.id = item.id
@@ -746,12 +855,14 @@ class UserService {
       dataPacks.status = item.status
       dataPacks.text = item.text
       dataPacks.isUse = false
+      
       if (item.id===systemData.basePack && user.isUsedSystemBasePack) {
         dataPacks.isUse = true
       }
       else if (item.id===systemData.advancePack && user.isUsedSystemAdvancePack) {
         dataPacks.isUse = true
       }
+      dataPacks.systemPack = true
       data.push(dataPacks)
     }
     if (packs) {
@@ -762,6 +873,10 @@ class UserService {
         dataPacks.status = item.status
         dataPacks.text = item.text
         dataPacks.isUse = false
+        dataPacks.systemPack = false
+        if (item.ageRestriction===1) {
+          dataPacks.ageRestriction = true
+        }
         if (userPacks) {
           for (let pack of userPacks) {
             if (item.id===pack.chartPackId) {
@@ -772,14 +887,16 @@ class UserService {
         data.push(dataPacks)
       }
     }
-
+    
     
     return data
     
   }
 }
 
-async function getNickName(data) {
+async function
+
+getNickName(data) {
   let dataRooms = []
   //console.log('123123123',data)
   for (const user of data) {
@@ -796,7 +913,9 @@ async function getNickName(data) {
   return dataRooms
 }
 
-async function getGamesData(userId, dataRooms) {
+async function
+
+getGamesData(userId, dataRooms) {
   let data = []
   const userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
   if (userJoinGame) {
@@ -826,12 +945,16 @@ async function getGamesData(userId, dataRooms) {
   
 }
 
-function emailTest(value) {
-  console.log(value)
+function
+
+emailTest(value) {
+//  console.log(value)
   return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(value);
 }
 
-function gen_password(len) {
+function
+
+gen_password(len) {
   var password = "";
   var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!№;%:?*()_+=";
   for (var i = 0; i<len; i++) {
@@ -841,7 +964,9 @@ function gen_password(len) {
 }
 
 
-function objIsEmpty(obj) {
+function
+
+objIsEmpty(obj) {
   for (let key in obj) {
     return false;
   }
@@ -849,4 +974,5 @@ function objIsEmpty(obj) {
 }
 
 
-module.exports = new UserService()
+module
+  .exports = new UserService()

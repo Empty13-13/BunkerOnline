@@ -13,8 +13,12 @@ module.exports = function(io) {
   host.use(async (socket, next) => {
     console.log('TRYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
     let tokenData = await ioUserService.validateToken(socket)
-    let idRoom = tokenData.idRoom
-    let isValidateId = tokenData.isValidateId
+    let isValidateId = null
+    let idRoom = null
+    if (tokenData) {
+      isValidateId = tokenData.isValidateId
+      idRoom = tokenData.idRoom
+    }
     
     if (!isValidateId || !idRoom) {
       console.log("io.of('/host') invalid token")
@@ -50,15 +54,11 @@ module.exports = function(io) {
     let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
     console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
     socket.on('closeRoom', async () => {
-      
       await ioUserService.deleteRoomFromDB(idRoom)
       
       console.log('RoomClose делаем')
-      console.log(io.of('/').in(idRoom.toString()))
-      console.log(io.sockets.adapter.rooms)
       io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
       io.in(idRoom).disconnectSockets(true);
-      console.log(io.sockets.adapter.rooms)
     })
     socket.on('kickOutUser', async (Id) => {
       console.log(`id`, Id, `userId`, userId)
@@ -256,6 +256,11 @@ module.exports = function(io) {
 
           //  console.log('Проверка на ХУЙ пройдена успешно')
           io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+          if(await ioUserService.isAgeRestriction(userId)){
+                  let game = await UserModel.GameRooms.findOne({where:{idRoom: idRoom}})
+                  game.isHidden = 1
+                  await game.save()
+                }
 
           const data = await playerDataService.createDataGame(idRoom, playersData)
           console.log(data)

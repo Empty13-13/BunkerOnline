@@ -180,17 +180,18 @@ onBeforeMount(async () => {
 })
 onMounted(async () => {
   await updateProfileInfo()
+  await myProfile.setMyPacks()
   fieldsInit()
 
   globalPreloader.deactivate()
 })
 onBeforeUpdate(async () => {
-  if (oldId!==+getId.value) {
+  if (oldId!== +getId.value) {
     destroyAll()
   }
 })
 onUpdated(async () => {
-  if (oldId!==+getId.value) {
+  if (oldId!== +getId.value) {
     globalPreloader.activate()
     oldId = +getId.value
     await updateProfileInfo()
@@ -399,40 +400,53 @@ function changeEmailHandler(e) {
               </div>
             </div>
             <div v-if="isMyProfile" class="profileBlock__packs packs-profileBlock">
-              <div v-if="myProfile.isHigherThanDefault" class="packs-profileBlock__block linear-border white">
-                <div class="packs-profileBlock__column">
-                  <div class="packs-profileBlock__title">Базовый пак</div>
-                  <ul class="packs-profileBlock__list">
-                    <li class="packs-profileBlock__item"
-                        v-for="item in data.packs.basic"
-                        :key="item.id"
-                    >
-                      <div class="checkbox">
-                        <input :id="'basic'+item.id" class="checkbox__input" name="basic" type="checkbox"
-                               :value="item.id">
-                        <label :for="'basic'+item.id" class="checkbox__label">
-                          <span class="checkbox__text">{{ item.title }}</span>
-                        </label>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-                <div class="packs-profileBlock__column">
-                  <div class="packs-profileBlock__title">Расширенный пак</div>
-                  <ul class="packs-profileBlock__list">
-                    <li class="packs-profileBlock__item"
-                        v-for="item in data.packs.advanced"
-                        :key="item.id"
-                    >
-                      <div class="checkbox">
-                        <input :id="'advanced'+item.id" class="checkbox__input" name="advanced" type="checkbox"
-                               :value="item.id">
-                        <label :for="'advanced'+item.id" class="checkbox__label">
-                          <span class="checkbox__text">{{ item.title }}</span>
-                        </label>
-                      </div>
-                    </li>
-                  </ul>
+              <div class="packs-profileBlock__block linear-border white">
+                <div class="packs-profileBlock__block-body">
+                  <div class="packs-profileBlock__column">
+                    <div class="packs-profileBlock__title">Базовый пак</div>
+                    <AppLoader v-if="myProfile.showLoaderForPacks" />
+                    <ul v-else class="packs-profileBlock__list">
+                      <li class="packs-profileBlock__item"
+                          v-for="pack in myProfile.basePacks"
+                          :key="pack.id"
+                      >
+                        <div class="checkbox" :title="pack.text">
+                          <input :id="'basic'+pack.id" class="checkbox__input" name="basic" type="checkbox"
+                                 :value="pack.id"
+                                 v-model="pack.isUse"
+                                 :disabled="pack.disabled"
+                                 @change="myProfile.changePacks(pack)"
+                          >
+                          <label :for="'basic'+pack.id" class="checkbox__label" :class="pack.systemPack?'_system':''">
+                            <span class="checkbox__text">{{ pack.namePack }}</span>
+                          </label>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="packs-profileBlock__column">
+                    <div class="packs-profileBlock__title">Расширенный пак</div>
+                    <AppLoader v-if="myProfile.showLoaderForPacks" />
+                    <ul v-else class="packs-profileBlock__list">
+                      <li class="packs-profileBlock__item"
+                          v-for="(pack,index) in myProfile.advancePacks"
+                          :key="pack.id"
+                      >
+                        <div class="checkbox" :title="pack.text">
+                          <input :id="'advanced'+pack.id" class="checkbox__input" name="advanced" type="checkbox"
+                                 :value="pack.id"
+                                 v-model="pack.isUse"
+                                 :disabled="pack.disabled"
+                                 @change="myProfile.changePacks(pack)"
+                          >
+                          <label :for="'advanced'+pack.id" class="checkbox__label"
+                                 :class="pack.systemPack?'_system':''">
+                            <span class="checkbox__text">{{ pack.namePack }}</span>
+                          </label>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -856,17 +870,28 @@ function changeEmailHandler(e) {
 
   &__block {
     padding: 30px 35px;
-    display: flex;
-    gap: 55px;
-
     @media (max-width: $mobile) {
-      justify-content: space-around;
       padding: 28px 32px;
     }
 
     @media (max-width: $mobile) {
-      gap: 20px;
       padding: 27px 20px;
+    }
+  }
+
+  &__block-body {
+    display: flex;
+    gap: 55px;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    @media (max-width: $mobile) {
+      justify-content: space-around;
+    }
+
+    @media (max-width: $mobile) {
+      gap: 20px;
     }
   }
 
@@ -893,6 +918,22 @@ function changeEmailHandler(e) {
       font-size: 9px;
       font-weight: 600;
       margin-left: 8px;
+    }
+
+    label._system {
+      @extend %goldTextColor;
+    }
+
+    input:disabled + label {
+      &::before {
+        background: rgba(28, 27, 27, 0.28) !important;
+      }
+    }
+
+    input:disabled:checked + label {
+      &::before {
+        background: url("/img/icons/check.png") 50%/50% no-repeat, linear-gradient(90.00deg, rgb(110, 93, 41), rgb(65, 31, 6) 100%) !important;
+      }
     }
   }
 }

@@ -7,6 +7,7 @@ const bodys = require('express-validator')
 const authMiddleware = require('../middlewares/auth-meddleware')
 const adminMiddleware = require('../middlewares/admin-middleware')
 const vipMvpAdminMiddleware = require('../middlewares/vipMvpAdmin-middleware')
+const priorityUserMiddleware = require('../middlewares/priorityUser-middleware')
 const updateUserMiddleware = require('../middlewares/updateUser-middleware')
 const path = require('path')
 const {rateLimit} = require('express-rate-limit')
@@ -41,6 +42,21 @@ const limiter = rateLimit({
       }
       
       throw ApiError.BadRerquest(`Привышен лимит запросов`, [{input: 'login', type: 'Rate limited'}])
+    } catch(e) {
+      console.log(e)
+    }
+  },
+  legacyHeaders: false
+})
+
+const limiterPack = rateLimit({
+  windowMs: 1 * 30 * 1000,
+  limit: 6,
+  keyGenerator: (req, res) => req.body['id'],
+  message: async (req, res) => {
+    try {
+
+      throw ApiError.BadRerquest(`Привышен лимит запросов`, [{input: 'id', type: 'Rate limited'}])
     } catch(e) {
       console.log(e)
     }
@@ -87,6 +103,7 @@ router.post('/generateRoomId', userController.generateRoomId);
 router.post('/userGames', userController.userGames);
 router.post('/allGames', userController.allUsersGames);
 router.post('/allPacks', userController.allPacks);
+router.post('/changePack',priorityUserMiddleware('default'),limiterPack, userController.changePack);
 router.get('/test', userController.test);
 
 

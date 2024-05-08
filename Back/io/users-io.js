@@ -24,7 +24,7 @@ module.exports = function(io) {
         {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
       return
     }
-   
+
     socket.join(`user:${isValidateId}`)
     
     
@@ -67,8 +67,8 @@ module.exports = function(io) {
       }
       
       if (GameData.isStarted) {
-         const data = await playerDataService.joinGameData(idRoom, isValidateId)
-         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',data)
+       
+        // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',data)
         
         /*
          Если игра началась, то в любом случае подключаем пользователя. Либо как игрока, если он
@@ -83,6 +83,7 @@ module.exports = function(io) {
         ioUserService.joinRoomAndWatchTimer(socket, idRoom)
         
         if (GameData.isPlayingBefore) {
+          let data = await playerDataService.joinGameData(idRoom, isValidateId)
           socket.emit('updateInitialInfo')
           socket.emit('startedGame')
           socket.emit('setAllGameData', data)
@@ -94,6 +95,7 @@ module.exports = function(io) {
             io.in(socket.id).disconnectSockets(true);
             return
           }
+          let data = await playerDataService.joinGameData(idRoom, isValidateId, true)
           socket.join(`watchers:${idRoom}`)
           socket.emit('sendMessage',
             //`Игра уже началась. На данный момент вы являетесь наблюдателем`
@@ -104,7 +106,7 @@ module.exports = function(io) {
           socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
           // delete GameData.hostId
           socket.emit('setAwaitRoomData', GameData)
-          socket.emit('setAllGameData')
+          socket.emit('setAllGameData', data)
         }
       }
       else {
@@ -288,8 +290,8 @@ module.exports = function(io) {
  }
  sex += sex?maleSexText[0]:femaleSexText[0] + ' ' + `${age} ${getAgeText(age)} ` + sex?maleSexText[1]:femaleSexText[1]
  if(!((childFreeCount+1)/users.length*100>25) && getRandomInt(0,100)<=25){
-    sex+=' | чайлдфри'
-    childFreeCount+=1
+ sex+=' | чайлдфри'
+ childFreeCount+=1
  }
  
  body = getRandomData(hostBaseDataPacks,hostAdvanceDataPacks,systemDataPacks,'body')
@@ -313,66 +315,66 @@ module.exports = function(io) {
  
  //После того как всё создал, нужно всё поместить в результат следующего формата:
  {
-  bunker:{bunkerSize:'200кв.м',maxSurvivor:'1 год',...},
-  players:{
-    //Данные для пользователя, который запрашивает их
-    8:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:false},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:false},...}
-    
-    //Данные других пользователей (ещё не открытые характеристики просто не отправляешь здесь}
-    -12:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:true},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:true},...}
-  }
+ bunker:{bunkerSize:'200кв.м',maxSurvivor:'1 год',...},
+ players:{
+ //Данные для пользователя, который запрашивает их
+ 8:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:false},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:false},...}
+
+ //Данные других пользователей (ещё не открытые характеристики просто не отправляешь здесь}
+ -12:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:true},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:true},...}
+ }
  }
  
-}
+ }
 
-//////////////////////////////////////
-//
-function getRandomData(pack1,priorityPack1,priorityPack2,name) {
-  let resultText = ''
-  if(name==='spec1' || name==='spec2') {
-    name = 'card'
-  }
-  while(!resultText) {
-    let usedPack = getRandomPack(pack1,priorityPack1,priorityPack2)
-    if(name==='profession') {
-      Проверяем не пустой ли пункт с профессиями у usedPack.professions
-      Если есть, тогда записывай в результат и удаляй этот пункт откуда взял, если нет то просто снова делаем цикл
-    } else {
-      if(usedPack.playerData[name].length) {
-        let nameArray = usedPack.playerData.filter(item => item.name===name)
-        let index=getRandomInt(0,nameArray.length-1)
-        resultText = nameArray[index]
-        index = usedPack.playerData.indexOf(nameArray[index])
-        
-        usedPack.playerData[name].splice(index,1) //Удаляем элемент который взяли (надо загуглить как правильно удалить)
-      }
-    }
-  }
-  
-  //Ниже идут доп проверки для name
-  switch(name){
-    case 'body':
-      resultText+=` (Рост: ${getRandomInt(minHeight,maxHeight)} см.)`
-      break;
-    case 'health':
-      const diseaseLevels = ['Легкая степень','Средняя степень','Тяжелая степень','Критическая степень']
-      resultText += ` ${diseaseLevels[getRandomInt(0,diseaseLevels.length-1)]}`
-      break;
-    case 'hobby':
-      const hobbyLevels = ['Дилетант','Новичок','Любитель','Продвинутый','Мастер (гуру)']
-      resultText += ` ${hobbyLevels[getRandomInt(0,hobbyLevels.length-1)]}`
-      break;
-    case 'profession':
-      Либо тут делаем профессию, либо просто отдельную функцию под неё написать
-      Потому что нам надо сначала узнать возраст, передать его, и по этому ориентироваться, выбирать
-      профессию которую нужно, и только потом дописывать через рандом стаж
-      break;
-  }
-  
-  return resultText
-}
+ //////////////////////////////////////
+ //
+ function getRandomData(pack1,priorityPack1,priorityPack2,name) {
+ let resultText = ''
+ if(name==='spec1' || name==='spec2') {
+ name = 'card'
+ }
+ while(!resultText) {
+ let usedPack = getRandomPack(pack1,priorityPack1,priorityPack2)
+ if(name==='profession') {
+ Проверяем не пустой ли пункт с профессиями у usedPack.professions
+ Если есть, тогда записывай в результат и удаляй этот пункт откуда взял, если нет то просто снова делаем цикл
+ } else {
+ if(usedPack.playerData[name].length) {
+ let nameArray = usedPack.playerData.filter(item => item.name===name)
+ let index=getRandomInt(0,nameArray.length-1)
+ resultText = nameArray[index]
+ index = usedPack.playerData.indexOf(nameArray[index])
 
-function getRandomPack(pack1,priorityPack1,priorityPack2){
+ usedPack.playerData[name].splice(index,1) //Удаляем элемент который взяли (надо загуглить как правильно удалить)
+ }
+ }
+ }
+
+ //Ниже идут доп проверки для name
+ switch(name){
+ case 'body':
+ resultText+=` (Рост: ${getRandomInt(minHeight,maxHeight)} см.)`
+ break;
+ case 'health':
+ const diseaseLevels = ['Легкая степень','Средняя степень','Тяжелая степень','Критическая степень']
+ resultText += ` ${diseaseLevels[getRandomInt(0,diseaseLevels.length-1)]}`
+ break;
+ case 'hobby':
+ const hobbyLevels = ['Дилетант','Новичок','Любитель','Продвинутый','Мастер (гуру)']
+ resultText += ` ${hobbyLevels[getRandomInt(0,hobbyLevels.length-1)]}`
+ break;
+ case 'profession':
+ Либо тут делаем профессию, либо просто отдельную функцию под неё написать
+ Потому что нам надо сначала узнать возраст, передать его, и по этому ориентироваться, выбирать
+ профессию которую нужно, и только потом дописывать через рандом стаж
+ break;
+ }
+
+ return resultText
+ }
+
+ function getRandomPack(pack1,priorityPack1,priorityPack2){
  if(getRandomInt(0,100)<=40) {
  return pack1
  } else {
@@ -388,12 +390,12 @@ function getRandomPack(pack1,priorityPack1,priorityPack2){
  return priorityPack2
  }
  }
-}
+ }
  
  
  
-////////////////////////////////
-Функция которая в зависимости от числа отдает "год" "года" или "лет"
+ ////////////////////////////////
+ Функция которая в зависимости от числа отдает "год" "года" или "лет"
 
  function getAgeText(age) {
  var txt;

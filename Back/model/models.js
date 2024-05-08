@@ -134,7 +134,8 @@ const ChartPack = sequelize.define('chartPack', {
   namePack: {type: DataTypes.STRING},
   text: {type: DataTypes.STRING},
   isHidden: {type: DataTypes.TINYINT, defaultValue: 1},
-  status: {type: DataTypes.TINYINT, defaultValue: 0} 
+  status: {type: DataTypes.TINYINT, defaultValue: 0},
+  ageRestriction: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 

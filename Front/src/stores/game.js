@@ -4,6 +4,7 @@ import axiosInstance from "@/api.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { isObject } from "@vueuse/core";
 import { objIsEmpty } from "@/plugins/functions.js";
+import { useGlobalPopupStore } from "@/stores/popup.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const isNewGame = ref(false)
@@ -19,12 +20,13 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const maxPlayers = ref(15)
   const minPlayers = ref(6)
   const isCreateCustomGame = ref(false)
-  
-  const hostFunctional = useHostFunctionalStore()
-  
   const isGameExist = computed(() => {
     return !!(hostId.value && players.value && userId.value);
   })
+  
+  const hostFunctional = useHostFunctionalStore()
+  const globalPopup = useGlobalPopupStore()
+  
   
   async function generateGameId() {
     try {
@@ -71,6 +73,10 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     if (data.hasOwnProperty('isHostPlayer')) {
       isHostPlayer.value = data.isHostPlayer
       hostFunctional.isPlayerToo = data.isHostPlayer
+    }
+    if (data.hasOwnProperty('isAgeRestriction') && data.isAgeRestriction) {
+      globalPopup.activate('Внимание',
+        'В данной игре присутсвуют паки 18+. Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет','red')
     }
   }
   
@@ -140,46 +146,48 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   
   const getAlivePlayers = computed(() => {
     let players = []
-    for(let key in userData.value) {
-      userData.value[key].isAlive?players.push(userData.value[key]):''
+    for (let key in userData.value) {
+      userData.value[key].isAlive? players.push(userData.value[key]):''
     }
     return players
   })
   
   function setData(data) {
-    if(!data || objIsEmpty(data)) {
+    if (!data || objIsEmpty(data)) {
       return
     }
-    if(data.hasOwnProperty('bunkerData')) {
+    if (data.hasOwnProperty('bunkerData')) {
       console.log(data.bunkerData)
-      for(let key in data.bunkerData) {
+      for (let key in data.bunkerData) {
         bunkerData.value[key] = data.bunkerData[key]
       }
     }
-    if(data.hasOwnProperty('players')) {
-      for(let key in data.players) {
+    if (data.hasOwnProperty('players')) {
+      for (let key in data.players) {
         playersData.value[key] = data.players[key]
       }
     }
-    if(data.hasOwnProperty('userData')) {
-      for(let key in data.userData) {
+    if (data.hasOwnProperty('userData')) {
+      for (let key in data.userData) {
         userData.value[key] = data.userData[key]
       }
     }
   }
   
-  function getCharForPlayer(id,item) {
-    if(playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen){
+  function getCharForPlayer(id, item) {
+    if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen) {
       return playersData.value[id][item].text
-    } else {
+    }
+    else {
       return null
     }
   }
   
-  function getDescriptionForChar(id,item) {
-    if(playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen && playersData.value[id][item].description){
-      return playersData.value[id][item].description 
-    } else {
+  function getDescriptionForChar(id, item) {
+    if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen && playersData.value[id][item].description) {
+      return playersData.value[id][item].description
+    }
+    else {
       return null
     }
   }

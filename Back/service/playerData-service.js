@@ -44,10 +44,12 @@ class playerDataService {
     const systemSettings = await UserModel.SystemSettings.findAll()
     for (let item of systemSettings) {
       systemData[item.nameSetting] = item.value
-      
     }
+    this.systemSettings = systemData
     return systemData
   }
+  
+ 
   
   async createDataGame(idRoom, playersData) {
     this.systemSettings = await this.getSystemSettingsData()
@@ -140,8 +142,8 @@ class playerDataService {
     thisGame.bunkerItems3 = itemId[2]
     thisGame.bunkerTime = bunkerTime.id
     await thisGame.save()
-
-
+    
+    
     return {
       bunkerTime: bunkerTime.text,
       bunkerSize: `${bunkerSize} кв.м`,
@@ -157,9 +159,9 @@ class playerDataService {
     
   }
   
-  async joinGameData(idRoom, playerId) {
+  async joinGameData(idRoom, playerId,isWatcher=false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id','bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
+      attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -183,19 +185,19 @@ class playerDataService {
       }
     }
     bunkerData.bunkerItems = bunkerItems
-
+    
     let userData = await this.getAvailablePlayerData(idRoom)
-
+    
     let players = {}
     let allPlayers = await UserModel.RoomSession.findAll({
       attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
       where: {gameRoomId: gameRoom.id},
       raw: true
     })
-
+    
     for (let player in allPlayers) {
       let playerData = {}
-      if (allPlayers[player].userId===playerId) {
+      if (allPlayers[player].userId===playerId && !isWatcher) {
         for (let key in allPlayers[player]) {
           if (key.toString()!=='isMVPRefresh') {
             playerData[key] = JSON.parse(allPlayers[player][key])
@@ -209,19 +211,19 @@ class playerDataService {
         for (let key in allPlayers[player]) {
           if (key.toString()!=='isMVPRefresh') {
             let data = JSON.parse(allPlayers[player][key])
-            if(data.isOpen){
+            if (data.isOpen) {
               playerData[key] = data
             }
           }
         }
       }
-      if(!objIsEmpty(playerData)){
-      players[allPlayers[player].userId] = playerData
+      if (!objIsEmpty(playerData)) {
+        players[allPlayers[player].userId] = playerData
       }
     }
-
-
-    return {players:players,userData:userData,bunkerData:bunkerData}
+    
+    
+    return {players: players, userData: userData, bunkerData: bunkerData}
     //{id:1}
     //key = id
     //gameRoom[key]=1
@@ -238,12 +240,12 @@ class playerDataService {
       let userData = {}
       if (player.userId>0) {
         let user = await UserModel.User.findOne({where: {id: player.userId}})
-
+        
         userData.nickname = user.nickname
         userData.avatar = user.avatar
         userData.isPlayer = player.isPlayer
         userData.accessLevel = user.accsessLevel
-
+        
       }
       else {
         // userData.id = player.userId
@@ -251,7 +253,7 @@ class playerDataService {
         userData.avatar = null
         userData.isPlayer = player.isPlayer
         userData.accessLevel = 'noreg'
-
+        
         
       }
       if (player.isAlive) {
@@ -310,12 +312,12 @@ class playerDataService {
       }
     }
     else {
-
+      
       age = 41
     }
-
+    
     body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack)
-
+    
     trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack)
     
     if (health===null) {
@@ -438,7 +440,7 @@ class playerDataService {
         let index = this.getRandomInt(0, nameArray.length - 1)
         result = nameArray[index]
         delete result.name
-
+        
         index = this.usedPack.chartBunkerData.indexOf(nameArray[index])
         this.usedPack.chartBunkerData.splice(index, 1)
       }
@@ -916,6 +918,25 @@ class playerDataService {
         return result
     }
     
+  }
+  
+  async setStatisticGame(idRoom) {
+    let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+    let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
+    if(diffMinute>20){
+      let players = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1}})
+      for(let player of players){
+        if(player.userId>0){
+          let user = await UserModel.User.findOne({where:{id:player.userId}})
+          user.numGame++
+          if(player.isAlive){
+            user.numWinGame++
+          }
+          await user.save()
+        }
+      }
+    
+    }
   }
   
   getRandomInt(min, max) {
