@@ -684,9 +684,11 @@ function createCustomGame() {
       </div>
     </div>
     <TheGamerInfo id="gamerInfo"
+                  v-if="selectedGameData.playersData[selectedGame.userId]"
                   :data="selectedGameData.playersData[selectedGame.userId]"
                   :isReg="myProfile.isReg"
                   :nickname="selectedGameData.userData[selectedGame.userId].nickname"
+
     />
     <div id="gamerList" class="listGamer">
       <div class="listGamer__container">
