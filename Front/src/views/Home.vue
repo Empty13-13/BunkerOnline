@@ -68,7 +68,7 @@ onBeforeMount(() => {
 onMounted(async () => {
   console.log('noregToken',authStore.getLocalData('noregToken'))
   await updateMyGames()
-  await updateAllGames()
+  // await updateAllGames()
   setIntervalIfPageFocused()
 })
 onUnmounted(() => {
@@ -98,17 +98,21 @@ async function updateMyGames() {
     let data = await axiosInstance.post('/userGames', {
       noregToken: authStore.getLocalData('noregToken')
     })
+    console.log(data)
     loadingActiveGame.value = true
+    loadingAllGames.value = true
     roomData.value = []
-    if(data) {
-      roomData.value = roomData.value.concat(data.data).sort((room1,room2) => {
+    if(data.data) {
+      roomData.value = roomData.value.concat(data.data.userGame).sort((room1,room2) => {
         return new Date(room1.dataCreate) - new Date(room2.dataCreate)
       })
+      activeGames.value = activeGames.value.concat(data.data.allGames)
     }
   } catch(e) {
     console.log(e)
   } finally {
     loadingActiveGame.value = false
+    loadingAllGames.value = false
   }
 }
 

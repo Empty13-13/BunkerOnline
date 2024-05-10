@@ -79,7 +79,7 @@ class ioUserService {
           console.log('Have a gameRoomId')
           let inGameUser = await UserModel.RoomSession.findOne(
             {where: {userId: userData.id, gameRoomId: gameRoomId.id}})
-          console.log('VAR inGameUser', inGameUser)
+          // console.log('VAR inGameUser', inGameUser)
           if (!inGameUser) {
             console.log('Havent inGameUser')
             let noregUserId = await getNoregUserId(noRegToken, socket)

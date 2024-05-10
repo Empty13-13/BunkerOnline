@@ -101,7 +101,7 @@ router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //b
 
 router.post('/generateRoomId', userController.generateRoomId);
 router.post('/userGames', userController.userGames);
-router.post('/allGames', userController.allUsersGames);
+//router.post('/allGames', userController.allUsersGames);
 router.post('/allPacks', userController.allPacks);
 router.post('/changePack',priorityUserMiddleware('default'),limiterPack, userController.changePack);
 router.get('/test', userController.test);

@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt')
 const uuid = require('uuid')
+const sequelize = require('../db')
 const mailService = require('./mail-service')
 const UserModel = require('../model/models')
 const tokenService = require('./token-service')
@@ -38,7 +39,7 @@ class UserService {
         }
       })
     }
-    const candidateNickName = await UserModel.User.findOne({where: {nickname}})
+    const candidateNickName = await UserModel.User.findOne({where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)})
     if (candidateNickName) {
       throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
         [{input: 'nickname', type: 'Already exist'}])
@@ -93,7 +94,7 @@ class UserService {
       }
     }
     else {
-      user = await UserModel.User.findOne({where: {nickname: login}})
+      user = await UserModel.User.findOne({where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), login)})
       if (!user) {
         throw ApiError.BadRerquest(`Пользователь с таким ником не существует`,
           [{input: 'nickname', type: 'Missing data'}])
@@ -191,8 +192,16 @@ class UserService {
     }
     users.dataValues.isBanned = isBan
     //   console.log(isBdayHidden, isAdmin, isUser)
+    // let birthday = users.dataValues.birthday
     if (isBdayHidden && !isAdmin && !isUser) {
-      delete users.dataValues.birthday
+      
+      //delete users.dataValues.birthday
+      let newData = new Date(0, users.dataValues.birthday.getMonth(), users.dataValues.birthday.getDate())
+      newData = newData.toLocaleString().split('.')
+      users.dataValues.birthday = newData[0] + '.' + newData[1]
+      //users.dataValues.birthday = users.dataValues.birthday.toISOString().substr(5, 10)
+      console.log(users.dataValues.birthday)
+      
     }
     delete users.dataValues.activationLink
     delete users.dataValues.password
@@ -494,7 +503,11 @@ class UserService {
     for (let key in data) {
       // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
       if ('nickname'===key.toString()) {
-        const candidateNickName = await UserModel.User.findOne({where: {nickname: data[key]}})
+        const candidateNickName = await UserModel.User.findOne(
+          {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), data[key])})
+        console.log('NICKNAME::', data[key])
+        console.log('candidateNickName::', candidateNickName)
+
         if (candidateNickName) {
           throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
             [{input: 'nickname', type: 'Already exist'}])
@@ -666,25 +679,23 @@ class UserService {
   }
   
   async userGames(token, noRegToken) {
-    let data = []
     
+    console.log('Game Uploaded')
+    let tokenId = null
+    let noRegId = null
     if (token) {
       const userData = tokenService.validateAccessToken(token)
       if (!userData) {
         throw ApiError.UnauthorizedError()
       }
-      let result = await getGamesData(userData.id, data)
-      if (result) {
-        data = data.concat(result)
-      }
+      tokenId = userData.id
     }
     const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
     if (isValidNoRegToken) {
-      let result = await getGamesData(-Math.abs(isValidNoRegToken.id), data)
-      if (result) {
-        data = data.concat(result)
-      }
+      
+      noRegId = -Math.abs(isValidNoRegToken.id)
     }
+    let data = await getGamesData(tokenId, noRegId)
     
     return data
     
@@ -696,7 +707,7 @@ class UserService {
     if (!data) {
       return null
     }
-    const dataRooms = getNickName(data)
+    const dataRooms = await getNickName(data)
     
     return dataRooms
     
@@ -761,7 +772,6 @@ class UserService {
     }
     let thisPack = await UserModel.ChartPack.findOne({where: {id: idPack}})
     
-    console.log(advancePack, basePack)
     if (isUse) {
       if (isSystemPack && thisPack.status===1) {
         user.isUsedSystemAdvancePack = 1
@@ -823,7 +833,7 @@ class UserService {
       
     }
     const packs = await UserModel.ChartPack.findAll({
-      attributes: ['id','ageRestriction', 'namePack', 'status', 'text'],
+      attributes: ['id', 'ageRestriction', 'namePack', 'status', 'text'],
       where: {
         isHidden: 0, id: {
           [Op.and]: [
@@ -894,44 +904,49 @@ class UserService {
   }
 }
 
-async function
-
-getNickName(data) {
-  let dataRooms = []
+async function getNickName(user) {
+  
   //console.log('123123123',data)
-  for (const user of data) {
-    let hostId = user.hostId
-    if (hostId<0) {
-      hostId = Math.abs(hostId)
-      dataRooms.push({nickname: `Гость#${hostId}`, idRoom: user.idRoom})
-    }
-    else {
-      const dataUser = await UserModel.User.findOne({where: {id: hostId}})
-      dataRooms.push({nickname: dataUser.nickname, idRoom: user.idRoom})
-    }
+  let dataRooms = null
+  let hostId = user.hostId
+  if (hostId<0) {
+    hostId = Math.abs(hostId)
+    dataRooms = ({nickname: `Гость#${hostId}`, idRoom: user.idRoom})
   }
+  else {
+    const dataUser = await UserModel.User.findOne({where: {id: hostId}})
+    dataRooms = ({nickname: dataUser.nickname, idRoom: user.idRoom})
+  }
+  
   return dataRooms
 }
 
-async function
-
-getGamesData(userId, dataRooms) {
+async function getGamesData(userId, noregUserId) {
   let data = []
-  const userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
-  if (userJoinGame) {
-    for (const room of userJoinGame) {
-      let isRoomExist = false
-      const gameRoom = await UserModel.GameRooms.findOne({where: {id: room.gameRoomId}})
-      const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: room.gameRoomId}})
-      if (dataRooms) {
-        for (let i = 0; i<dataRooms.length; i++) {
-          if (dataRooms[i].idRoom===gameRoom.idRoom) {
-            isRoomExist = true
-            break
-          }
-        }
-      }
-      if (!isRoomExist) {
+  let dataAllGames = []
+  let userJoinGame
+  const allGameRoom = await UserModel.GameRooms.findAll()
+  if (allGameRoom) {
+    // console.log('AllGameRoom',allGameRoom)
+    let idUserGame = []
+    if (userId && noregUserId===null) {
+      userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
+      
+    }
+    else if (userId===null && noregUserId) {
+      userJoinGame = await UserModel.RoomSession.findAll({where: {userId: noregUserId}})
+    }
+    else {
+      userJoinGame = await UserModel.RoomSession.findAll({where: {userId: [noregUserId, userId]}})
+    }
+    for (let user of userJoinGame) {
+      idUserGame.push(user.gameRoomId)
+    }
+    for (let gameRoom of allGameRoom) {
+      
+      
+      if (idUserGame.includes(gameRoom.id)) {
+        const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id}})
         data.push({
           idRoom: gameRoom.idRoom,
           countPlayers: countPlayers.count,
@@ -939,9 +954,45 @@ getGamesData(userId, dataRooms) {
           dataCreate: gameRoom.createdAt
         })
       }
+      else {
+        if (gameRoom.isStarted===1 && gameRoom.isHidden===0) {
+          dataAllGames.push(await getNickName(gameRoom))
+        }
+        
+      }
+      
+      
     }
+    
+    
   }
-  return data
+
+//
+//   const userJoinGame = await UserModel.RoomSession.findAll({where: {userId: userId}})
+//   if (userJoinGame) {
+//     for (const room of userJoinGame) {
+//       let isRoomExist = false
+//       const gameRoom = await UserModel.GameRooms.findOne({where: {id: room.gameRoomId}})
+//       const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: room.gameRoomId}})
+//       if (dataRooms) {
+//         for (let i = 0; i<dataRooms.length; i++) {
+//           if (dataRooms[i].idRoom===gameRoom.idRoom) {
+//             isRoomExist = true
+//             break
+//           }
+//         }
+//       }
+//       if (!isRoomExist) {
+//         data.push({
+//           idRoom: gameRoom.idRoom,
+//           countPlayers: countPlayers.count,
+//           isStarted: !!+gameRoom.isStarted,
+//           dataCreate: gameRoom.createdAt
+//         })
+//       }
+//     }
+//   }
+  return {userGame: data, allGames: dataAllGames}
   
 }
 
@@ -974,5 +1025,4 @@ objIsEmpty(obj) {
 }
 
 
-module
-  .exports = new UserService()
+module.exports = new UserService()

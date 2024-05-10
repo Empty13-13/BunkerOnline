@@ -22,7 +22,7 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
   function bindEvents() {
     
     hostSocket.on('setError', async data => {
-      await switchError(data) 
+      await switchError(data,hostSocket) 
       
       globalPreloader.deactivate()
     })

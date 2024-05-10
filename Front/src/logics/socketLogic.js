@@ -1,11 +1,12 @@
-import { userSocket } from "@/socket/sockets.js";
 import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { useSelectedGame } from "@/stores/game.js";
-export async function switchError(data) {
+
+
+export async function switchError(data,socket) {
   console.log('setError KURVA', data)
   const message = data.message
   const status = data.status
@@ -22,23 +23,34 @@ export async function switchError(data) {
   
   switch(status) {
     case 403: {
+      console.log('Ошибка 403')
       globalPreloader.activate()
-      if (!userSocket.auth._retry) {
+      if (!socket.auth._retry) {
         await authStore.refreshToken()
-        userSocket.close()
-        userSocket.auth._retry = true
-        userSocket.auth.token = myProfile.token
-        userSocket.connect()
-        if (vars) {
-          userSocket.emit(functionName, ...vars)
-        }
-        else {
-          userSocket.emit(functionName)
-        }
+        socket.close()
+        socket.auth._retry = true
+        socket.auth.token = myProfile.token
+        socket.connect()
+        let tryReEmitInterval = setInterval(() => {
+          console.log(functionName)
+          if(socket.connected) {
+            if (vars) {
+              console.log('Пробуем ещё раз с vars',...vars)
+              socket.emit(functionName, ...vars)
+            }
+            else {
+              socket.emit(functionName)
+            }
+            clearInterval(tryReEmitInterval)
+          }
+        },500)
+
       }
       else {
         await router.push({name: 'home'})
+        socket.auth._retry = false
         globalPopup.activate('Ошибка подключения', message, 'red')
+        globalPreloader.deactivate()
       }
       break;
     }

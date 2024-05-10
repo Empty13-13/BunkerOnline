@@ -58,6 +58,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         if (noregToken) {
           noregToken.value = noregTokenLocal
         }
+        
+        await setMyPacks()
       } catch(e) {
         clearUserInfo()
         preloader.deactivate()
@@ -72,6 +74,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     preloader.deactivate()
   }
   async function setMyPacks() {
+    console.log('Делаю запрос к пакам')
     try {
       showLoaderForPacks.value = true
       let packs = await axiosInstance.post(`/allPacks`)
@@ -131,6 +134,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете что вы достигли совершеннолетнего возраста','red')
       }
     } catch(e) {
+      console.log('ОБРАЩАЮСЬ 2')
       await setMyPacks()
       console.log(e)
       globalPopup.activate('Ошибка изменения паков',e.response.data.message)

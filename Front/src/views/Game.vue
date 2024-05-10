@@ -87,6 +87,22 @@ const itemsName = [
   ['Рюкзак', 'backpack'],
   ['Дополнительные сведения', 'addInfo'],
 ]
+const navigationItems = [
+  {name: 'Катаклизм', showWatcher: true, goToId: 'welcome'},
+  {name: 'Бункер', showWatcher: true, goToId: 'bunker'},
+  {name: 'Информация обо мне', showWatcher: false, goToId: 'gamerInfo'},
+  {name: 'Желающие попасть внутрь', showWatcher: true, goToId: 'gamerList'},
+  {name: 'Таблица со спец возможностями', showWatcher: true, goToId: 'spec'},
+  {name: 'Заметки', showWatcher: false, goToId: 'notes'},
+]
+const getActiveNavigationItems = computed(() => {
+  if (selectedGame.imWatcher) {
+    return navigationItems.filter(item => item.showWatcher)
+  }
+  else {
+    return navigationItems
+  }
+})
 
 const gamerData = [
   {
@@ -286,8 +302,8 @@ const gamerData = [
   },
 ]
 const specItems = [
-  ['Спец. возможность 1','spec1'],
-  ['Спец. возможность 2','spec2'],
+  ['Спец. возможность 1', 'spec1'],
+  ['Спец. возможность 2', 'spec2'],
 ]
 const votedData = {
   votedList: [
@@ -392,9 +408,10 @@ function startGame(e) {
           let playerData = {}
           charNames.forEach(char => {
             let inputValue = body.querySelector(`#${char}`)
-            if(inputValue && inputValue.value) {
+            if (inputValue && inputValue.value) {
               playerData[char] = inputValue.value || null
-            } else {
+            }
+            else {
               playerData[char] = null
             }
           })
@@ -403,13 +420,15 @@ function startGame(e) {
         }
       })
       console.log(allData)
-      if(!objIsEmpty(allData)) {
+      if (!objIsEmpty(allData)) {
         hostSocket.emit('startGame', allData)
         // selectedGame.isCreateCustomGame=false
-      } else {
-        globalPopup.activate('Ошибка','Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
       }
-    } else {
+      else {
+        globalPopup.activate('Ошибка', 'Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
+      }
+    }
+    else {
       hostSocket.emit('startGame')
     }
   }, null, 'right')
@@ -479,36 +498,18 @@ function createCustomGame() {
       <div @click="openNavigation(navBlock)" class="navigation">
         <div class="navigation__block linear-border white" ref="navBlock">
           <ul class="navigation__list">
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('welcome')" class="navigation__text">1</div>
-              <div class="navigation__window">Катаклизм</div>
-            </li>
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('bunker')" class="navigation__text">2</div>
-              <div class="navigation__window">Бункер</div>
-            </li>
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('gamerInfo')" class="navigation__text">3</div>
-              <div class="navigation__window">Информация обо мне</div>
-            </li>
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('gamerList')" class="navigation__text">4</div>
-              <div class="navigation__window">Желающие попасть внутрь</div>
-            </li>
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('spec')" class="navigation__text">5</div>
-              <div class="navigation__window">Таблица со спец возможностями</div>
-            </li>
-            <li @click="showInfoHandler" class="navigation__item">
-              <div @click="goToBlock('notes')" class="navigation__text">6</div>
-              <div class="navigation__window">Заметки</div>
+            <li class="navigation__item"
+                v-for="(item,index) in getActiveNavigationItems"
+                :key="item.name"
+                @click="showInfoHandler">
+              <div @click="goToBlock(`${item.goToId}`)" class="navigation__text">{{index+1}}</div>
+              <div class="navigation__window">{{item.name}}</div>
             </li>
           </ul>
         </div>
       </div>
       <TheHostPanel v-if="hostFunctional.haveAccess" />
     </Teleport>
-
     <div id="welcome" class="welcome">
       <AppBackground img-name="cataclysm.jpg" />
       <div class="welcome__container">
@@ -517,7 +518,7 @@ function createCustomGame() {
             Катаклизм
           </h1>
           <p slideBody class="welcome__subtitle">
-            {{selectedGameData.bunkerData.catastrophe}}
+            {{ selectedGameData.bunkerData.catastrophe }}
           </p>
         </div>
       </div>
@@ -529,7 +530,9 @@ function createCustomGame() {
           <div slidebody>
             <div class="bunker__body">
               <div class="bunker__column text">
-                <p class="bunker__description">{{selectedGameData.bunkerData.bunkerCreated}}. {{selectedGameData.bunkerData.bunkerLocation}}. {{selectedGameData.bunkerData.bunkerBedroom}}</p>
+                <p class="bunker__description">{{ selectedGameData.bunkerData.bunkerCreated }}.
+                                               {{ selectedGameData.bunkerData.bunkerLocation }}.
+                                               {{ selectedGameData.bunkerData.bunkerBedroom }}</p>
                 <div class="bunker__items items-bunker">
                   <div class="items-bunker__title">В бункере присутствует:</div>
                   <ul class="items-bunker__list">
@@ -595,7 +598,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Размер бункера</h4>
-                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerSize}}</p>
+                      <p class="block-tabs__description">{{ selectedGameData.bunkerData.bunkerSize }}</p>
                     </div>
                   </div>
                 </div>
@@ -634,7 +637,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Время нахождения</h4>
-                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerTime}}</p>
+                      <p class="block-tabs__description">{{ selectedGameData.bunkerData.bunkerTime }}</p>
                     </div>
                   </div>
                 </div>
@@ -673,7 +676,7 @@ function createCustomGame() {
                     </div>
                     <div class="block-tabs__row">
                       <h4 class="block-tabs__title">Количество еды</h4>
-                      <p class="block-tabs__description">{{selectedGameData.bunkerData.bunkerFood}}</p>
+                      <p class="block-tabs__description">{{ selectedGameData.bunkerData.bunkerFood }}</p>
                     </div>
                   </div>
                 </div>
@@ -683,18 +686,16 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <TheGamerInfo id="gamerInfo"
-                  v-if="selectedGameData.playersData[selectedGame.userId]"
-                  :data="selectedGameData.playersData[selectedGame.userId]"
+    <TheGamerInfo v-if="!selectedGame.imWatcher"
+                  :data="selectedGameData.getMyPlayerData"
                   :isReg="myProfile.isReg"
-                  :nickname="selectedGameData.userData[selectedGame.userId].nickname"
-
+                  :nickname="selectedGameData.getMyUserData.nickname"
     />
     <div id="gamerList" class="listGamer">
       <div class="listGamer__container">
         <h2 v-slide class="listGamer__title titleH2">
           Желающие попасть в бункер:
-          <span> {{selectedGameData.getAlivePlayers.length}}/{{Object.keys(selectedGameData.userData).length-1}}</span>
+          <span> {{ selectedGameData.getAlivePlayers.length }}/{{ selectedGameData.getActivePlayersFromUserData.length }}</span>
         </h2>
         <div slidebody>
           <div class="wrapper-listGamer">
@@ -713,11 +714,11 @@ function createCustomGame() {
                 </div>
               </div>
               <div class="table-listGamer__row"
-                   v-for="(data,id,index) in selectedGameData.userData"
+                   v-for="(data,id,index) in selectedGameData.getActivePlayersFromUserData"
                    :key="id"
                    :class="[data.accessLevel,{dead:!data.isAlive}]"
               >
-<!--                Блок с профилем-->
+                <!--                Блок с профилем-->
                 <div class="table-listGamer__column profile-column" :class="data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
                   <AppAvatar v-model:href="data.avatar" class="profile-column__img" :color="data.accessLevel" />
@@ -726,7 +727,8 @@ function createCustomGame() {
                       {{ data.nickname }}
                     </div>
                     <div class="texts-profile-column__access">{{ getAccessStr(data.accessLevel) }}</div>
-                    <div class="texts-profile-column__banish" :class="{dead:!data.isAlive}">
+                    <div v-if="!selectedGame.imWatcher" class="texts-profile-column__banish"
+                         :class="{dead:!data.isAlive}">
                       {{ !data.isAlive? 'вернуть':'изгнать' }}
                     </div>
                   </div>
@@ -736,8 +738,9 @@ function createCustomGame() {
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  {{ selectedGameData.getCharForPlayer(id,item[1]) }}
-                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])" :text="selectedGameData.getDescriptionForChar(id,item[1])" />
+                  {{ selectedGameData.getCharForPlayer(id, item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])"
+                                :text="selectedGameData.getDescriptionForChar(id,item[1])" />
                 </div>
               </div>
             </div>
@@ -745,7 +748,7 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <div class="voting">
+    <div v-if="!selectedGame.imWatcher" class="voting">
       <div class="voting__container">
         <div class="voting__now now-voting">
           <h2 v-slide class="now-voting__title titleH2">Голосование</h2>
@@ -820,11 +823,10 @@ function createCustomGame() {
                   Специальная возможность {{ item }}
                 </div>
               </div>
-              <div
-                  v-for="(data,id,index ) in selectedGameData.userData"
-                  :key="id"
-                  class="table-listGamer__row"
-                  :class="[data.accessLevel,{dead:!data.isAlive}]"
+              <div class="table-listGamer__row"
+                   v-for="(data,id,index ) in selectedGameData.getActivePlayersFromUserData"
+                   :key="id"
+                   :class="[data.accessLevel,{dead:!data.isAlive}]"
               >
                 <!--Блок с профилем-->
                 <div class="table-listGamer__column profile-column" :class="data.accessLevel">
@@ -844,8 +846,9 @@ function createCustomGame() {
                     :key="item[1]"
                     class="table-listGamer__column"
                 >
-                  {{ selectedGameData.getCharForPlayer(id,item[1]) }}
-                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])" :text="selectedGameData.getDescriptionForChar(id,item[1])" />
+                  {{ selectedGameData.getCharForPlayer(id, item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])"
+                                :text="selectedGameData.getDescriptionForChar(id,item[1])" />
                 </div>
               </div>
             </div>
@@ -853,7 +856,7 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <div id="notes" class="notes">
+    <div v-if="!selectedGame.imWatcher" id="notes" class="notes">
       <div class="notes__container">
         <div class="notes__block linear-border white">
           <h2 v-slide class="notes__title titleH2">Заметки</h2>
@@ -867,7 +870,8 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <TheLogs />
+    <TheLogs v-if="!selectedGame.imWatcher" />
+    <div v-if="selectedGame.imWatcher" class="spaceDown"></div>
     <div class="watchersIcon"
          :class="selectedGame.watchersCount>0?'_active':''">
       <img src="/img/icons/watcher.svg" alt="">
@@ -1011,7 +1015,8 @@ function createCustomGame() {
     <div v-show="selectedGame.isCreateCustomGame" class="customGame">
       <div class="customGame__container">
         <div class="customGame__body">
-          <AppButton @click="selectedGame.isCreateCustomGame=false" class="customGame_backBtn" border="true" color="gold"
+          <AppButton @click="selectedGame.isCreateCustomGame=false" class="customGame_backBtn" border="true"
+                     color="gold"
                      icon-name="upButton.png" />
           <div class="customGame__tables tables-customGame">
             <TheGamerInfo is-create="true"
@@ -1040,6 +1045,22 @@ function createCustomGame() {
 <style lang="scss">
 @import "@/assets/scss/style";
 
+.spaceDown {
+  height: 280px;
+  width: 100%;
+
+  @media (max-width: $tablet) {
+    height: 250px;
+  }
+
+  @media (max-width: $mobile) {
+    height: 200px;
+  }
+  @media (max-width: $mobileSmall) {
+    height: 100px;
+  }
+}
+
 .game {
   .titleH2 {
     cursor: pointer;
@@ -1057,6 +1078,7 @@ function createCustomGame() {
   &__block {
     position: relative;
     padding: 45px 78px;
+    padding-bottom: 0 !important;
 
     @media (max-width: $tablet) {
       padding: 40px 40px;
@@ -1077,12 +1099,17 @@ function createCustomGame() {
     z-index: 3;
     display: grid;
     grid-template-columns: 2fr 1fr;
+    padding-bottom: 45px;
 
+    @media (max-width: $tablet) {
+      padding-bottom: 40px;
+    }
     @media (max-width: 850px) {
       grid-template-columns: auto;
       grid-template-rows: auto auto;
       gap: 30px;
     }
+
   }
 
   &__column {
@@ -1585,21 +1612,10 @@ function createCustomGame() {
 
 //========================================================================================================================================================
 .voting {
-  margin-bottom: 100px;
   margin-top: 40px;
 
-  @media (max-width: $pc) {
-    margin-bottom: 90px;
-  }
-  @media (max-width: $tablet) {
-    margin-bottom: 85px;
-  }
   @media (max-width: $mobile) {
-    margin-bottom: 80px;
     margin-top: 50px;
-  }
-  @media (max-width: $mobileSmall) {
-    margin-bottom: 75px;
   }
 
   &__container {
@@ -1654,6 +1670,20 @@ function createCustomGame() {
     color: #b2b2b2;
     font-size: 11px;
     font-weight: 600;
+    padding-bottom: 100px;
+
+    @media (max-width: $pc) {
+      padding-bottom: 90px;
+    }
+    @media (max-width: $tablet) {
+      padding-bottom: 85px;
+    }
+    @media (max-width: $mobile) {
+      padding-bottom: 80px;
+    }
+    @media (max-width: $mobileSmall) {
+      padding-bottom: 75px;
+    }
 
     span {
       color: white;
@@ -2016,7 +2046,7 @@ function createCustomGame() {
     height: 40px;
     z-index: 10;
 
-    @media (max-width:1400px){
+    @media (max-width: 1400px) {
       left: 20px;
     }
 
@@ -2043,6 +2073,7 @@ function createCustomGame() {
     }
   }
 }
+
 .tables-customGame {
 }
 </style>

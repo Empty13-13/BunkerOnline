@@ -23,7 +23,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
   
   function bindEvents() {
     userSocket.on('setError', async data => {
-      await switchError(data)
+      await switchError(data,userSocket)
       
       globalPreloader.deactivate()
     })

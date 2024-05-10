@@ -7,6 +7,10 @@ import { objIsEmpty } from "@/plugins/functions.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
+  const hostFunctional = useHostFunctionalStore()
+  const globalPopup = useGlobalPopupStore()
+  const selectedGameData = useSelectedGameData()
+  
   const isNewGame = ref(false)
   const gameId = ref(null)
   const isStarted = ref(false)
@@ -23,9 +27,9 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const isGameExist = computed(() => {
     return !!(hostId.value && players.value && userId.value);
   })
-  
-  const hostFunctional = useHostFunctionalStore()
-  const globalPopup = useGlobalPopupStore()
+  const imWatcher = computed(() => {
+    return !selectedGameData.userData[userId.value].isPlayer
+  })
   
   
   async function generateGameId() {
@@ -101,6 +105,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     minPlayers,
     maxPlayers,
     isCreateCustomGame,
+    imWatcher,
     clearData,
     clear,
     generateGameId,
@@ -128,6 +133,9 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
 })
 
 export const useSelectedGameData = defineStore('selectedGameData', () => {
+  const selectedGame = useSelectedGame()
+  
+  
   const bunkerData = ref({
     bunkerBedroom: "",
     bunkerCreated: "",
@@ -145,10 +153,25 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   
   const getAlivePlayers = computed(() => {
     let players = []
-    for (let key in userData.value) {
-      userData.value[key].isAlive? players.push(userData.value[key]):''
+    for (let player of getActivePlayersFromUserData.value) {
+      player.isAlive? players.push(player):null
     }
     return players
+  })
+  const getMyPlayerData = computed(() => {
+    return playersData.value[selectedGame.userId]
+  })
+  const getMyUserData = computed(() => {
+    return userData.value[selectedGame.userId]
+  })
+  const getActivePlayersFromUserData = computed(() => {
+    let resultArr = []
+    for(let id in userData.value) {
+      if(!!userData.value[id].isPlayer) {
+        resultArr.push(userData.value[id])
+      }
+    }
+    return resultArr
   })
   
   function setData(data) {
@@ -156,7 +179,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       return
     }
     if (data.hasOwnProperty('bunkerData')) {
-      console.log(data.bunkerData)
       for (let key in data.bunkerData) {
         bunkerData.value[key] = data.bunkerData[key]
       }
@@ -196,6 +218,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     playersData,
     userData,
     getAlivePlayers,
+    getMyPlayerData,
+    getMyUserData,
+    getActivePlayersFromUserData,
     setData,
     getCharForPlayer,
     getDescriptionForChar,

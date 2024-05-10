@@ -2,7 +2,6 @@
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
 let props = defineProps(['data', 'isReg', 'isCreate','nickname','id'])
-console.log('props.specItems',props.data)
 
 const itemsName = [
   ['Пол', 'sex'],
@@ -66,7 +65,7 @@ const features = {
 </script>
 
 <template>
-  <div class="gamerInfo">
+  <div id="gamerInfo" class="gamerInfo">
     <div class="gamerInfo__container">
       <div class="gamerInfo__block linear-border white">
         <h2 v-slide class="gamerInfo__title titleH2">
@@ -389,6 +388,8 @@ const features = {
     gap: 15px;
     justify-content: flex-end;
     align-items: center;
+    flex: 0 1 50%;
+    max-width: 50%;
   }
 
   &__text {
@@ -404,9 +405,14 @@ const features = {
     color: #b4b4b4;
     border: 1px solid;
     display: flex;
-    max-width: 100%;
     padding: 5px;
     border-radius: 8px;
+    max-width: 100%;
+    min-width: 100px;
+    min-height: 35px;
+    max-height: 60px;
+    //flex: 0 1 100%;
+
 
     @media (max-width: $mobileSmall) {
       width: 166px;

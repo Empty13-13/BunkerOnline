@@ -33,7 +33,7 @@ module.exports = function(io) {
       // let isReg = false
       
       let isRooms = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      console.log(idRoom, isRooms)
+      // console.log(idRoom, isRooms)
       if (isRooms) {
         socket.emit("setError",
           {
@@ -56,7 +56,7 @@ module.exports = function(io) {
       //Сообщаем client что комната создалась успешно
       socket.emit('joinedRoom', {message: 'Комната успешно создана', status: 201})
       
-      console.log(io.sockets.adapter.rooms)
+      // console.log(io.sockets.adapter.rooms)
     })
 //========================================================================================================================================================
     socket.on('joinRoom', async () => {

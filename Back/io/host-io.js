@@ -11,7 +11,7 @@ module.exports = function(io) {
   const host = io.of("/host")
   
   host.use(async (socket, next) => {
-    console.log('TRYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY')
+    console.log('HOST IO')
     let tokenData = await ioUserService.validateToken(socket)
     let isValidateId = null
     let idRoom = null
@@ -24,14 +24,14 @@ module.exports = function(io) {
      let {isValidateId,idRoom} = await ioUserService.validateToken(socket)
      */
     
-    console.log('TOKEN DATA:',tokenData,socket)
+    // console.log('TOKEN DATA:',tokenData,socket)
     if (!isValidateId || !idRoom) {
       console.log("io.of('/host') invalid token")
       next(new Error("invalid token"))
       return
     }
     
-    console.log(idRoom)
+    // console.log(idRoom)
     const isHost = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     //console.log(isHost)
     
@@ -66,9 +66,9 @@ module.exports = function(io) {
       io.in(idRoom).disconnectSockets(true);
     })
     socket.on('kickOutUser', async (Id) => {
-      console.log(`id`, Id, `userId`, userId)
+      // console.log(`id`, Id, `userId`, userId)
       if (Id.toString()===userId.toString()) {
-        console.log('SDJFHJKDHFKSDKLFHSDJLKFHSDKLJFHSDLKJFHSDJKLFHSDLKJFSDJKLHLKJDSHFKJLSHFLKJ')
+        // console.log('SDJFHJKDHFKSDKLFHSDJLKFHSDKLJFHSDLKJFHSDJKLFHSDLKJFSDJKLHLKJDSHFKJLSHFLKJ')
         socket.emit("setError",
           {
             message: `Вы не можете выгнать себя`,
@@ -95,6 +95,7 @@ module.exports = function(io) {
       io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
     })
     socket.on('isHiddenGame', async (isHiddenTrack) => {
+      console.log('TRY ISHIDDENGAME')
       if (token) {
         let isValid = tokenService.validateAccessToken(token)
         if (!isValid) {
@@ -110,9 +111,11 @@ module.exports = function(io) {
         }
         
         let userData = await UserModel.User.findOne({where: {id: isValid.id}})
-        
-        
-        if (userData && userData.accsessLevel.toString().toLowerCase()==="mvp") {
+
+        console.log('PRIVATE GAME')
+       // console.log(userData && userData.accsessLevel.toString().toLowerCase()==="mvp" && userData.accsessLevel.toString().toLowerCase()==="admin")
+        if (userData && (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin")) {
+         // console.log('PRIVATE GAME MVP',userData)
           let isHidden = 0
           if (isHiddenTrack) {
             isHidden = 1
@@ -261,11 +264,11 @@ module.exports = function(io) {
 
           //  console.log('Проверка на ХУЙ пройдена успешно')
           io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-          if(await ioUserService.isAgeRestriction(userId)){
-                  let game = await UserModel.GameRooms.findOne({where:{idRoom: idRoom}})
-                  game.isHidden = 1
-                  await game.save()
-                }
+          if (await ioUserService.isAgeRestriction(userId)) {
+            let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+            game.isHidden = 1
+            await game.save()
+          }
 
           const data = await playerDataService.createDataGame(idRoom, playersData)
           console.log(data)
@@ -293,12 +296,10 @@ module.exports = function(io) {
               status: 512,
               functionName: 'startGame'
             })
-          console.log(e)
+          // console.log(e)
         }
       }
     )
     
   })
-  
-  
 }

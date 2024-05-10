@@ -70,7 +70,7 @@ const data = reactive({
 })
 
 const isMyProfile = computed(() => {
-  return myProfile.id===data.id
+  return +myProfile.id===+data.id
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {
@@ -136,6 +136,7 @@ async function changeName() {
     oldNickname = data.name
   }
   else {
+    console.log(data.name)
     if (oldNickname===data.name) {
       isChangingName.value = false
       return
@@ -180,7 +181,6 @@ onBeforeMount(async () => {
 })
 onMounted(async () => {
   await updateProfileInfo()
-  await myProfile.setMyPacks()
   fieldsInit()
 
   globalPreloader.deactivate()
@@ -250,6 +250,7 @@ async function saveProfileInfoHandler(e) {
 
 async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(+getId.value)
+  console.log('userInfo',userInfo)
   if (!userInfo) {
     await router.push('/')
     // globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')

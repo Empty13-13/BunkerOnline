@@ -191,7 +191,7 @@ class playerDataService {
     let players = {}
     let allPlayers = await UserModel.RoomSession.findAll({
       attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
-      where: {gameRoomId: gameRoom.id},
+      where: {gameRoomId: gameRoom.id,isPlayer:1},
       raw: true
     })
     
@@ -211,7 +211,7 @@ class playerDataService {
         for (let key in allPlayers[player]) {
           if (key.toString()!=='isMVPRefresh') {
             let data = JSON.parse(allPlayers[player][key])
-            if (data.isOpen) {
+            if (data && data.isOpen) {
               playerData[key] = data
             }
           }
