@@ -835,19 +835,19 @@ function createCustomGame() {
                 </div>
               </div>
               <div class="table-listGamer__row"
-                   v-for="(data,id,index ) in selectedGameData.getActivePlayersFromUserData"
-                   :key="id"
-                   :class="[data.accessLevel,{dead:!data.isAlive}]"
+                   v-for="(data,index ) in selectedGameData.getActivePlayersFromUserData"
+                   :key="index"
+                   :class="[data.data.accessLevel,{dead:!data.data.isAlive}]"
               >
                 <!--Блок с профилем-->
-                <div class="table-listGamer__column profile-column" :class="data.accessLevel">
+                <div class="table-listGamer__column profile-column" :class="data.data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar v-model:href="data.avatar" class="profile-column__img" :color="data.accessLevel" />
+                  <AppAvatar v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
-                    <div class="texts-profile-column__nickname" :title="data.nickname">
-                      {{ data.nickname }}
+                    <div class="texts-profile-column__nickname" :title="data.data.nickname">
+                      {{ data.data.nickname }}
                     </div>
-                    <div class="texts-profile-column__access">{{ getAccessStr(data.accessLevel) }}</div>
+                    <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
                   </div>
                 </div>
 
