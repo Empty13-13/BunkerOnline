@@ -28,7 +28,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     return !!(hostId.value && players.value && userId.value);
   })
   const imWatcher = computed(() => {
-    return !selectedGameData.userData[userId.value].isPlayer
+    return !selectedGameData.userData[userId.value] || !selectedGameData.userData[userId.value].isPlayer
   })
   
   
@@ -168,7 +168,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     let resultArr = []
     for(let id in userData.value) {
       if(!!userData.value[id].isPlayer) {
-        resultArr.push(userData.value[id])
+        resultArr.push({id,data:userData.value[id]})
       }
     }
     return resultArr
@@ -213,6 +213,23 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
   }
   
+  function clearData() {
+    bunkerData.value = {
+      bunkerBedroom: "",
+      bunkerCreated: "",
+      bunkerFood: "",
+      bunkerItems: [],
+      bunkerLocation: "",
+      bunkerSize: 0,
+      bunkerTime: "",
+      catastrophe: "",
+      imageName: "",
+      maxSurvivor: 0
+    }
+    playersData.value ={}
+    userData.value = {}
+  }
+  
   return {
     bunkerData,
     playersData,
@@ -224,5 +241,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     setData,
     getCharForPlayer,
     getDescriptionForChar,
+    clearData,
   }
 })

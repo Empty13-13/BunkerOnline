@@ -109,7 +109,8 @@ const RoomSession = sequelize.define('roomSession', {
 const ChartPlayer = sequelize.define('chartPlayer', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   name: {type: DataTypes.STRING},
-  text: {type: DataTypes.STRING(1500)}
+  text: {type: DataTypes.STRING(1500)},
+  dontAddLevelInfo:{type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 const Profession = sequelize.define('profession', {

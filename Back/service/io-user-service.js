@@ -82,6 +82,7 @@ class ioUserService {
           // console.log('VAR inGameUser', inGameUser)
           if (!inGameUser) {
             console.log('Havent inGameUser')
+            console.log(noRegToken)
             let noregUserId = await getNoregUserId(noRegToken, socket)
             if (!noregUserId) {
               console.log('Havent noregUserId')

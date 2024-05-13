@@ -502,6 +502,9 @@ class playerDataService {
           result = nameArray[index]
           delete result.name
           result.isOpen = false
+          if(name!=='health'){
+            delete result.dontAddLevelInfo
+          }
           index = this.usedPack.chartPlayerData.indexOf(nameArray[index])
           this.usedPack.chartPlayerData.splice(index, 1)
         }
@@ -515,10 +518,13 @@ class playerDataService {
           this.systemSettings.maxHeight)} см.)`
         break;
       case 'health':
-        if (result.text!=='Идеально здоров') {
+        if (result.text!=='Идеально здоров'&& result.dontAddLevelInfo===0) {
+
+
           const diseaseLevels = ['Легкая степень', 'Средняя степень', 'Тяжелая степень', 'Критическая степень']
           result.text += ` (${diseaseLevels[this.getRandomInt(0, diseaseLevels.length - 1)]})`
         }
+        delete result.dontAddLevelInfo
         break;
       case 'hobby':
         const hobbyLevels = ['Дилетант', 'Новичок', 'Любитель', 'Продвинутый', 'Мастер (гуру)']
@@ -895,7 +901,7 @@ class playerDataService {
           dataProfessionId.push(chartId.professionId)
         }
         let chartPlayerData = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerId}, raw: true})
+          {attributes: ['id', 'name', 'text','dontAddLevelInfo'], where: {id: dataChartPlayerId}, raw: true})
         let professionData = await UserModel.Profession.findAll({
           attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
           where: {id: dataProfessionId}, raw: true

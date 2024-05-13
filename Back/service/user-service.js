@@ -193,6 +193,7 @@ class UserService {
     users.dataValues.isBanned = isBan
     //   console.log(isBdayHidden, isAdmin, isUser)
     // let birthday = users.dataValues.birthday
+    console.log('isBdayHidden',isBdayHidden)
     if (isBdayHidden && !isAdmin && !isUser) {
       
       //delete users.dataValues.birthday
@@ -406,15 +407,15 @@ class UserService {
     if (user.avatar) {
       //  console.log("LOL")
       try {
-        fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
+        fs.unlinkSync(process.env.STATIC_PATH + "/" + user.avatar)
       } catch(e) {
         console.log(e)
       }
-      //file.delete(process.env.STATIC_PATH + "\\" + user.avatar)
+      //file.delete(process.env.STATIC_PATH + "/" + user.avatar)
     }
     
     
-    file.mv(process.env.STATIC_PATH + "\\" + avatarName)
+    file.mv(process.env.STATIC_PATH + "/" + avatarName)
     //  console.log(user.avatar)
     user.avatar = avatarName
     await user.save()
@@ -434,7 +435,7 @@ class UserService {
     if (user.avatar) {
       //   console.log("LOL")
       try {
-        fs.unlinkSync(process.env.STATIC_PATH + "\\" + user.avatar)
+        fs.unlinkSync(process.env.STATIC_PATH + "/" + user.avatar)
       } catch(e) {
         console.log(e)
       }
@@ -996,16 +997,12 @@ async function getGamesData(userId, noregUserId) {
   
 }
 
-function
-
-emailTest(value) {
+function emailTest(value) {
 //  console.log(value)
   return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,8})+$/.test(value);
 }
 
-function
-
-gen_password(len) {
+function gen_password(len) {
   var password = "";
   var symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!№;%:?*()_+=";
   for (var i = 0; i<len; i++) {
@@ -1015,9 +1012,7 @@ gen_password(len) {
 }
 
 
-function
-
-objIsEmpty(obj) {
+function objIsEmpty(obj) {
   for (let key in obj) {
     return false;
   }

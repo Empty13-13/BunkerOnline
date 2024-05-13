@@ -70,7 +70,7 @@ const data = reactive({
 })
 
 const isMyProfile = computed(() => {
-  return +myProfile.id===+data.id
+  return +myProfile.id=== +data.id
 })
 const getBlockButtonImg = computed(() => {
   if (data.isBlocked) {
@@ -250,7 +250,7 @@ async function saveProfileInfoHandler(e) {
 
 async function updateProfileInfo() {
   let userInfo = await actionsProfile.getUserInfo(+getId.value)
-  console.log('userInfo',userInfo)
+  console.log('userInfo', userInfo)
   if (!userInfo) {
     await router.push('/')
     // globalPopup.activate('Ошибка!', 'Данный пользователь не найден', 'red')
@@ -268,8 +268,17 @@ async function updateProfileInfo() {
   data.dateRegistration = new Date(userInfo.data.createdAt)
   data.avatar = userInfo.data.avatar
   data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
-  if (data.birthday.date && birthdayInput.value) {
-    birthdayInput.value.valueAsDate = data.birthday.date
+  if (data.birthday.date) {
+    if (data.birthday.date.toString()==='Invalid Date' && userInfo.data.birthday.split('.')) {
+      data.birthday.date = userInfo.data.birthday
+    }
+    else if (data.birthday.date) {
+      if (birthdayInput.value && typeof data.birthday.date!=='string') {
+        birthdayInput.value.valueAsDate = data.birthday.date
+      }
+      data.birthday.date = data.birthday.date.toLocaleDateString()
+    }
+
   }
   data.birthday.isHidden = userInfo.data.hiddenBirthday || false
   if (isHiddenBirthdayInput.value) {
@@ -456,12 +465,12 @@ function changeEmailHandler(e) {
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Дата регистрации {{ data.dateRegistration.toLocaleDateString() }}</span>
             </div>
-            <div v-if="!isMyProfile && !data.birthday.isHidden || (!isMyProfile && myProfile.isAdmin)"
+            <div v-if="!isMyProfile || (!isMyProfile && myProfile.isAdmin)"
                  class="middle-profileBlock__column">
               <span>Дата рождения:
-                    {{ data.birthday.date? data.birthday.date.toLocaleDateString():"Не установлено" }}
+                    {{ data.birthday.date? data.birthday.date:"Не установлено" }}
                     {{
-                  data.birthday.date? "(" + ((new Date()).getFullYear() - data.birthday.date.getFullYear()) + ")":""
+                  data.birthday.date && typeof data.birthday.date!=='string'? "(" + ((new Date()).getFullYear() - data.birthday.date.getFullYear()) + ")":""
                     }}
               </span>
             </div>

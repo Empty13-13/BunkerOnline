@@ -68,7 +68,7 @@ const features = {
   <div id="gamerInfo" class="gamerInfo">
     <div class="gamerInfo__container">
       <div class="gamerInfo__block linear-border white">
-        <h2 v-slide class="gamerInfo__title titleH2">
+        <h2 v-slide class="gamerInfo__title titleH2" style="cursor: pointer">
           Информация о
           <span>{{ nickname }}</span>
         </h2>
@@ -129,7 +129,7 @@ const features = {
                   <p class="item-gamerInfo__text">{{ data[itemsName[index - 1][1]].text }}</p>
                   <AppSmallInfo v-if="data[itemsName[index - 1][1]].description"
                                 :html="data[itemsName[index - 1][1]].description" />
-                  <button v-if="!data[itemsName[index-1][1]].isMVPRefresh && isReg" class="item-gamerInfo__reload">
+                  <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
                   <button v-if="!data[itemsName[index-1][1]].isOpen" class="item-gamerInfo__open">
@@ -155,7 +155,8 @@ const features = {
                   <p class="item-gamerInfo__text">{{ data[itemsName[index + 4][1]].text }}</p>
                   <AppSmallInfo v-if="data[itemsName[index + 4][1]].description"
                                 :text="data[itemsName[index + 4][1]].description" />
-                  <button v-if="!data[itemsName[index+4][1]].isMVPRefresh" class="item-gamerInfo__reload">
+<!--                  {{data[itemsName[index+4][1]]}}-->
+                  <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
                   <button v-if="!data[itemsName[index+4][1]].isOpen" class="item-gamerInfo__open">
@@ -198,7 +199,7 @@ const features = {
               </div>
               <div class="item-gamerInfo__description">
                 <p class="item-gamerInfo__text">{{ data[specItems[item - 1][1]].text }}</p>
-                <button v-if="!data[specItems[item - 1][1]].isMVPRefresh" class="item-gamerInfo__reload">
+                <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
                   <img src="/img/icons/reload.png" alt="">
                 </button>
                 <button v-if="!data[specItems[item - 1][1]].isOpen" class="item-gamerInfo__open">

@@ -343,6 +343,7 @@ onUnmounted(() => {
 
   selectedGame.clear()
   hostFunctional.clearData()
+  selectedGameData.clearData()
 })
 
 function getAccessStr(access) {
@@ -714,22 +715,32 @@ function createCustomGame() {
                 </div>
               </div>
               <div class="table-listGamer__row"
-                   v-for="(data,id,index) in selectedGameData.getActivePlayersFromUserData"
-                   :key="id"
-                   :class="[data.accessLevel,{dead:!data.isAlive}]"
+                   v-for="(data,index) in selectedGameData.getActivePlayersFromUserData"
+                   :key="index"
+                   :class="[data.data.accessLevel,{dead:!data.data.isAlive}]"
               >
                 <!--                Блок с профилем-->
-                <div class="table-listGamer__column profile-column" :class="data.accessLevel">
+                <div class="table-listGamer__column profile-column" :class="data.data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar v-model:href="data.avatar" class="profile-column__img" :color="data.accessLevel" />
+                  <AppAvatar v-if="data.id>0" class="profile-column__img"
+                             @click="router.push(`profile=${data.id}`)"
+                             v-model:href="data.data.avatar"
+                             :color="data.data.accessLevel"
+                             style="cursor: pointer"
+                  />
+                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
-                    <div class="texts-profile-column__nickname" :title="data.nickname">
-                      {{ data.nickname }}
+                    <div class="texts-profile-column__nickname"
+                         :title="data.data.nickname"
+                         @click="data.id>0?router.push(`profile=${data.id}`):null"
+                         :style="data.id>0?'cursor: pointer':''"
+                    >
+                      {{ data.data.nickname }}
                     </div>
-                    <div class="texts-profile-column__access">{{ getAccessStr(data.accessLevel) }}</div>
-                    <div v-if="!selectedGame.imWatcher" class="texts-profile-column__banish"
-                         :class="{dead:!data.isAlive}">
-                      {{ !data.isAlive? 'вернуть':'изгнать' }}
+                    <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
+                    <div v-if="!selectedGame.imWatcher && hostFunctional.haveAccess" class="texts-profile-column__banish"
+                         :class="{dead:!data.data.isAlive}">
+                      {{ !data.data.isAlive? 'вернуть':'изгнать' }}
                     </div>
                   </div>
                 </div>
@@ -862,7 +873,7 @@ function createCustomGame() {
           <h2 v-slide class="notes__title titleH2">Заметки</h2>
           <div slidebody>
             <div class="notes__body">
-              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea"
+              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea" maxlength="5500"
                         placeholder="Ваши заметки"></textarea>
               <div class="notes__textarea-warning">* После обновления страницы данные будут сохранены!</div>
             </div>
@@ -1791,6 +1802,7 @@ function createCustomGame() {
     font-size: 11px;
     color: $fontColor;
     margin-bottom: 15px;
+    resize: vertical;
 
     &::placeholder {
       color: #b7b7b7;
