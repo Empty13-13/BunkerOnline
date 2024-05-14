@@ -6,7 +6,7 @@ import AppButton from "@/components/AppButton.vue";
 import TheRoom from "@/components/TheRoom.vue";
 import TheList from "@/components/TheList.vue";
 import router from "@/router/index.js";
-import { onBeforeMount, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
+import { onBeforeMount, onBeforeUnmount, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import AppPopup from "@/components/AppPopup.vue";
 import TheResetPopup from "@/components/TheResetPopup.vue";
 import { useSelectedGame } from "@/stores/game.js";
@@ -71,7 +71,8 @@ onMounted(async () => {
   // await updateAllGames()
   setIntervalIfPageFocused()
 })
-onUnmounted(() => {
+onBeforeUnmount(() => {
+  console.log('Очищаем интервал, т.к. выходит из Home')
   clearInterval(updateInterval)
 })
 
@@ -81,14 +82,11 @@ watch(windowFocus, () => {
 
 function setIntervalIfPageFocused(){
   if(windowFocus.value) {
-    console.log('Ставим интервал')
     updateInterval = setInterval(async () => {
       console.log('Обновляем игры')
       await updateMyGames()
-      await updateAllGames()
     },30000)
   } else {
-    console.log('Убираем интервал')
     clearInterval(updateInterval)
   }
 }
@@ -112,22 +110,6 @@ async function updateMyGames() {
     console.log(e)
   } finally {
     loadingActiveGame.value = false
-    loadingAllGames.value = false
-  }
-}
-
-async function updateAllGames() {
-  try {
-    let data = await axiosInstance.post('/allGames')
-    loadingAllGames.value = true
-    activeGames.value = []
-    if(data) {
-      activeGames.value = activeGames.value.concat(data.data)
-    }
-
-  } catch(e) {
-    console.log(e)
-  } finally {
     loadingAllGames.value = false
   }
 }

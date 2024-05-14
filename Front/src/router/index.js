@@ -29,7 +29,7 @@ const router = createRouter({
     {
       path: '/game=:id',
       name: 'game',
-      component: Game
+      component: () => import('../views/Game.vue')
     },
     {
       path: '/login',
@@ -49,7 +49,7 @@ const router = createRouter({
     {
       path: '/wiki',
       name: 'wiki',
-      component: Wiki
+      component: () => import('../views/Wiki.vue')
     },
     {
       path: '/updates',

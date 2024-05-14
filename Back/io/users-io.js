@@ -185,7 +185,7 @@ module.exports = function(io) {
               
               let data = JSON.parse(player[chartName])
               let usePack = JSON.parse(player.usePack)
-              console.log(usePack,usePack[0],usePack.includes(1))
+              console.log(usePack, usePack[0], usePack.includes(1))
               data.isOpen = true
               player[chartName] = JSON.stringify(data)
               
@@ -231,36 +231,41 @@ module.exports = function(io) {
         if (isValidateId>0) {
           let user = await UserModel.User.findOne({where: {id: isValidateId}})
           if (user.accsessLevel.toString()==='mvp' || user.accsessLevel.toString()==='admin') {
-
             if (chartName) {
-
               let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-
               if (game && game.isStarted===1) {
                 let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
-                if (player[chartName]) {
-                  let data = await playerDataService.refreshChartMvp(player,chartName,game.id)
+                if (player[chartName] && player.isMVPRefresh!==1) {
+                  let data = await playerDataService.refreshChartMvp(player, chartName, game.id)
+                  player[chartName] = JSON.stringify(data)
+                  player.isMVPRefresh = 1
+                  await player.save()
 
-
+                  if (data.isOpen) {
+                    io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
+                  }
+                  else {
+                    socket.emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
+                  }
+                  
+                  socket.emit('refreshChartMVP:good', chartName)
                 }
                 else {
                   socket.emit("setError",
                     {
                       message: "Ошибка с данными",
-                      status: 601,
-                      functionName: 'openChart',
+                      status: 602,
+                      functionName: 'refreshChartMVP',
                       wrongData: {playerId: isValidateId, chartName: chartName}
                     })
-                  
                 }
-                
               }
               else {
                 socket.emit("setError",
                   {
                     message: "Игра не началась, либо комнаты не существует",
-                    status: 601,
-                    functionName: 'openChart',
+                    status: 602,
+                    functionName: 'refreshChartMVP',
                     wrongData: {playerId: isValidateId, chartName: chartName}
                   })
               }
@@ -269,22 +274,31 @@ module.exports = function(io) {
               socket.emit("setError",
                 {
                   message: "Ошибка с данными(Данные пустые)",
-                  status: 601,
-                  functionName: 'openChart',
+                  status: 602,
+                  functionName: 'refreshChartMVP',
                   wrongData: {playerId: isValidateId, chartName: chartName}
                 })
             }
-
           }
           else {
-            // Ошибка с доступом
+            socket.emit("setError",
+              {
+                message: "Ошибка с данными(Данные пустые)",
+                status: 602,
+                functionName: 'refreshChartMVP',
+                wrongData: {playerId: isValidateId, chartName: chartName}
+              })
           }
         }
         else {
-          // Ошибка незареган
+          socket.emit("setError",
+            {
+              message: "Acsess Denied",
+              status: 602,
+              functionName: 'refreshChartMVP',
+              wrongData: {playerId: isValidateId, chartName: chartName}
+            })
         }
-        
-
       })
       
       console.log(io.sockets.adapter.rooms)

@@ -52,13 +52,14 @@ class playerDataService {
   
   async refreshChartMvp(player, chartName, gameRoomId) {
     this.systemSettings = await this.getSystemSettingsData()
+    console.log(this.systemSettings)
     let data = JSON.parse(player[chartName])
     let usePack = JSON.parse(player.usePack)
     let dataPack = null
     
-    await this.collectAndSetDataForPlayerRefresh(usePack)
+    await this.collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName)
     data = await this.refreshDataPlayer(usePack, chartName, data, gameRoomId, player)
-    console.log(data)
+    return data
   }
   
   async createDataGame(idRoom, playersData) {
@@ -171,7 +172,7 @@ class playerDataService {
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -358,6 +359,17 @@ class playerDataService {
         }
       }
       else if (chartName==='profession') {
+        let datas = JSON.parse(user.sex).text
+        let newAge = parseInt(datas.match(/\d+/))
+        if (newAge) {
+          if (newAge>16) {
+            age = newAge
+          }
+          else {
+            age = 16
+          }
+        }
+        console.log(newAge, age)
         let profession = this.getRandomData(
           'profession',
           isUsedSystemAdvancePack, age)
@@ -814,19 +826,31 @@ class playerDataService {
     
   }
   
-  async collectAndSetDataForPlayerRefresh(usePack) {
+  async collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
-    if (!baseIdPack.includes(+this.systemSettings.baseIdPack)) {
-      this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'playerData')
+    let players = await UserModel.RoomSession.findAll(
+      {attributes: [`${chartName}`], where: {gameRoomId: gameRoomId, isPlayer: 1}})
+    let useChartId = []
+    for (let player of players) {
+      let data = JSON.parse(player[chartName])
+      if (data.id && data.id!==0) {
+        useChartId.push(data.id)
+        
+      }
+    }
+    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+      console.log(this.systemSettings.basePack)
+      this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName)
       //  console.log('Сделали системный пак')
     }
     
-    if (!advanceIdPack.includes(+this.systemSettings.advanceIdPack)) {
-      this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'playerData')
+    if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
+      this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName)
     }
-    this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
-    this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
-    let allPacks = [this.systemBasePack, this.systemAdvancePack, this.basePack, this.advancePack]
+    console.log(baseIdPack, advanceIdPack)
+    this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName)
+    this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
+    
     
   }
   
@@ -941,41 +965,43 @@ class playerDataService {
   }
   
   async getDataPackRefresh(dataPackId, useChartId, chartName) {
-    
+    console.log(useChartId)
+    console.log(dataPackId)
     if (chartName==='profession') {
       let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
         {attributes: ['professionId'], where: {chartPackId: dataPackId}})
       let dataProfessionIdPlayerData = []
       for (let chartId of professionIdPlayerData) {
-        
-        dataProfessionIdPlayerData.push(chartId.professionId)
+        if (!useChartId.includes(chartId.professionId)) {
+          dataProfessionIdPlayerData.push(chartId.professionId)
+        }
       }
-       let dataProfessionChartData = await UserModel.Profession.findAll({
-            attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-            where: {id: dataProfessionIdPlayerData}, raw: true
-          })
-    }
-    let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
-      {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
-    let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
-      {attributes: ['professionId'], where: {chartPackId: dataPackId}})
-    let dataProfessionIdPlayerData = []
-    let dataChartPlayerIdPlayerData = []
-    for (let chartId of chartPlayerIdPlayerData) {
+      let dataProfessionChartData = await UserModel.Profession.findAll({
+        attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+        where: {id: dataProfessionIdPlayerData}, raw: true
+      })
       
-      dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
-    }
-    for (let chartId of professionIdPlayerData) {
       
-      dataProfessionIdPlayerData.push(chartId.professionId)
+      return {professionData: dataProfessionChartData}
+      
     }
-    let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
-      {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
-    let dataProfessionChartData = await UserModel.Profession.findAll({
-      attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-      where: {id: dataProfessionIdPlayerData}, raw: true
-    })
-    return {chartPlayerData: dataPlayerChartData, professionData: dataProfessionChartData}
+    else {
+      let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
+        {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+      
+      
+      let dataChartPlayerIdPlayerData = []
+      for (let chartId of chartPlayerIdPlayerData) {
+        if (!useChartId.includes(chartId.chartPlayerId)) {
+          dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
+        }
+      }
+      
+      let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
+        {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
+      
+      return {chartPlayerData: dataPlayerChartData}
+    }
     
   }
   

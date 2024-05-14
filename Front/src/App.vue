@@ -71,7 +71,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
     <template v-slot:title>
       {{globalPopup.title}}
     </template>
-    <div v-html="globalPopup.text"></div>
+    <div v-html="globalPopup.text" style="text-align: center;"></div>
   </AppPopup>
 </template>
 
