@@ -194,19 +194,15 @@ class UserService {
     // let birthday = users.dataValues.birthday
     console.log('isBdayHidden',isBdayHidden)
     if (isBdayHidden && !isAdmin && !isUser) {
-      
-      //delete users.dataValues.birthday
-      let newData = new Date(0, users.dataValues.birthday.getMonth(), users.dataValues.birthday.getDate())
-      newData = newData.toLocaleString().split('.')
-      users.dataValues.birthday = newData[0] + '.' + newData[1]
-      //users.dataValues.birthday = users.dataValues.birthday.toISOString().substr(5, 10)
+      users.dataValues.birthday = `${users.dataValues.birthday.getDate().toString().padStart(2,'0')}.${(users.dataValues.birthday.getMonth()+1).toString().padStart(2,'0')}`
       console.log(users.dataValues.birthday)
-      
     }
     delete users.dataValues.activationLink
     delete users.dataValues.password
     delete users.dataValues.email
     delete users.dataValues.updatedAt
+    delete users.dataValues.isUsedSystemAdvancePack
+    delete users.dataValues.isUsedSystemBasePack
     
     return users
   }

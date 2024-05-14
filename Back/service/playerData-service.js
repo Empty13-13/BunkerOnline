@@ -940,9 +940,21 @@ class playerDataService {
     return hostPack
   }
   
-  async getDataPackRefresh(dataPackId, useChartId) {
+  async getDataPackRefresh(dataPackId, useChartId, chartName) {
     
-    
+    if (chartName==='profession') {
+      let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
+        {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+      let dataProfessionIdPlayerData = []
+      for (let chartId of professionIdPlayerData) {
+        
+        dataProfessionIdPlayerData.push(chartId.professionId)
+      }
+       let dataProfessionChartData = await UserModel.Profession.findAll({
+            attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+            where: {id: dataProfessionIdPlayerData}, raw: true
+          })
+    }
     let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
       {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
     let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
