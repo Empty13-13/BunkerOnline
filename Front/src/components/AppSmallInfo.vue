@@ -43,8 +43,6 @@ function mouseout() {
 }
 
 function showWindow(e) {
-  console.log((document.documentElement.offsetWidth - (e.x + img.value.offsetWidth)) - block.value.offsetWidth / 2)
-
   let left = e.x - block.value.offsetWidth / 2
   let right = (document.documentElement.offsetWidth - (e.x + img.value.offsetWidth)) - block.value.offsetWidth / 2
   let top = img.value.getBoundingClientRect().top - block.value.offsetHeight

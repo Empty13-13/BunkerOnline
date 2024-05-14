@@ -51,7 +51,6 @@ import TheFooter from "@/components/TheFooter.vue";
 import AppButton from "@/components/AppButton.vue";
 import AppUpButton from "@/components/AppUpButton.vue";
 import { computed, onBeforeMount, onMounted, onServerPrefetch, onUpdated, ref } from "vue";
-import AppLoader from "@/components/AppLoader.vue";
 import AppPreloader from "@/components/AppPreloader.vue";
 import { getId, getLinkParams, getLocalData } from "@/plugins/functions.js";
 import router from "@/router/index.js";

@@ -1,7 +1,11 @@
 <script setup="">
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
+import { useUserSocketStore } from "@/stores/socket/userSocket.js";
+import { useSelectedGameGameplay } from "@/stores/game.js";
+import AppLoader from "@/components/AppLoader.vue";
 
 let props = defineProps(['data', 'isReg', 'isCreate','nickname','id'])
+const selectedGameGameplay = useSelectedGameGameplay()
 
 const itemsName = [
   ['Пол', 'sex'],
@@ -62,6 +66,8 @@ const features = {
   backpack: {title: "Консервы", isReload: true, isLocked: true},
   addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
 }
+
+//========================================================================================================================================================
 </script>
 
 <template>
@@ -85,7 +91,7 @@ const features = {
                   <AppSmallInfo v-if="itemsName[index - 1].length>2" :html="itemsName[index - 1][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                <textarea :id="itemsName[index-1][1].toString()" maxlength="70" placeholder="Введите характеристику" type="text"
+                <textarea :id="itemsName[index-1][1].toString()" maxlength="300" placeholder="Введите характеристику" type="text"
                           class="item-gamerInfo__input"></textarea>
 <!--                  <button class="item-gamerInfo__open">-->
 <!--                    <img src="/img/icons/lock-closed.png" alt="">-->
@@ -129,10 +135,11 @@ const features = {
                   <p class="item-gamerInfo__text">{{ data[itemsName[index - 1][1]].text }}</p>
                   <AppSmallInfo v-if="data[itemsName[index - 1][1]].description"
                                 :html="data[itemsName[index - 1][1]].description" />
-                  <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
+                  <button v-if="data.isMVPRefresh===false" @click="selectedGameGameplay.mvpReload($event,itemsName[index - 1][1])" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
-                  <button v-if="!data[itemsName[index-1][1]].isOpen" class="item-gamerInfo__open">
+                  <AppLoader style="max-width: 20px; min-width: 20px; margin: 0 !important;" v-if="data[itemsName[index - 1][1]].isLoading"/>
+                  <button v-else-if="!data[itemsName[index-1][1]].isOpen" @click="selectedGameGameplay.openChart($event,itemsName[index - 1][1])" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
                   <button v-else class="item-gamerInfo__open">
@@ -156,10 +163,11 @@ const features = {
                   <AppSmallInfo v-if="data[itemsName[index + 4][1]].description"
                                 :text="data[itemsName[index + 4][1]].description" />
 <!--                  {{data[itemsName[index+4][1]]}}-->
-                  <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
+                  <button v-if="data.isMVPRefresh===false" @click="selectedGameGameplay.mvpReload($event,itemsName[index+4][1])" class="item-gamerInfo__reload">
                     <img src="/img/icons/reload.png" alt="">
                   </button>
-                  <button v-if="!data[itemsName[index+4][1]].isOpen" class="item-gamerInfo__open">
+                  <AppLoader style="max-width: 20px; min-width: 20px; margin: 0 !important;" v-if="data[itemsName[index+4][1]].isLoading"/>
+                  <button v-else-if="!data[itemsName[index+4][1]].isOpen" @click="selectedGameGameplay.openChart($event,itemsName[index+4][1])" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
                   <button v-else class="item-gamerInfo__open">
@@ -199,10 +207,11 @@ const features = {
               </div>
               <div class="item-gamerInfo__description">
                 <p class="item-gamerInfo__text">{{ data[specItems[item - 1][1]].text }}</p>
-                <button v-if="data.isMVPRefresh===false" class="item-gamerInfo__reload">
+                <button v-if="data.isMVPRefresh===false" @click="selectedGameGameplay.mvpReload($event,specItems[item - 1][1])" class="item-gamerInfo__reload">
                   <img src="/img/icons/reload.png" alt="">
                 </button>
-                <button v-if="!data[specItems[item - 1][1]].isOpen" class="item-gamerInfo__open">
+                <AppLoader style="max-width: 20px; min-width: 20px;  margin: 0 !important;" v-if="data[specItems[item - 1][1]].isLoading"/>
+                <button v-else-if="!data[specItems[item - 1][1]].isOpen" @click="selectedGameGameplay.openChart($event,specItems[item - 1][1])" class="item-gamerInfo__open">
                   <img src="/img/icons/lock-closed.png" alt="">
                 </button>
                 <button v-else class="item-gamerInfo__open">
@@ -411,7 +420,7 @@ const features = {
     max-width: 100%;
     min-width: 100px;
     min-height: 35px;
-    max-height: 60px;
+    max-height: 160px;
     //flex: 0 1 100%;
 
 

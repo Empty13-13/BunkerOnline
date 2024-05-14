@@ -49,7 +49,19 @@ class playerDataService {
     return systemData
   }
   
+  
  
+  
+  async refreshChartMvp(player, chartName, gameRoomId) {
+    this.systemSettings = await this.getSystemSettingsData()
+    let data = JSON.parse(player[chartName])
+    let usePack = JSON.parse(player.usePack)
+    let dataPack = null
+    
+    await this.collectAndSetDataForPlayerRefresh(usePack)
+    data = await this.refreshDataPlayer(usePack, chartName, data, gameRoomId, player)
+    console.log(data)
+  }
   
   async createDataGame(idRoom, playersData) {
     this.systemSettings = await this.getSystemSettingsData()
@@ -159,7 +171,7 @@ class playerDataService {
     
   }
   
-  async joinGameData(idRoom, playerId,isWatcher=false) {
+  async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
       attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
       where: {idRoom: idRoom},
@@ -191,7 +203,7 @@ class playerDataService {
     let players = {}
     let allPlayers = await UserModel.RoomSession.findAll({
       attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
-      where: {gameRoomId: gameRoom.id,isPlayer:1},
+      where: {gameRoomId: gameRoom.id, isPlayer: 1},
       raw: true
     })
     
@@ -269,6 +281,113 @@ class playerDataService {
     
   }
   
+  async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
+    let isUsedSystemAdvancePack = false
+    if (usePack.includes(this.systemSettings.advancePack)) {
+      isUsedSystemAdvancePack = true
+    }
+    
+    let players = await UserModel.RoomSession.findAll(
+      {attributes: [chartName], where: {gameRoomId: gameRoomId, isPlayer: 1}})
+    if (chartName==='sex') {
+      for (let player of players) {
+        let playerData = JSON.parse(player[chartName])
+        if (playerData.text.includes('чайлдфри')) {
+          this.childFreeCount += 1
+          
+          
+        }
+      }
+    }
+    if (chartName==='health') {
+      for (let player of players) {
+        let playerData = JSON.parse(player[chartName])
+        if (playerData.text.includes('Идеально здоров')) {
+          this.perfectHealthCount += 1
+          
+        }
+      }
+    }
+    let age = 41
+    let isGood = false
+    while (!isGood) {
+
+      if (chartName==='sex') {
+        let age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
+        let sex = !!this.getRandomInt(0, 1)
+        let maleSexText = ['Мужчина', '(Молодой)']
+        let femaleSexText = ['Женщина', '(Молодая)']
+        if (age>=36 && age<=59) {
+          maleSexText[1] = '(Взрослый)'
+          femaleSexText[1] = '(Взрослая)'
+        }
+        else if (age>=60) {
+          maleSexText[1] = '(Пожилой)'
+          femaleSexText[1] = '(Пожилая)'
+        }
+        sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
+          age)} ${sex? maleSexText[1]:femaleSexText[1]}`
+        
+        if (!((this.childFreeCount + 1) / 6 * 100>25) &&
+          this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
+          sex += ' | чайлдфри'
+          this.childFreeCount += 1
+        }
+        if (sex!==data.text) {
+          isGood = true
+          data.text = sex
+
+        }
+      }
+      else if (chartName==='health') {
+
+        let health = null
+        
+        if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
+          100)<=this.systemSettings.perfectHealthPercentage) {
+          health = {id: 0, text: 'Идеально здоров', isOpen: false}
+          this.perfectHealthCount += 1
+        }
+        else {
+          health = this.getRandomData('health', isUsedSystemAdvancePack)
+        }
+
+        if (health!==data.text) {
+          isGood = true
+          data.text = health.text
+          data.id = health.id
+
+        }
+      }
+      else if (chartName==='profession') {
+        let profession = this.getRandomData(
+          'profession',
+          isUsedSystemAdvancePack, age)
+        if (profession.text!==data.text) {
+          isGood = true
+          data.text = profession.text
+          data.id = profession.id
+          data.description = profession.description
+
+        }
+      }
+      else {
+
+        let newChart = this.getRandomData(chartName, isUsedSystemAdvancePack)
+        //console.log(newChart)
+        if (newChart.text!==data.text) {
+          isGood = true
+          data.text = newChart.text
+          data.id = newChart.id
+
+        }
+      }
+      
+    }
+    return data
+    
+  }
+  
   async createDataPlayer(usePackIds, playerId, gameRoomId, playerData) {
     let isUsedSystemAdvancePack = false
     if (usePackIds.includes(this.systemSettings.advancePack)) {
@@ -333,7 +452,7 @@ class playerDataService {
     else {
       health = {id: 0, text: health, isOpen: false}
     }
-    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobby', isUsedSystemAdvancePack)
+    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack)
     
     
     phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack)
@@ -502,7 +621,7 @@ class playerDataService {
           result = nameArray[index]
           delete result.name
           result.isOpen = false
-          if(name!=='health'){
+          if (name!=='health') {
             delete result.dontAddLevelInfo
           }
           index = this.usedPack.chartPlayerData.indexOf(nameArray[index])
@@ -518,15 +637,15 @@ class playerDataService {
           this.systemSettings.maxHeight)} см.)`
         break;
       case 'health':
-        if (result.text!=='Идеально здоров'&& result.dontAddLevelInfo===0) {
-
-
+        if (result.text!=='Идеально здоров' && result.dontAddLevelInfo===0) {
+          
+          
           const diseaseLevels = ['Легкая степень', 'Средняя степень', 'Тяжелая степень', 'Критическая степень']
           result.text += ` (${diseaseLevels[this.getRandomInt(0, diseaseLevels.length - 1)]})`
         }
         delete result.dontAddLevelInfo
         break;
-      case 'hobby':
+      case 'hobbies':
         const hobbyLevels = ['Дилетант', 'Новичок', 'Любитель', 'Продвинутый', 'Мастер (гуру)']
         result.text += ` (${hobbyLevels[this.getRandomInt(0, hobbyLevels.length - 1)]})`
         break;
@@ -697,6 +816,22 @@ class playerDataService {
     
   }
   
+  async collectAndSetDataForPlayerRefresh(usePack) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
+    if (!baseIdPack.includes(+this.systemSettings.baseIdPack)) {
+      this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'playerData')
+      //  console.log('Сделали системный пак')
+    }
+    
+    if (!advanceIdPack.includes(+this.systemSettings.advanceIdPack)) {
+      this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'playerData')
+    }
+    this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
+    this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
+    let allPacks = [this.systemBasePack, this.systemAdvancePack, this.basePack, this.advancePack]
+
+  }
+  
   async collectAndSetDataForPlayer(hostPack, players) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
     // console.log('//////////////////')
@@ -822,7 +957,7 @@ class playerDataService {
           dataPlayer.push(chartId.chartPlayerId)
         }
         let dataPlayerChart = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text'], where: {id: dataPlayer}})
+          {attributes: ['id', 'name', 'text'], where: {id: dataPlayer}, raw: true})
         //  console.log(dataPlayer)
         return dataPlayerChart
       case 'bunker':
@@ -846,7 +981,8 @@ class playerDataService {
         }
         let dataProfessionChart = await UserModel.Profession.findAll({
           attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-          where: {id: dataProfession}
+          where: {id: dataProfession},
+          raw: true
         })
         return dataProfessionChart
       case 'playerData' :
@@ -901,7 +1037,7 @@ class playerDataService {
           dataProfessionId.push(chartId.professionId)
         }
         let chartPlayerData = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text','dontAddLevelInfo'], where: {id: dataChartPlayerId}, raw: true})
+          {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataChartPlayerId}, raw: true})
         let professionData = await UserModel.Profession.findAll({
           attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
           where: {id: dataProfessionId}, raw: true
@@ -927,21 +1063,21 @@ class playerDataService {
   }
   
   async setStatisticGame(idRoom) {
-    let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
-    if(diffMinute>20){
-      let players = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1}})
-      for(let player of players){
-        if(player.userId>0){
-          let user = await UserModel.User.findOne({where:{id:player.userId}})
+    if (diffMinute>20) {
+      let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+      for (let player of players) {
+        if (player.userId>0) {
+          let user = await UserModel.User.findOne({where: {id: player.userId}})
           user.numGame++
-          if(player.isAlive){
+          if (player.isAlive) {
             user.numWinGame++
           }
           await user.save()
         }
       }
-    
+      
     }
   }
   

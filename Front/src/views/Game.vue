@@ -423,7 +423,7 @@ function startGame(e) {
       console.log(allData)
       if (!objIsEmpty(allData)) {
         hostSocket.emit('startGame', allData)
-        // selectedGame.isCreateCustomGame=false
+        await router.push({top: 0})
       }
       else {
         globalPopup.activate('Ошибка', 'Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
@@ -749,9 +749,9 @@ function createCustomGame() {
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  {{ selectedGameData.getCharForPlayer(id, item[1]) }}
-                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])"
-                                :text="selectedGameData.getDescriptionForChar(id,item[1])" />
+                  {{ selectedGameData.getCharForPlayer(data.id,item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
+                                :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
               </div>
             </div>
@@ -842,9 +842,18 @@ function createCustomGame() {
                 <!--Блок с профилем-->
                 <div class="table-listGamer__column profile-column" :class="data.data.accessLevel">
                   <div class="profile-column__num">{{ index + 1 }}</div>
-                  <AppAvatar v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
+                  <AppAvatar v-if="data.id>0" class="profile-column__img"
+                             @click="router.push(`profile=${data.id}`)"
+                             v-model:href="data.data.avatar"
+                             :color="data.data.accessLevel"
+                             style="cursor: pointer"
+                  />
+                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
-                    <div class="texts-profile-column__nickname" :title="data.data.nickname">
+                    <div class="texts-profile-column__nickname"
+                         :title="data.data.nickname"
+                         @click="data.id>0?router.push(`profile=${data.id}`):null"
+                         :style="data.id>0?'cursor: pointer':''">
                       {{ data.data.nickname }}
                     </div>
                     <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
@@ -857,9 +866,9 @@ function createCustomGame() {
                     :key="item[1]"
                     class="table-listGamer__column"
                 >
-                  {{ selectedGameData.getCharForPlayer(id, item[1]) }}
-                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(id,item[1])"
-                                :text="selectedGameData.getDescriptionForChar(id,item[1])" />
+                  {{ selectedGameData.getCharForPlayer(data.id, item[1]) }}
+                  <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
+                                :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
               </div>
             </div>

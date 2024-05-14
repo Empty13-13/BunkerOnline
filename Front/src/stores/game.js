@@ -5,6 +5,8 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import { isObject } from "@vueuse/core";
 import { objIsEmpty } from "@/plugins/functions.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
+import { useUserSocketStore } from "@/stores/socket/userSocket.js";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -80,7 +82,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
     if (data.hasOwnProperty('isAgeRestriction') && data.isAgeRestriction) {
       globalPopup.activate('Внимание',
-        'В данной игре присутсвуют паки 18+. Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет','red')
+        'В данной игре присутсвуют паки 18+. Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет', 'red')
     }
   }
   
@@ -166,9 +168,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getActivePlayersFromUserData = computed(() => {
     let resultArr = []
-    for(let id in userData.value) {
-      if(!!userData.value[id].isPlayer) {
-        resultArr.push({id,data:userData.value[id]})
+    for (let id in userData.value) {
+      if (!!userData.value[id].isPlayer) {
+        resultArr.push({id, data: userData.value[id]})
       }
     }
     return resultArr
@@ -184,18 +186,35 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       }
     }
     if (data.hasOwnProperty('players')) {
-      for (let key in data.players) {
-        playersData.value[key] = data.players[key]
+      for (let playerId in data.players) {
+        playersData.value[playerId] = playersData.value[playerId] || {}
+        for (let chartName in data.players[playerId]) {
+          playersData.value[playerId][chartName] = playersData.value[playerId][chartName] || {}
+          if(objIsEmpty(data.players[playerId][chartName])) {
+            playersData.value[playerId][chartName] = data.players[playerId][chartName]
+            continue
+          }
+          for (let key in data.players[playerId][chartName]) {
+            playersData.value[playerId][chartName][key] = data.players[playerId][chartName][key]
+          }
+        }
       }
     }
     if (data.hasOwnProperty('userData')) {
-      for (let key in data.userData) {
-        userData.value[key] = data.userData[key]
+      for (let userId in data.userData) {
+        userData.value[userId] = userData.value[userId] || {}
+        for (let key in data.userData[userId]) {
+          userData.value[userId][key] = data.userData[userId][key]
+        }
       }
     }
   }
   
+  
   function getCharForPlayer(id, item) {
+    if (!id || !item) {
+      return
+    }
     if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen) {
       return playersData.value[id][item].text
     }
@@ -205,7 +224,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   }
   
   function getDescriptionForChar(id, item) {
-    if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen && playersData.value[id][item].description) {
+    if (!id || !item) {
+      return
+    }
+    if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].isOpen && playersData.value[id][item].description) {
       return playersData.value[id][item].description
     }
     else {
@@ -226,7 +248,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       imageName: "",
       maxSurvivor: 0
     }
-    playersData.value ={}
+    playersData.value = {}
     userData.value = {}
   }
   
@@ -242,5 +264,37 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     getCharForPlayer,
     getDescriptionForChar,
     clearData,
+  }
+})
+
+export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () => {
+  const selectedGameData = useSelectedGameData()
+  const userSocket = useUserSocketStore()
+  
+  function openChart(el, charName) {
+    showConfirmBlock(el.target, () => {
+      selectedGameData.getMyPlayerData[charName].isLoading = true
+      userSocket.emit('openChart', charName)
+      userSocket.on('openChart:good', (chartName) => {
+        selectedGameData.getMyPlayerData[chartName].isLoading = false;
+        userSocket.removeListener('openChart:good')
+      })
+    }, 'Открыть характеристику для всех игроков?')
+  }
+  
+  function mvpReload(event,charName) {
+    showConfirmBlock(event.target, () => {
+      selectedGameData.getMyPlayerData.isMVPRefreshLoading = true
+      userSocket.emit('refreshChartMVP', charName)
+      userSocket.on('refreshChartMVP:good', (chartName) => {
+        selectedGameData.getMyPlayerData.isMVPRefreshLoading = false;
+        userSocket.removeListener('refreshChartMVP:good')
+      })
+    }, 'Вы уверены что хотите поменять характеристику?')
+  }
+  
+  return {
+    openChart,
+    mvpReload
   }
 })

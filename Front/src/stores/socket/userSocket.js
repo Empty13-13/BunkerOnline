@@ -144,11 +144,21 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.emit(funcName,...args)
   }
   
+  function on(funcName,functionStr) {
+    userSocket.on(funcName,functionStr)
+  }
+  
+  function removeListener(funcName){
+    userSocket.removeListener(funcName)
+  }
+  
   return {
     connected,
     bindEvents,
     connect,
     close,
-    emit
+    emit,
+    on,
+    removeListener,
   }
 })

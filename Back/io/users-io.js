@@ -11,121 +11,82 @@ const playerDataService = require('../service/playerData-service')
 
 module.exports = function(io) {
   io.on('connection', async socket => {
-    let data = await ioUserService.validateToken(socket)
-    let isValidateId = null
-    let idRoom = null
-    let watchersCount = 0
-    if (data) {
-      isValidateId = data.isValidateId
-      idRoom = data.idRoom
-    }
-    if (!isValidateId || !idRoom) {
-      socket.emit("setError",
-        {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
-      return
-    }
-
-    socket.join(`user:${isValidateId}`)
-    
-    
-    console.log(`${socket.id} user connected with userId ${isValidateId}`)
-    socket.on('createRoom', async () => {
-      // let isReg = false
-      
-      let isRooms = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      // console.log(idRoom, isRooms)
-      if (isRooms) {
+      let data = await ioUserService.validateToken(socket)
+      let isValidateId = null
+      let idRoom = null
+      let watchersCount = 0
+      if (data) {
+        isValidateId = data.isValidateId
+        idRoom = data.idRoom
+      }
+      if (!isValidateId || !idRoom) {
         socket.emit("setError",
-          {
-            message: `Произошла ошибка - комната с таким ID уже существует. Попробуйте ещё раз`,
-            status: 400,
-            functionName: 'createRoom'
-          })
-        io.in(socket.id).disconnectSockets(true);
-        console.log('inValid idRoom')
+          {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
         return
       }
-      let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId})
       
-      await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
+      socket.join(`user:${isValidateId}`)
       
       
-      //Если ни одной ошибки не словило, значит в любом случае добавляем его в комнату
-      socket.join(idRoom)
-      
-      //Сообщаем client что комната создалась успешно
-      socket.emit('joinedRoom', {message: 'Комната успешно создана', status: 201})
-      
-      // console.log(io.sockets.adapter.rooms)
-    })
+      console.log(`${socket.id} user connected with userId ${isValidateId}`)
+      socket.on('createRoom', async () => {
+        // let isReg = false
+        
+        let isRooms = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        // console.log(idRoom, isRooms)
+        if (isRooms) {
+          socket.emit("setError",
+            {
+              message: `Произошла ошибка - комната с таким ID уже существует. Попробуйте ещё раз`,
+              status: 400,
+              functionName: 'createRoom'
+            })
+          io.in(socket.id).disconnectSockets(true);
+          console.log('inValid idRoom')
+          return
+        }
+        let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId})
+        
+        await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
+        
+        
+        //Если ни одной ошибки не словило, значит в любом случае добавляем его в комнату
+        socket.join(idRoom)
+        
+        //Сообщаем client что комната создалась успешно
+        socket.emit('joinedRoom', {message: 'Комната успешно создана', status: 201})
+        
+        // console.log(io.sockets.adapter.rooms)
+      })
 //========================================================================================================================================================
-    socket.on('joinRoom', async () => {
-      //await changeNoregIdToRegId(socket)
-      let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
-      if (!GameData) {
-        return
-      }
-      
-      if (GameData.isStarted) {
-       
-        // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',data)
-        
-        /*
-         Если игра началась, то в любом случае подключаем пользователя. Либо как игрока, если он
-         был до этого в игре (и тогда обновляем всем находящимся в игре данные, чтобы подгрузить нужную
-         инфу о снова присоединившемся пользователе)
-         Либо как смотрящего, тогда просто даем этому смотрящему общую инфу.
-         
-         В любом случае функция getAllGameData будет принимать токены и с помощью них смотреть какую конкретно
-         инфу нужно выдать пользователю
-         */
-        
-        ioUserService.joinRoomAndWatchTimer(socket, idRoom)
-        
-        if (GameData.isPlayingBefore) {
-          let data = await playerDataService.joinGameData(idRoom, isValidateId)
-          socket.emit('updateInitialInfo')
-          socket.emit('startedGame')
-          socket.emit('setAllGameData', data)
+      socket.on('joinRoom', async () => {
+        //await changeNoregIdToRegId(socket)
+        let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
+        if (!GameData) {
+          return
         }
-        else {
-          if (GameData.isHidden) {
-            socket.emit("setError",
-              {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-            io.in(socket.id).disconnectSockets(true);
-            return
-          }
-          let data = await playerDataService.joinGameData(idRoom, isValidateId, true)
-          socket.join(`watchers:${idRoom}`)
-          socket.emit('sendMessage',
-            //`Игра уже началась. На данный момент вы являетесь наблюдателем`
-            {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
-          socket.emit('startedGame')
-          GameData.watchersCount += 1
-          watchersCount = GameData.watchersCount
-          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
-          // delete GameData.hostId
-          socket.emit('setAwaitRoomData', GameData)
-          socket.emit('setAllGameData', data)
-        }
-      }
-      else {
-        if (GameData) {
+        
+        if (GameData.isStarted) {
+          
+          // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',data)
+          
+          /*
+           Если игра началась, то в любом случае подключаем пользователя. Либо как игрока, если он
+           был до этого в игре (и тогда обновляем всем находящимся в игре данные, чтобы подгрузить нужную
+           инфу о снова присоединившемся пользователе)
+           Либо как смотрящего, тогда просто даем этому смотрящему общую инфу.
+           
+           В любом случае функция getAllGameData будет принимать токены и с помощью них смотреть какую конкретно
+           инфу нужно выдать пользователю
+           */
+          
           ioUserService.joinRoomAndWatchTimer(socket, idRoom)
           
           if (GameData.isPlayingBefore) {
-            socket.join(idRoom)
-            socket.emit('setAwaitRoomData', GameData)
-            // socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
-          }
-          else if (GameData.countPlayers<15) {
-            let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-            await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
-            GameData.players.push(await ioUserService.getIdAndNicknameFromUser(isValidateId))
-            
-            socket.join(idRoom)
-            socket.to(idRoom).emit('setAwaitRoomData', {players: GameData.players})
-            socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
+            let data = await playerDataService.joinGameData(idRoom, isValidateId)
+            socket.emit('updateInitialInfo')
+            socket.emit('startedGame')
+            socket.emit('setAllGameData', data)
           }
           else {
             if (GameData.isHidden) {
@@ -134,49 +95,202 @@ module.exports = function(io) {
               io.in(socket.id).disconnectSockets(true);
               return
             }
+            let data = await playerDataService.joinGameData(idRoom, isValidateId, true)
             socket.join(`watchers:${idRoom}`)
-            socket.emit('setError',
-              {message: "Комната заполнена. Вы являетесь наблюдателем.", status: 409, color: 'gold'})
+            socket.emit('sendMessage',
+              //`Игра уже началась. На данный момент вы являетесь наблюдателем`
+              {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
+            socket.emit('startedGame')
             GameData.watchersCount += 1
             watchersCount = GameData.watchersCount
             socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
+            // delete GameData.hostId
             socket.emit('setAwaitRoomData', GameData)
+            socket.emit('setAllGameData', data)
+          }
+        }
+        else {
+          if (GameData) {
+            ioUserService.joinRoomAndWatchTimer(socket, idRoom)
+            
+            if (GameData.isPlayingBefore) {
+              socket.join(idRoom)
+              socket.emit('setAwaitRoomData', GameData)
+              // socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
+            }
+            else if (GameData.countPlayers<15) {
+              let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+              await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
+              GameData.players.push(await ioUserService.getIdAndNicknameFromUser(isValidateId))
+              
+              socket.join(idRoom)
+              socket.to(idRoom).emit('setAwaitRoomData', {players: GameData.players})
+              socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
+            }
+            else {
+              if (GameData.isHidden) {
+                socket.emit("setError",
+                  {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+                io.in(socket.id).disconnectSockets(true);
+                return
+              }
+              socket.join(`watchers:${idRoom}`)
+              socket.emit('setError',
+                {message: "Комната заполнена. Вы являетесь наблюдателем.", status: 409, color: 'gold'})
+              GameData.watchersCount += 1
+              watchersCount = GameData.watchersCount
+              socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
+              socket.emit('setAwaitRoomData', GameData)
+            }
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: "Комната создана, но данные пока что не загружены. Попробуйте попозже",
+                status: 406,
+                functionName: 'joinRoom'
+              })
+            
+            io.in(socket.id).disconnectSockets(true);
+          }
+        }
+      })
+      
+      socket.on('getAwaitRoomData', async () => {
+        let data = null
+        
+        data = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
+        
+        socket.emit('setAwaitRoomData', data)
+      })
+      
+      socket.on('disconnecting', (reason) => {
+        ioUserService.disconnectAndSetTimer(io, socket, idRoom)
+        watchersCount -= 1
+        io.in(idRoom).emit('setAwaitRoomData', {watchersCount})
+      })
+      
+      socket.on('disconnect', (reason, details) => {
+        io.in(idRoom)
+      })
+      socket.on('openChart', async (chartName) => {
+        
+        if (chartName) {
+          
+          let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+          
+          if (game && game.isStarted===1) {
+            let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
+            if (player[chartName]) {
+              
+              let data = JSON.parse(player[chartName])
+              let usePack = JSON.parse(player.usePack)
+              console.log(usePack,usePack[0],usePack.includes(1))
+              data.isOpen = true
+              player[chartName] = JSON.stringify(data)
+              
+              await player.save()
+              socket.emit('openChart:good', chartName)
+              io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: "Ошибка с данными",
+                  status: 601,
+                  functionName: 'openChart',
+                  wrongData: {playerId: isValidateId, chartName: chartName}
+                })
+              
+            }
+            
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: "Игра не началась, либо комнаты не существует",
+                status: 601,
+                functionName: 'openChart',
+                wrongData: {playerId: isValidateId, chartName: chartName}
+              })
           }
         }
         else {
           socket.emit("setError",
             {
-              message: "Комната создана, но данные пока что не загружены. Попробуйте попозже",
-              status: 406,
-              functionName: 'joinRoom'
+              message: "Ошибка с данными(Данные пустые)",
+              status: 601,
+              functionName: 'openChart',
+              wrongData: {playerId: isValidateId, chartName: chartName}
             })
-          
-          io.in(socket.id).disconnectSockets(true);
         }
-      }
-    })
-    
-    socket.on('getAwaitRoomData', async () => {
-      let data = null
+        
+        
+      })
+      socket.on('refreshChartMVP', async (chartName) => {
+        if (isValidateId>0) {
+          let user = await UserModel.User.findOne({where: {id: isValidateId}})
+          if (user.accsessLevel.toString()==='mvp' || user.accsessLevel.toString()==='admin') {
+
+            if (chartName) {
+
+              let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+
+              if (game && game.isStarted===1) {
+                let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
+                if (player[chartName]) {
+                  let data = await playerDataService.refreshChartMvp(player,chartName,game.id)
+
+
+                }
+                else {
+                  socket.emit("setError",
+                    {
+                      message: "Ошибка с данными",
+                      status: 601,
+                      functionName: 'openChart',
+                      wrongData: {playerId: isValidateId, chartName: chartName}
+                    })
+                  
+                }
+                
+              }
+              else {
+                socket.emit("setError",
+                  {
+                    message: "Игра не началась, либо комнаты не существует",
+                    status: 601,
+                    functionName: 'openChart',
+                    wrongData: {playerId: isValidateId, chartName: chartName}
+                  })
+              }
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: "Ошибка с данными(Данные пустые)",
+                  status: 601,
+                  functionName: 'openChart',
+                  wrongData: {playerId: isValidateId, chartName: chartName}
+                })
+            }
+
+          }
+          else {
+            // Ошибка с доступом
+          }
+        }
+        else {
+          // Ошибка незареган
+        }
+        
+
+      })
       
-      data = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
-      
-      socket.emit('setAwaitRoomData', data)
-    })
-    
-    socket.on('disconnecting', (reason) => {
-      ioUserService.disconnectAndSetTimer(io, socket, idRoom)
-      watchersCount -= 1
-      io.in(idRoom).emit('setAwaitRoomData', {watchersCount})
-    })
-    
-    socket.on('disconnect', (reason, details) => {
-      io.in(idRoom)
-    })
-    
-    
-    console.log(io.sockets.adapter.rooms)
-  })
+      console.log(io.sockets.adapter.rooms)
+    }
+  )
+  
 }
 
 // {idRoom,step, userId, funcName, lastVar, newVar }
@@ -319,14 +433,14 @@ module.exports = function(io) {
  players:{
  //Данные для пользователя, который запрашивает их
  8:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:false},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:false},...}
-
+ 
  //Данные других пользователей (ещё не открытые характеристики просто не отправляешь здесь}
  -12:{sex:{text:'Мужчина 74 год (Пожилой)',isOpen:true},body:{text:'Хрупкое (Рост: 179 см.)',isOpen:true},...}
  }
  }
  
  }
-
+ 
  //////////////////////////////////////
  //
  function getRandomData(pack1,priorityPack1,priorityPack2,name) {
@@ -345,12 +459,12 @@ module.exports = function(io) {
  let index=getRandomInt(0,nameArray.length-1)
  resultText = nameArray[index]
  index = usedPack.playerData.indexOf(nameArray[index])
-
+ 
  usedPack.playerData[name].splice(index,1) //Удаляем элемент который взяли (надо загуглить как правильно удалить)
  }
  }
  }
-
+ 
  //Ниже идут доп проверки для name
  switch(name){
  case 'body':
@@ -370,10 +484,10 @@ module.exports = function(io) {
  профессию которую нужно, и только потом дописывать через рандом стаж
  break;
  }
-
+ 
  return resultText
  }
-
+ 
  function getRandomPack(pack1,priorityPack1,priorityPack2){
  if(getRandomInt(0,100)<=40) {
  return pack1
@@ -396,7 +510,7 @@ module.exports = function(io) {
  
  ////////////////////////////////
  Функция которая в зависимости от числа отдает "год" "года" или "лет"
-
+ 
  function getAgeText(age) {
  var txt;
  count = age % 100;

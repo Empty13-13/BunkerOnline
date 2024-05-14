@@ -46,272 +46,190 @@ module.exports = function(io) {
   })
   
   host.on('connection', async socket => {
-    let idRoom = socket.data.idRoom
-    let userId = socket.data.userId
-    let token = socket.handshake.auth.token
-    const gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    if (!gameRoom) {
-      socket.emit("setError",
-        {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-      return
-    }
-    const gameRoomId = gameRoom.id
-    let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
-    console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
-    socket.on('closeRoom', async () => {
-      await ioUserService.deleteRoomFromDB(idRoom)
-      
-      console.log('RoomClose делаем')
-      io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
-      io.in(idRoom).disconnectSockets(true);
-    })
-    socket.on('kickOutUser', async (Id) => {
-      // console.log(`id`, Id, `userId`, userId)
-      if (Id.toString()===userId.toString()) {
-        // console.log('SDJFHJKDHFKSDKLFHSDJLKFHSDKLJFHSDLKJFHSDJKLFHSDLKJFSDJKLHLKJDSHFKJLSHFLKJ')
+      let idRoom = socket.data.idRoom
+      let userId = socket.data.userId
+      let token = socket.handshake.auth.token
+      const gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+      if (!gameRoom) {
         socket.emit("setError",
-          {
-            message: `Вы не можете выгнать себя`,
-            status: 400,
-            functionName: 'kickOutUser'
-          })
+          {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
         return
       }
-      if (gameRoom.isStarted) {
-        socket.emit("setError",
-          {
-            message: `Игра уже началась, вы не можете выгнать игрока`,
-            status: 400,
-            functionName: 'kickOutUser'
-          })
-        console.log('Игра уже началась, невозможно выгнать')
-        return
-      }
-      console.log(`Delete Users ${Id}`)
-      console.log(gameRoomId)
-      await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
-      io.to(`user:${Id}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
-      io.to(`user:${Id}`).disconnectSockets(true)
-      io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
-    })
-    socket.on('isHiddenGame', async (isHiddenTrack) => {
-      console.log('TRY ISHIDDENGAME')
-      if (token) {
-        let isValid = tokenService.validateAccessToken(token)
-        if (!isValid) {
+      const gameRoomId = gameRoom.id
+      let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
+      console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
+      socket.on('closeRoom', async () => {
+        await ioUserService.deleteRoomFromDB(idRoom)
+        
+        console.log('RoomClose делаем')
+        io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
+        io.in(idRoom).disconnectSockets(true);
+      })
+      socket.on('kickOutUser', async (Id) => {
+        // console.log(`id`, Id, `userId`, userId)
+        if (Id.toString()===userId.toString()) {
+          // console.log('SDJFHJKDHFKSDKLFHSDJLKFHSDKLJFHSDLKJFHSDJKLFHSDLKJFSDJKLHLKJDSHFKJLSHFLKJ')
           socket.emit("setError",
             {
-              message: `Invalid access`,
-              status: 403,
-              functionName: 'isHiddenGame',
-              vars: [isHiddenTrack]
+              message: `Вы не можете выгнать себя`,
+              status: 400,
+              functionName: 'kickOutUser'
             })
-          console.log("INVALID TOKEN EPTA")
           return
         }
-        
-        let userData = await UserModel.User.findOne({where: {id: isValid.id}})
-        
-        console.log('PRIVATE GAME')
-        // console.log(userData && userData.accsessLevel.toString().toLowerCase()==="mvp" && userData.accsessLevel.toString().toLowerCase()==="admin")
-        if (userData && (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin")) {
-          // console.log('PRIVATE GAME MVP',userData)
-          let isHidden = 0
-          if (isHiddenTrack) {
-            isHidden = 1
-          }
-          let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-          if (!room) {
+        if (gameRoom.isStarted) {
+          socket.emit("setError",
+            {
+              message: `Игра уже началась, вы не можете выгнать игрока`,
+              status: 400,
+              functionName: 'kickOutUser'
+            })
+          console.log('Игра уже началась, невозможно выгнать')
+          return
+        }
+        console.log(`Delete Users ${Id}`)
+        console.log(gameRoomId)
+        await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
+        io.to(`user:${Id}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
+        io.to(`user:${Id}`).disconnectSockets(true)
+        io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
+      })
+      socket.on('isHiddenGame', async (isHiddenTrack) => {
+        console.log('TRY ISHIDDENGAME')
+        if (token) {
+          let isValid = tokenService.validateAccessToken(token)
+          if (!isValid) {
             socket.emit("setError",
               {
-                message: `Invalid room`,
-                status: 400,
-                functionName: 'isHiddenGame'
+                message: `Invalid access`,
+                status: 403,
+                functionName: 'isHiddenGame',
+                vars: [isHiddenTrack]
+              })
+            console.log("INVALID TOKEN EPTA")
+            return
+          }
+          
+          let userData = await UserModel.User.findOne({where: {id: isValid.id}})
+          
+          console.log('PRIVATE GAME')
+          // console.log(userData && userData.accsessLevel.toString().toLowerCase()==="mvp" && userData.accsessLevel.toString().toLowerCase()==="admin")
+          if (userData && (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin")) {
+            // console.log('PRIVATE GAME MVP',userData)
+            let isHidden = 0
+            if (isHiddenTrack) {
+              isHidden = 1
+            }
+            let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+            if (!room) {
+              socket.emit("setError",
+                {
+                  message: `Invalid room`,
+                  status: 400,
+                  functionName: 'isHiddenGame'
+                })
+            }
+            room.isHidden = isHidden
+            await room.save()
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: `Invalid access`,
+                status: 403,
+                functionName: 'isHiddenGame',
+                vars: [isHiddenTrack]
               })
           }
-          room.isHidden = isHidden
-          await room.save()
         }
         else {
           socket.emit("setError",
             {
               message: `Invalid access`,
-              status: 403,
-              functionName: 'isHiddenGame',
-              vars: [isHiddenTrack]
+              status: 400,
+              functionName: 'isHiddenGame'
             })
         }
-      }
-      else {
-        socket.emit("setError",
-          {
-            message: `Invalid access`,
-            status: 400,
-            functionName: 'isHiddenGame'
-          })
-      }
-    })
-    
-    socket.on('isHostPlayerTooGame', async (Track) => {
+      })
       
-      let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom, isStarted: 0}})
-      if (!gameRoom) {
-        socket.emit("setError",
-          {
-            message: `Room is Started || Invalid Room`,
-            status: 404,
-            functionName: 'isHostPlayerTooGame'
-          })
-        return
-      }
-      let countPlayer = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-      
-      if (countPlayer.count<15 || !Track) {
-        let isHostPlayerTooGame = 0
-        if (Track) {
-          isHostPlayerTooGame = 1
-        }
-        let user = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
-        if (!user) {
+      socket.on('isHostPlayerTooGame', async (Track) => {
+        
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom, isStarted: 0}})
+        if (!gameRoom) {
           socket.emit("setError",
             {
-              message: `Invalid user`,
-              status: 403,
-              functionName: 'isHostPlayerTooGame',
-              vars: [Track]
+              message: `Room is Started || Invalid Room`,
+              status: 404,
+              functionName: 'isHostPlayerTooGame'
             })
           return
         }
-        user.isPlayer = isHostPlayerTooGame
-        await user.save()
-        let dataPlayer = await ioUserService.getPlayingUsers(idRoom)
+        let countPlayer = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
         
-        io.in(idRoom).emit('setAwaitRoomData', {players: dataPlayer, isHostPlayer: !!isHostPlayerTooGame})
-      }
-      else {
-        socket.emit("setError",
-          {
-            message: `Limit size room`,
-            status: 400,
-            functionName: 'isHostPlayerTooGame'
-          })
-      }
-      
-    })
-    
-    socket.on('startGame', async (playersData) => {
-      
-      if (GameData.countPlayers<0) {
-        socket.emit("setError",
-          {
-            message: `Для начала игры нужно минимум 6 игроков`,
-            status: 400,
-            functionName: 'startGame'
-          })
-        return
-      }
-      if (playersData) {
-        let userData = await UserModel.User.findOne({where: {id: userId}})
-        if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
-          const forbiddenWords = await UserModel.BlackListWords.findAll()
-          let wrongData = {}
-          
-          
-          for (let playerId in playersData) {
-            let wrongInput = []
-            for (let key in playersData[playerId]) {
-              if (playersData[playerId][key]!==null) {
-                //  console.log('PROVERKA',key,playersData[playerId])
-                forbiddenWords.forEach(word => {
-                  if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
-                    word.word.toLowerCase())) {
-                    wrongInput.push(key)
-                    //  console.log('ERRRRRRRRRRRRRRORRRRRRR', wrongInput)
-                  }
-                })
-              }
-            }
-            
-            if (wrongInput.length>0) {
-              wrongData[playerId] = wrongInput
-            }
-            
-            
+        if (countPlayer.count<15 || !Track) {
+          let isHostPlayerTooGame = 0
+          if (Track) {
+            isHostPlayerTooGame = 1
           }
-          //console.log(wrongData)
-          if (!systemFunction.objIsEmpty(wrongData)) {
+          let user = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
+          if (!user) {
             socket.emit("setError",
               {
-                message: `В полях используются запрещенные слова`,
-                status: 514,
-                functionName: 'startGame',
-                wrongData: wrongData
+                message: `Invalid user`,
+                status: 403,
+                functionName: 'isHostPlayerTooGame',
+                vars: [Track]
               })
             return
           }
+          user.isPlayer = isHostPlayerTooGame
+          await user.save()
+          let dataPlayer = await ioUserService.getPlayingUsers(idRoom)
+          
+          io.in(idRoom).emit('setAwaitRoomData', {players: dataPlayer, isHostPlayer: !!isHostPlayerTooGame})
         }
         else {
           socket.emit("setError",
             {
-              message: `Access Denied`,
-              status: 513,
+              message: `Limit size room`,
+              status: 400,
+              functionName: 'isHostPlayerTooGame'
+            })
+        }
+        
+      })
+      
+      socket.on('startGame', async (playersData) => {
+        
+        if (GameData.countPlayers<0) {
+          socket.emit("setError",
+            {
+              message: `Для начала игры нужно минимум 6 игроков`,
+              status: 400,
               functionName: 'startGame'
             })
           return
         }
-      }
-      //Проверка на MVP если playersData не пустой
-      
-      //  console.log('Проверка на ХУЙ пройдена успешно')
-      io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-      if (await ioUserService.isAgeRestriction(userId)) {
-        let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        game.isHidden = 1
-        await game.save()
-      }
-      
-      const data = await playerDataService.createDataGame(idRoom, playersData)
-      console.log(data)
-      
-      let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      room.isStarted = 1
-      await room.save()
-      let sendData = {}
-      sendData.userData = data.userData
-      sendData.bunkerData = data.bunkerData
-      sendData.players = {}
-      for (let playerId in data.players) {
-        sendData.players = {}
-        sendData.players[playerId] = data.players[playerId]
-        
-        io.to(`user:${playerId}`).emit('setAllGameData', sendData)
-        // console.log(sendData)
-      }
-      // io.in(idRoom).emit('setAllGameData', data)
-      
-    })
-    socket.on('startGame2', async (playersData) => {
-        try {
-          if (GameData.countPlayers<0) {
-            socket.emit("setError",
-              {
-                message: `Для начала игры нужно минимум 6 игроков`,
-                status: 400,
-                functionName: 'startGame'
-              })
-            return
-          }
-          if (playersData) {
-            let userData = await UserModel.User.findOne({where: {id: userId}})
-            if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
-              const forbiddenWords = await UserModel.BlackListWords.findAll()
-              let wrongData = {}
-              
-              
-              for (let playerId in playersData) {
-                let wrongInput = []
-                for (let key in playersData[playerId]) {
-                  if (playersData[playerId][key]!==null) {
+        if (playersData) {
+          let userData = await UserModel.User.findOne({where: {id: userId}})
+          if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
+            const forbiddenWords = await UserModel.BlackListWords.findAll()
+            
+            let wrongDataWords = {}
+            let wrongDataLength = {}
+            for (let playerId in playersData) {
+              let wrongInput = []
+              let wrongInputLenght = []
+              for (let key in playersData[playerId]) {
+                
+                
+                if (playersData[playerId][key]!==null) {
+                  console.log(playersData[playerId][key].length>300)
+                  if (playersData[playerId][key].length>300) {
+                    wrongInputLenght.push(key)
+                    
+                  }
+                  else {
                     //  console.log('PROVERKA',key,playersData[playerId])
                     forbiddenWords.forEach(word => {
                       if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
@@ -323,73 +241,180 @@ module.exports = function(io) {
                   }
                 }
                 
-                if (wrongInput.length>0) {
-                  wrongData[playerId] = wrongInput
-                }
-                
-                
               }
-              //console.log(wrongData)
-              if (!systemFunction.objIsEmpty(wrongData)) {
-                socket.emit("setError",
-                  {
-                    message: `В полях используются запрещенные слова`,
-                    status: 514,
-                    functionName: 'startGame',
-                    wrongData: wrongData
-                  })
-                return
+              
+              if (wrongInput.length>0) {
+                wrongDataWords[playerId] = wrongInput
               }
+              if (wrongInputLenght.length>0) {
+                wrongDataLength[playerId] = wrongInputLenght
+              }
+              console.log(wrongDataLength)
+              
             }
-            else {
+            //console.log(wrongData)
+            if (!systemFunction.objIsEmpty(wrongDataWords)) {
               socket.emit("setError",
                 {
-                  message: `Access Denied`,
-                  status: 513,
-                  functionName: 'startGame'
+                  message: `В полях используются запрещенные слова`,
+                  status: 514,
+                  functionName: 'startGame',
+                  wrongData: wrongDataWords
+                })
+              return
+            }
+            if (!systemFunction.objIsEmpty(wrongDataLength)) {
+              socket.emit("setError",
+                {
+                  message: `Превышено разрешенное количество символов`,
+                  status: 514,
+                  functionName: 'startGame',
+                  wrongData: wrongDataLength
                 })
               return
             }
           }
-          //Проверка на MVP если playersData не пустой
-          
-          //  console.log('Проверка на ХУЙ пройдена успешно')
-          io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-          if (await ioUserService.isAgeRestriction(userId)) {
-            let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-            game.isHidden = 1
-            await game.save()
+          else {
+            socket.emit("setError",
+              {
+                message: `Access Denied`,
+                status: 513,
+                functionName: 'startGame'
+              })
+            return
           }
-          
-          const data = await playerDataService.createDataGame(idRoom, playersData)
-          console.log(data)
-          
-          let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-          room.isStarted = 1
-          await room.save()
-          let sendData = {}
-          sendData.userData = data.userData
-          sendData.bunkerData = data.bunkerData
-          sendData.players = {}
-          for (let playerId in data.players) {
-            sendData.players = {}
-            sendData.players[playerId] = data.players[playerId]
-            
-            io.to(`user:${playerId}`).emit('setAllGameData', sendData)
-            // console.log(sendData)
-          }
-          // io.in(idRoom).emit('setAllGameData', data)
-        } catch(e) {
-          io.in(idRoom).emit("setError",
-            {
-              message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
-              status: 512,
-              functionName: 'startGame'
-            })
-          // console.log(e)
         }
-      }
-    )
-    
-  })
+        //Проверка на MVP если playersData не пустой
+        
+        //  console.log('Проверка на ХУЙ пройдена успешно')
+        io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+        if (await ioUserService.isAgeRestriction(userId)) {
+          let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+          game.isHidden = 1
+          await game.save()
+        }
+        
+        const data = await playerDataService.createDataGame(idRoom, playersData)
+        console.log(data)
+        
+        let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        room.isStarted = 1
+        await room.save()
+        let sendData = {}
+        sendData.userData = data.userData
+        sendData.bunkerData = data.bunkerData
+        sendData.players = {}
+        for (let playerId in data.players) {
+          sendData.players = {}
+          sendData.players[playerId] = data.players[playerId]
+          
+          io.to(`user:${playerId}`).emit('setAllGameData', sendData)
+          // console.log(sendData)
+        }
+        // io.in(idRoom).emit('setAllGameData', data)
+        
+      })
+      socket.on('startGame2', async (playersData) => {
+          try {
+            if (GameData.countPlayers<0) {
+              socket.emit("setError",
+                {
+                  message: `Для начала игры нужно минимум 6 игроков`,
+                  status: 400,
+                  functionName: 'startGame'
+                })
+              return
+            }
+            if (playersData) {
+              let userData = await UserModel.User.findOne({where: {id: userId}})
+              if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
+                const forbiddenWords = await UserModel.BlackListWords.findAll()
+                let wrongData = {}
+                
+                
+                for (let playerId in playersData) {
+                  let wrongInput = []
+                  for (let key in playersData[playerId]) {
+                    if (playersData[playerId][key]!==null) {
+                      //  console.log('PROVERKA',key,playersData[playerId])
+                      forbiddenWords.forEach(word => {
+                        if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
+                          word.word.toLowerCase())) {
+                          wrongInput.push(key)
+                          //  console.log('ERRRRRRRRRRRRRRORRRRRRR', wrongInput)
+                        }
+                      })
+                    }
+                  }
+                  
+                  if (wrongInput.length>0) {
+                    wrongData[playerId] = wrongInput
+                  }
+                  
+                  
+                }
+                //console.log(wrongData)
+                if (!systemFunction.objIsEmpty(wrongData)) {
+                  socket.emit("setError",
+                    {
+                      message: `В полях используются запрещенные слова`,
+                      status: 514,
+                      functionName: 'startGame',
+                      wrongData: wrongData
+                    })
+                  return
+                }
+              }
+              else {
+                socket.emit("setError",
+                  {
+                    message: `Access Denied`,
+                    status: 513,
+                    functionName: 'startGame'
+                  })
+                return
+              }
+            }
+            //Проверка на MVP если playersData не пустой
+            
+            //  console.log('Проверка на ХУЙ пройдена успешно')
+            io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+            if (await ioUserService.isAgeRestriction(userId)) {
+              let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+              game.isHidden = 1
+              await game.save()
+            }
+            
+            const data = await playerDataService.createDataGame(idRoom, playersData)
+            console.log(data)
+            
+            let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+            room.isStarted = 1
+            await room.save()
+            let sendData = {}
+            sendData.userData = data.userData
+            sendData.bunkerData = data.bunkerData
+            sendData.players = {}
+            for (let playerId in data.players) {
+              sendData.players = {}
+              sendData.players[playerId] = data.players[playerId]
+              
+              io.to(`user:${playerId}`).emit('setAllGameData', sendData)
+              // console.log(sendData)
+            }
+            // io.in(idRoom).emit('setAllGameData', data)
+          } catch(e) {
+            io.in(idRoom).emit("setError",
+              {
+                message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
+                status: 512,
+                functionName: 'startGame'
+              })
+            // console.log(e)
+          }
+        }
+      )
+      
+    }
+  )
 }
