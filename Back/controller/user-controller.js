@@ -207,8 +207,13 @@ class UserController {
     try {
       const userId = req.params.id
       // const id = req.headers
-      const {refreshToken} = req.cookies
-      const user = await userService.getUser(userId, refreshToken)
+      let token = null
+       const accessToken = req.headers.authorization
+            
+            if (accessToken && accessToken.toString().includes('Bearer ')) {
+              token = accessToken.split('Bearer ')[1]
+            }
+      const user = await userService.getUser(userId, token)
       
       return res.json(user)
     } catch(e) {

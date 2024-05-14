@@ -150,16 +150,15 @@ class UserService {
     return users
   }
   
-  async getUser(userId, refreshToken) {
+  async getUser(userId, token) {
     let isAdmin = false
     let isUser = false
-    if (refreshToken) {
-      const tokenData = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
-      //  console.log(refreshToken)
-      if (!tokenData) {
-        throw ApiError.UnauthorizedError()
-      }
-      const thisUser = await UserModel.User.findOne({where: {id: tokenData.userId}})
+    if (token) {
+       const tokenData = tokenService.validateAccessToken(token)
+            if (!tokenData) {
+              throw ApiError.UnauthorizedError()
+            }
+      const thisUser = await UserModel.User.findOne({where: {id: tokenData.id}})
       //   console.log(thisUser.id, userId)
       if (thisUser.id.toString()===userId.toString()) {
         isUser = true

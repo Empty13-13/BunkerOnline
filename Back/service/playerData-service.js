@@ -50,8 +50,6 @@ class playerDataService {
   }
   
   
- 
-  
   async refreshChartMvp(player, chartName, gameRoomId) {
     this.systemSettings = await this.getSystemSettingsData()
     let data = JSON.parse(player[chartName])
@@ -311,7 +309,7 @@ class playerDataService {
     let age = 41
     let isGood = false
     while (!isGood) {
-
+      
       if (chartName==='sex') {
         let age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
         let sex = !!this.getRandomInt(0, 1)
@@ -336,11 +334,11 @@ class playerDataService {
         if (sex!==data.text) {
           isGood = true
           data.text = sex
-
+          
         }
       }
       else if (chartName==='health') {
-
+        
         let health = null
         
         if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
@@ -351,12 +349,12 @@ class playerDataService {
         else {
           health = this.getRandomData('health', isUsedSystemAdvancePack)
         }
-
+        
         if (health!==data.text) {
           isGood = true
           data.text = health.text
           data.id = health.id
-
+          
         }
       }
       else if (chartName==='profession') {
@@ -368,18 +366,18 @@ class playerDataService {
           data.text = profession.text
           data.id = profession.id
           data.description = profession.description
-
+          
         }
       }
       else {
-
+        
         let newChart = this.getRandomData(chartName, isUsedSystemAdvancePack)
         //console.log(newChart)
         if (newChart.text!==data.text) {
           isGood = true
           data.text = newChart.text
           data.id = newChart.id
-
+          
         }
       }
       
@@ -829,7 +827,7 @@ class playerDataService {
     this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
     this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
     let allPacks = [this.systemBasePack, this.systemAdvancePack, this.basePack, this.advancePack]
-
+    
   }
   
   async collectAndSetDataForPlayer(hostPack, players) {
@@ -942,6 +940,32 @@ class playerDataService {
     return hostPack
   }
   
+  async getDataPackRefresh(dataPackId, useChartId) {
+    
+    
+    let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
+      {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+    let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
+      {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+    let dataProfessionIdPlayerData = []
+    let dataChartPlayerIdPlayerData = []
+    for (let chartId of chartPlayerIdPlayerData) {
+      
+      dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
+    }
+    for (let chartId of professionIdPlayerData) {
+      
+      dataProfessionIdPlayerData.push(chartId.professionId)
+    }
+    let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
+      {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
+    let dataProfessionChartData = await UserModel.Profession.findAll({
+      attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+      where: {id: dataProfessionIdPlayerData}, raw: true
+    })
+    return {chartPlayerData: dataPlayerChartData, professionData: dataProfessionChartData}
+    
+  }
   
   async getDataPackData(dataPackId, track = null) {
 
