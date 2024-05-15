@@ -490,7 +490,7 @@ function changeEmailHandler(e) {
                 <div class="checkbox">
                   <input ref="isHiddenBirthdayInput" id="hideBirth" class="checkbox__input" type="checkbox" value="1">
                   <label for="hideBirth" class="checkbox__label"><span
-                      class="checkbox__text">Скрыть дату рождения</span></label>
+                      class="checkbox__text">Скрыть год рождения</span></label>
                 </div>
               </div>
             </div>

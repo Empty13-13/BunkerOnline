@@ -82,7 +82,7 @@ const itemsName = [
 Продвинутый – от 2 до 5 лет;<br>
 Мастер (гуру) – более 5 лет.
   `],
-  ['Фобия / Страх', 'phobia'],
+  ['Фобия/Страх', 'phobia'],
   ['Крупный инвентарь', 'inventory'],
   ['Рюкзак', 'backpack'],
   ['Дополнительные сведения', 'addInfo'],
@@ -1120,6 +1120,7 @@ function createCustomGame() {
     display: grid;
     grid-template-columns: 2fr 1fr;
     padding-bottom: 45px;
+    gap: 40px;
 
     @media (max-width: $tablet) {
       padding-bottom: 40px;
@@ -1156,8 +1157,12 @@ function createCustomGame() {
     max-width: 560px;
     margin-right: 100px;
 
+    @media (max-width:1200px){
+      margin-right: 0;
+    }
     @media (max-width: $tablet) {
       margin: 0;
+      margin-bottom: 15px;
     }
   }
 
@@ -1255,6 +1260,17 @@ function createCustomGame() {
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
+
+    @media (max-width:1200px){
+      white-space: wrap;
+      min-width: 300px;
+    }
+    @media (max-width:$tablet){
+      min-width: 250px;
+    }
+    @media (max-width: $mobile) {
+      min-width: 0;
+    }
   }
 }
 

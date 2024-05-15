@@ -109,10 +109,10 @@ const navBlock = ref()
                     <router-link to="/">Здоровье</router-link>
                   </li>
                   <li>
-                    <router-link to="/">Хобби / Увлечение</router-link>
+                    <router-link to="/">Хобби/Увлечение</router-link>
                   </li>
                   <li>
-                    <router-link to="/">Фобия / Страх</router-link>
+                    <router-link to="/">Фобия/Страх</router-link>
                   </li>
                   <li>
                     <router-link to="/">Инвентарь</router-link>

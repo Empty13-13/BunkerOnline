@@ -33,22 +33,36 @@ export async function switchError(data, socket) {
         socket.auth._retry = true
         socket.auth.token = myProfile.token
         socket.connect()
+        let countReconnect = 1
         let tryReEmitInterval = setInterval(() => {
           console.log(functionName)
+          
           if (socket.connected) {
             if (vars) {
               console.log('Пробуем ещё раз с vars', ...vars)
               socket.emit(functionName, ...vars)
             }
             else {
+              console.log('Пробуем ещё раз БЕЗ vars')
               socket.emit(functionName)
             }
+            
+            socket.auth._retry = false
             clearInterval(tryReEmitInterval)
+            globalPreloader.deactivate()
           }
-        }, 500)
-        
+          else {
+            console.log('Счетчик Реконнекта',countReconnect)
+            countReconnect++
+            if (countReconnect>2) {
+              clearInterval(tryReEmitInterval)
+              globalPreloader.deactivate()
+            }
+          }
+        }, 100)
       }
       else {
+        console.log('Не смогли ничего сделать SOCKET LOGIC 403')
         await router.push({name: 'home'})
         socket.auth._retry = false
         globalPopup.activate('Ошибка подключения', message, 'red')

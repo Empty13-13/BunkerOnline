@@ -7,6 +7,7 @@ import { objIsEmpty } from "@/plugins/functions.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -270,6 +271,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
 export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () => {
   const selectedGameData = useSelectedGameData()
   const userSocket = useUserSocketStore()
+  const globalPreloader = usePreloaderStore()
   
   function openChart(el, charName) {
     showConfirmBlock(el.target, () => {
@@ -284,10 +286,11 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   
   function mvpReload(event,charName) {
     showConfirmBlock(event.target, () => {
-      selectedGameData.getMyPlayerData.isMVPRefreshLoading = true
+      globalPreloader.activate()
       userSocket.emit('refreshChartMVP', charName)
       userSocket.on('refreshChartMVP:good', (chartName) => {
-        selectedGameData.getMyPlayerData.isMVPRefreshLoading = false;
+        globalPreloader.deactivate()
+        selectedGameData.getMyPlayerData.isMVPRefresh = true;
         userSocket.removeListener('refreshChartMVP:good')
       })
     }, 'Вы уверены что хотите поменять характеристику?')

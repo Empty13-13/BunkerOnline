@@ -13,12 +13,12 @@ function closePopup(e) {
 
 <template>
   <div class="popup" :class="model?'_active':''">
-    <div @click="closePopup" class="popup__wrapper"></div>
+    <div @click="timer?closePopup:null" class="popup__wrapper"></div>
     <div class="popup__content">
       <div class="popup__block linear-border"
            :class="color || 'white'"
       >
-        <div @click="closePopup" class="popup__closeBtn"></div>
+        <div v-if="!timer " @click="closePopup" class="popup__closeBtn"></div>
         <div class="popup__title">
           <slot name="title" />
         </div>

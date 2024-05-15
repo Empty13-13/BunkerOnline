@@ -17,7 +17,7 @@ const User = sequelize.define('user', {
   numWinGame: {type: DataTypes.INTEGER, defaultValue: 0},
   hiddenBirthday: {type: DataTypes.TINYINT, defaultValue: 0},
   isUsedSystemBasePack: {type: DataTypes.TINYINT, defaultValue: 1},
-  isUsedSystemAdvancePack : {type: DataTypes.TINYINT, defaultValue: 0}
+  isUsedSystemAdvancePack: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 const Token = sequelize.define('token', {
@@ -81,7 +81,8 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerItems2: {type: DataTypes.INTEGER},
   bunkerItems3: {type: DataTypes.INTEGER},
   bunkerFood: {type: DataTypes.INTEGER},
-  imageId: {type: DataTypes.INTEGER}
+  imageId: {type: DataTypes.INTEGER},
+  voitingStatus: {type: DataTypes.TINYINT} 
 })
 
 const RoomSession = sequelize.define('roomSession', {
@@ -102,15 +103,16 @@ const RoomSession = sequelize.define('roomSession', {
   addInfo: {type: DataTypes.STRING(500)},
   spec1: {type: DataTypes.STRING(500)},
   spec2: {type: DataTypes.STRING(500)},
-  isMVPRefresh:{type: DataTypes.TINYINT},
-  isAlive:{type: DataTypes.TINYINT, defaultValue: 1}
+  isMVPRefresh: {type: DataTypes.TINYINT},
+  isAlive: {type: DataTypes.TINYINT, defaultValue: 1},
+  votedFor: {type: DataTypes.INTEGER}
 })
 
 const ChartPlayer = sequelize.define('chartPlayer', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   name: {type: DataTypes.STRING},
   text: {type: DataTypes.STRING(1500)},
-  dontAddLevelInfo:{type: DataTypes.TINYINT, defaultValue: 0}
+  dontAddLevelInfo: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 const Profession = sequelize.define('profession', {
@@ -139,7 +141,6 @@ const ChartPack = sequelize.define('chartPack', {
   status: {type: DataTypes.TINYINT, defaultValue: 0},
   ageRestriction: {type: DataTypes.TINYINT, defaultValue: 0}
 })
-
 
 
 const PlayerChartPack = sequelize.define('playerChartPack', {})

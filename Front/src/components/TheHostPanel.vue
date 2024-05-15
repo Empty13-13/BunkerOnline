@@ -82,7 +82,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option selected value="33">Nick233</option>
             </select>
             <input type="text" v-model="charInput" placeholder="Ваша характеристика">
-            <button class="hostButton" @click.prevent="charClick">Изменить характеристику</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Изменить характеристику</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить стаж специальности">
             <select id="city" v-model="charPerson">
@@ -97,7 +99,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Изменить стаж профессии</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Изменить стаж профессии</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить степень болезни">
             <select id="city" v-model="charPerson">
@@ -112,7 +116,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Изменить степень болезни</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Изменить степень болезни</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить пол на противоположный">
             <select id="city" v-model="charPerson">
@@ -127,7 +133,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Изменить пол</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Изменить пол</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить по/против/аннулировать">
             <select id="city" v-model="charPerson">
@@ -142,7 +150,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Применить</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Применить</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить бункер">
             <select id="city" v-model="charPerson">
@@ -157,7 +167,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Применить</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Применить</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Обменять характеристики">
             <select id="city" v-model="charPerson">
@@ -172,7 +184,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Обменять</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Обменять</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Украсть характеристику">
             <select id="city" v-model="charPerson">
@@ -187,7 +201,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Украсть</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Украсть</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Вылечить/Сделать">
             <select id="city" v-model="charPerson">
@@ -202,7 +218,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Применить</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Применить</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Добавить доп. характеристику">
             <select id="city" v-model="charPerson">
@@ -217,7 +235,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Добавить</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Добавить</span>
+            </button>
           </AppSpoiler>
           <AppSpoiler title="Удалить/перенести инвентарь">
             <select id="city" v-model="charPerson">
@@ -232,7 +252,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Применить</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Применить</span>
+            </button>
           </AppSpoiler>
 
           <div class="settings-hostPanel__dice dice-settings">
@@ -259,7 +281,9 @@ import { hostSocket } from "@/socket/sockets.js";
               <option value="11">NoName</option>
               <option selected value="33">Nick233</option>
             </select>
-            <button class="hostButton" @click.prevent="charClick">Сменить ведущего</button>
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Сменить ведущего</span>
+            </button>
           </AppSpoiler>
         </div>
         <div class="hostPanel__mainButton mainButton-hostPanel">

@@ -27,7 +27,7 @@ const itemsName = [
 Продвинутый – от 2 до 5 лет;<br>
 Мастер (гуру) – более 5 лет.
   `],
-  ['Фобия / Страх', 'phobia'],
+  ['Фобия/Страх', 'phobia'],
   ['Крупный инвентарь', 'inventory'],
   ['Рюкзак', 'backpack'],
   ['Дополнительные сведения', 'addInfo'],
@@ -132,7 +132,9 @@ const features = {
                   <AppSmallInfo v-if="itemsName[index - 1].length>2" :html="itemsName[index - 1][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                  <p class="item-gamerInfo__text">{{ data[itemsName[index - 1][1]].text }}</p>
+                  <p class="item-gamerInfo__text">
+                    {{ data[itemsName[index - 1][1]].text }}
+                  </p>
                   <AppSmallInfo v-if="data[itemsName[index - 1][1]].description"
                                 :html="data[itemsName[index - 1][1]].description" />
                   <button v-if="data.isMVPRefresh===false" @click="selectedGameGameplay.mvpReload($event,itemsName[index - 1][1])" class="item-gamerInfo__reload">
@@ -159,7 +161,9 @@ const features = {
                   <AppSmallInfo v-if="itemsName[index + 4].length>2" :html="itemsName[index + 4][2]" />
                 </div>
                 <div class="item-gamerInfo__description">
-                  <p class="item-gamerInfo__text">{{ data[itemsName[index + 4][1]].text }}</p>
+                  <p class="item-gamerInfo__text">
+                    {{ data[itemsName[index + 4][1]].text }}
+                  </p>
                   <AppSmallInfo v-if="data[itemsName[index + 4][1]].description"
                                 :text="data[itemsName[index + 4][1]].description" />
 <!--                  {{data[itemsName[index+4][1]]}}-->
@@ -268,7 +272,6 @@ const features = {
       padding-bottom: 35px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
     }
     @media (max-width: $mobileSmall) {
       font-size: 20px;
@@ -336,6 +339,10 @@ const features = {
   border-bottom: 1px dashed;
   border-color: #373737;
 
+  @media (max-width:$tablet){
+    gap: 30px;
+  }
+
   @media (max-width: $mobile) {
     gap: 20px;
     &:first-child {
@@ -391,6 +398,19 @@ const features = {
     color: #b4b4b4;
     display: flex;
     align-items: center;
+    white-space: nowrap;
+
+    @media (max-width:$tablet){
+      white-space: wrap;
+    }
+    @media (max-width: $mobile) {
+      white-space: nowrap;
+    }
+    @media (max-width: $mobileSmall) {
+      white-space: wrap;
+      display: flex;
+      flex: 0 1 1%;
+    }
   }
 
   &__description {
@@ -398,16 +418,21 @@ const features = {
     gap: 15px;
     justify-content: flex-end;
     align-items: center;
-    flex: 0 1 50%;
-    max-width: 50%;
+    flex: 1 1 auto;
+
+    @media (max-width: $tablet) {
+      flex: 1 1 auto;
+      max-width: 100%;
+    }
+
+    .smallInfo {
+      margin-left: -8px !important;
+    }
   }
 
   &__text {
     font-weight: 700;
     text-align: end;
-    @media (max-width: $mobileSmall) {
-      max-width: 150px;
-    }
   }
 
   &__input {
