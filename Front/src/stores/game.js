@@ -8,6 +8,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -83,7 +84,8 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
     if (data.hasOwnProperty('isAgeRestriction') && data.isAgeRestriction) {
       globalPopup.activate('Внимание',
-        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет', 'red')
+        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет',
+        'red')
     }
   }
   
@@ -118,11 +120,25 @@ export const useSelectedGame = defineStore('selectedGame', () => {
 
 export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   const selectedGame = useSelectedGame()
+  const hostSocket = useHostSocketStore()
+  const userSocket = useUserSocketStore()
+  const selectedGameData = useSelectedGameData()
+  const globalPopup = useGlobalPopupStore()
   
   const isPlayerToo = ref(true)
   const haveAccess = computed(() => {
     return !!selectedGame.hostId && selectedGame.hostId===selectedGame.userId
   })
+  
+  function startVoiting() {
+    hostSocket.emit('voiting:start')
+    selectedGameData.isVoiting = true
+  }
+  
+  function endVoiting() {
+    hostSocket.emit('voiting:finished')
+    selectedGameData.isVoiting = false
+  }
   
   function clearData() {
     isPlayerToo.value = true
@@ -131,7 +147,9 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   return {
     haveAccess,
     isPlayerToo,
-    clearData
+    clearData,
+    startVoiting,
+    endVoiting,
   }
 })
 
@@ -153,11 +171,14 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const playersData = ref({})
   const userData = ref({})
+  const voitingData = ref({})
+  const isVoiting = ref(false)
+  const userVoitingChoice = ref("")
   
   const getAlivePlayers = computed(() => {
     let players = []
     for (let player of getActivePlayersFromUserData.value) {
-      player.isAlive? players.push(player):null
+      player.data.isAlive? players.push(player):null
     }
     return players
   })
@@ -176,6 +197,38 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     return resultArr
   })
+  const getNonVoitingUsersNicknames = computed(() => {
+    let votedData = {}
+    let votedList = []
+    let abstainedList = []
+    let allVoteNum = 0
+    let votedPlayerIds = []
+    
+    for (let choiceIdPlayer in voitingData.value.voitingPull) {
+      let choicePlayerNickname = userData.value[choiceIdPlayer].nickname
+      let localVotedListNicknames = []
+      for(let index in voitingData.value.voitingPull[choiceIdPlayer]) {
+        let votedPlayerNickname = userData.value[voitingData.value.voitingPull[choiceIdPlayer][index]].nickname
+        votedPlayerIds.push(voitingData.value.voitingPull[choiceIdPlayer][index])
+        localVotedListNicknames.push(votedPlayerNickname)
+        allVoteNum++
+      }
+      votedList.push({nickname:choicePlayerNickname,whoVote:localVotedListNicknames})
+    }
+    
+    for (let dataKey in userData.value) {
+      if(!votedPlayerIds.includes(+dataKey)) {
+        abstainedList.push(userData.value[dataKey].nickname)
+      }
+    }
+    
+    votedData.votedList = votedList
+    votedData.allVoteNum = allVoteNum
+    votedData.abstainedList = abstainedList
+    
+    console.log("VOTED DATA", votedData)
+    return votedData
+  })
   
   function setData(data) {
     if (!data || objIsEmpty(data)) {
@@ -191,7 +244,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         playersData.value[playerId] = playersData.value[playerId] || {}
         for (let chartName in data.players[playerId]) {
           playersData.value[playerId][chartName] = playersData.value[playerId][chartName] || {}
-          if(objIsEmpty(data.players[playerId][chartName])) {
+          if (objIsEmpty(data.players[playerId][chartName])) {
             playersData.value[playerId][chartName] = data.players[playerId][chartName]
             continue
           }
@@ -206,6 +259,17 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         userData.value[userId] = userData.value[userId] || {}
         for (let key in data.userData[userId]) {
           userData.value[userId][key] = data.userData[userId][key]
+        }
+      }
+    }
+    if (data.hasOwnProperty('voitingData')) {
+      voitingData.value = data.voitingData
+      isVoiting.value = !data.voitingData.status
+      if(data.voitingData.hasOwnProperty('userChoise')) {
+        if (data.voitingData.userChoise) {
+          userVoitingChoice.value = userData.value[data.voitingData.userChoise].nickname
+        } else {
+          userVoitingChoice.value = ''
         }
       }
     }
@@ -251,16 +315,23 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     playersData.value = {}
     userData.value = {}
+    voitingData.value = {}
+    isVoiting.value = false
+    userVoitingChoice.value = 0
   }
   
   return {
     bunkerData,
     playersData,
     userData,
+    voitingData,
+    isVoiting,
+    userVoitingChoice,
     getAlivePlayers,
     getMyPlayerData,
     getMyUserData,
     getActivePlayersFromUserData,
+    getNonVoitingUsersNicknames,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
@@ -284,7 +355,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     }, 'Открыть характеристику для всех игроков?')
   }
   
-  function mvpReload(event,charName) {
+  function mvpReload(event, charName) {
     showConfirmBlock(event.target, () => {
       globalPreloader.activate()
       userSocket.emit('refreshChartMVP', charName)
@@ -296,8 +367,18 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     }, 'Вы уверены что хотите поменять характеристику?')
   }
   
+  function voteHandler(userId) {
+    userSocket.on('voiting:choiseUser:good',() => {
+      selectedGameData.userVoitingChoice = selectedGameData.userData[userId].nickname
+      selectedGameData.voitingData.isLoading = false
+    })
+    selectedGameData.voitingData.isLoading = true
+    userSocket.emit('voiting:choiseUser',+userId)
+  }
+  
   return {
     openChart,
-    mvpReload
+    mvpReload,
+    voteHandler,
   }
 })

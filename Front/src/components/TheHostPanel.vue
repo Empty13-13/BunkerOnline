@@ -1,6 +1,9 @@
 <script setup="">
 import AppSpoiler from "@/components/Forms/AppSpoiler.vue";
 
+const hostFunctional = useHostFunctionalStore()
+const selectedGameData = useSelectedGameData()
+
 const charPerson = ref(null)
 const charItem = ref(null)
 const charInput = ref(null)
@@ -34,6 +37,7 @@ import AppSelect from "@/components/Forms/AppSelect.vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { hostSocket } from "@/socket/sockets.js";
+import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 </script>
 
 <template>
@@ -56,7 +60,12 @@ import { hostSocket } from "@/socket/sockets.js";
         <div class="hostPanel__buttons buttons-hostPanel">
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить катаклизм</AppButton>
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить бункер</AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Начать голосование</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
+                     @click="selectedGameData.isVoiting?hostFunctional.endVoiting():hostFunctional.startVoiting()"
+                     :class="selectedGameData.isVoiting?'_active':''"
+          >
+            {{selectedGameData.isVoiting?"Завершить голосование":"Начать голосование"}}
+          </AppButton>
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Аннулировать всем специальность</AppButton>
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Специальности по часовой стрелке</AppButton>
         </div>

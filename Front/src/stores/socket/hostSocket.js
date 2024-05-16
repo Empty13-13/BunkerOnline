@@ -63,6 +63,13 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
     hostSocket.emit(funcName, ...args)
   }
   
+  function on(funcName,functionStr) {
+    hostSocket.on(funcName,functionStr)
+  }
+  function removeListener(funcName){
+    hostSocket.removeListener(funcName)
+  }
+  
   function setConnect() {
     if (hostFunctional.haveAccess) {
       if (!hostSocket.connected) {
@@ -83,6 +90,8 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
     connect,
     close,
     emit,
+    on,
+    removeListener,
     setConnect,
   }
 })

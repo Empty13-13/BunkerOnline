@@ -170,9 +170,49 @@ class playerDataService {
     
   }
   
+  async getAvailableVoitingData(gameRoom, playerId) {
+
+    if (gameRoom.voitingStatus===null) {
+      return null
+    }
+    console.log(gameRoom.voitingStatus)
+    let voitingPull = {}
+   // voitingPull.status = gameRoom.voitingStatus
+    if (gameRoom.voitingStatus===1) {
+      let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+      for (let player of players) {
+        if (player.votedFor!==null) {
+          if (!voitingPull[player.votedFor]) {
+            voitingPull[player.votedFor] = []
+          }
+          voitingPull[player.votedFor].push(player.userId)
+        }
+      }
+      return {status:gameRoom.voitingStatus,voitingPull:voitingPull}
+    }
+    else {
+      let player = await UserModel.RoomSession.findOne(
+        {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId}})
+      if (player) {
+        if (player.votedFor===null) {
+          voitingPull.userChoise = null
+        }
+        else {
+          voitingPull.userChoise = player.votedFor
+        }
+      }
+      return {status:gameRoom.voitingStatus,userChoise:voitingPull.userChoise}
+
+
+    }
+    console.log(voitingPull)
+  }
+
+
+  
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId','voitingStatus'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -181,7 +221,7 @@ class playerDataService {
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3'&& key.toString()!=='voitingStatus') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
         bunkerData[key] = chartBunker.text
         
@@ -198,7 +238,10 @@ class playerDataService {
     bunkerData.bunkerItems = bunkerItems
     
     let userData = await this.getAvailablePlayerData(idRoom)
-    
+    let voitingData = null
+    if (!isWatcher || gameRoom.voitingStatus===1) {
+      voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
+    }
     let players = {}
     let allPlayers = await UserModel.RoomSession.findAll({
       attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
@@ -233,9 +276,12 @@ class playerDataService {
       }
     }
     
-    
-    return {players: players, userData: userData, bunkerData: bunkerData}
-    //{id:1}
+    if (voitingData===null) {
+      return {players: players, userData: userData, bunkerData: bunkerData}
+    }
+    else {
+      return {players: players, userData: userData, bunkerData: bunkerData, voitingData: voitingData}
+    }//{id:1}
     //key = id
     //gameRoom[key]=1
     
@@ -256,7 +302,7 @@ class playerDataService {
         userData.avatar = user.avatar
         userData.isPlayer = player.isPlayer
         userData.accessLevel = user.accsessLevel
-        
+        // userData.
       }
       else {
         // userData.id = player.userId

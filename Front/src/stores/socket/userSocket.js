@@ -115,6 +115,11 @@ export const useUserSocketStore = defineStore('userSocket', () => {
         }
       }
     });
+    
+    userSocket.on('voiting:start',() => {
+      globalPopup.activate('Сообщение от ведущего','Голосование началось','green')
+      router.push('#voting')
+    })
   }
   
   function connect() {

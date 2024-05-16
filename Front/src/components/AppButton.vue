@@ -62,7 +62,7 @@ defineProps([
   justify-content: center;
   align-items: center;
 
-  &:hover {
+  &:hover,&._active {
     background: #676767;
   }
 
@@ -109,7 +109,7 @@ defineProps([
       transition: opacity 0.3s;
     }
 
-    &:hover {
+    &:hover,&._active {
       &::before {
         opacity: 1;
       }
@@ -123,7 +123,7 @@ defineProps([
   &.purple {
     background: $purpleColor;
 
-    &:hover {
+    &:hover,&._active {
       background: $purpleColorHover;
     }
   }
@@ -131,7 +131,7 @@ defineProps([
   &.red {
     background: $redColor;
 
-    &:hover {
+    &:hover,&._active {
       background: $redColorHover;
     }
   }
@@ -139,7 +139,7 @@ defineProps([
   &.green {
     background: $greenColor;
 
-    &:hover {
+    &:hover,&._active {
       background: $greenColorHover;
     }
   }
@@ -166,7 +166,7 @@ defineProps([
       transition: opacity 0.3s;
     }
 
-    &:hover {
+    &:hover,&._active {
       &::before {
         opacity: 1;
       }
@@ -197,7 +197,7 @@ defineProps([
       transition: opacity 0.3s;
     }
 
-    &:hover {
+    &:hover,&._active {
       &::before {
         opacity: 1;
       }
@@ -217,7 +217,7 @@ defineProps([
       transition: box-shadow 0.2s ease;
       box-shadow: none;
 
-      &:hover {
+      &:hover,&._active {
         &::before {
           opacity: 0;
         }
@@ -231,7 +231,7 @@ defineProps([
     &.purple {
       background: #171b3f;
 
-      &:hover {
+      &:hover,&._active {
         background: #171b3f;
       }
     }
@@ -239,7 +239,7 @@ defineProps([
     &.red {
       background: #3d0d0d;
 
-      &:hover {
+      &:hover,&._active {
         background: #3d0d0d;
       }
     }
@@ -247,7 +247,7 @@ defineProps([
     &.green {
       background: #102d0c;
 
-      &:hover {
+      &:hover,&._active {
         background: #102d0c;
       }
     }
@@ -255,7 +255,7 @@ defineProps([
     &.whiteGray {
       background: $whiteGrayColor;
 
-      &:hover {
+      &:hover,&._active {
         background: $whiteGrayColor;
       }
     }

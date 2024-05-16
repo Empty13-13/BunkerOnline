@@ -219,7 +219,6 @@ class ioUserService {
   }
   
   joinRoomAndWatchTimer(socket, idRoom) {
-    socket.join(idRoom)
     if (timerList[idRoom]) {
       clearTimeout(timerList[idRoom])
       delete timerList[idRoom]

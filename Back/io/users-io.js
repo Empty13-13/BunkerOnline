@@ -25,7 +25,7 @@ module.exports = function(io) {
         return
       }
       
-      socket.join(`user:${isValidateId}`)
+      socket.join(`user:${isValidateId}:${idRoom}`)
       
       
       console.log(`${socket.id} user connected with userId ${isValidateId}`)
@@ -84,6 +84,7 @@ module.exports = function(io) {
           
           if (GameData.isPlayingBefore) {
             let data = await playerDataService.joinGameData(idRoom, isValidateId)
+            socket.join(idRoom)
             socket.emit('updateInitialInfo')
             socket.emit('startedGame')
             socket.emit('setAllGameData', data)
@@ -240,7 +241,7 @@ module.exports = function(io) {
                   player[chartName] = JSON.stringify(data)
                   player.isMVPRefresh = 1
                   await player.save()
-
+                  
                   if (data.isOpen) {
                     io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                   }
@@ -298,6 +299,74 @@ module.exports = function(io) {
               functionName: 'refreshChartMVP',
               wrongData: {playerId: isValidateId, chartName: chartName}
             })
+        }
+      })
+      socket.on('voiting:choiseUser', async (choiseId) => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        if (gameRoom.voitingStatus===0) {
+          let isPlayer = await UserModel.RoomSession.findOne(
+            {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: choiseId, isAlive: 1}})
+          if (isPlayer) {
+            let player = await UserModel.RoomSession.findOne(
+              {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: isValidateId}})
+            if (player) {
+              if (player.isAlive) {
+                if(choiseId!==isValidateId){
+                  console.log(choiseId,isValidateId)
+                player.votedFor = choiseId
+                await player.save()
+                socket.emit('voiting:choiseUser:good')
+                }
+                else{
+                  socket.emit("setError",
+                                    {
+                                      message: "Вы не можете голосовать за себя",
+                                      status: 603,
+                                      functionName: 'voiting:choiseUser'
+                                    })
+                }
+              }
+              else {
+                socket.emit("setError",
+                  {
+                    message: "Вы не можете голосовать",
+                    status: 603,
+                    functionName: 'voiting:choiseUser'
+                  })
+                // Ошибка, что игрок уже мертв и не может голосовать
+              }
+              
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: "За этого игрока нельзя проголос",
+                  status: 603,
+                  functionName: 'voiting:choiseUser'
+                })
+              //Ошибка, что игрок не играет
+            }
+            
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: "За этого игрока нельзя проголосовать",
+                status: 603,
+                functionName: 'voiting:choiseUser'
+              })
+            // Ошибка, что игрок не действителен, за которого голосуют
+            
+          }
+        }
+        else {
+          socket.emit("setError",
+            {
+              message: "Игра не началась, либо комнаты не существует",
+              status: 603,
+              functionName: 'voiting:choiseUser'
+            })
+          // Ошибка, что голосвание либо не началось, либо уже закончилось
         }
       })
       

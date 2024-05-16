@@ -21,13 +21,19 @@ import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { copyLinkToBuffer, getId, getLinkParams, getLocalData, objIsEmpty, setLocalData } from "@/plugins/functions.js";
-import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/stores/game.js";
+import {
+  useHostFunctionalStore,
+  useSelectedGame,
+  useSelectedGameData,
+  useSelectedGameGameplay
+} from "@/stores/game.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
 import router from "@/router/index.js";
 import { goToBlock, openNavigation, showInfoHandler } from "@/plugins/navigationPlugin.js";
+import AppLoader from "@/components/AppLoader.vue";
 
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
@@ -37,31 +43,12 @@ const userSocket = useUserSocketStore()
 const hostSocket = useHostSocketStore()
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
+const selectedGameGameplay = useSelectedGameGameplay()
 
 const noteTextArea = ref(null)
 
 const firstItem = ['№ Имя', 'num']
 
-const gameData = reactive({
-  hostId: 2,
-  gamers: [
-    {id: 2, nickname: '123456789012345'},
-    {id: 234, nickname: 'Никнейм1'},
-    {id: 345, nickname: 'Никнейм2'},
-    {id: 456, nickname: 'Никнейм3'},
-    {id: 567, nickname: 'Никнейм4'},
-    {id: 678, nickname: 'Никнейм5'},
-    {id: 678, nickname: 'Никнейм6'},
-    {id: 678, nickname: 'Никнейм7'},
-    {id: 678, nickname: 'Никнейм8'},
-    {id: 678, nickname: 'Никнейм9'},
-    {id: 678, nickname: 'Никнейм10'},
-    {id: 678, nickname: 'Никнейм11'},
-    {id: 678, nickname: 'Никнейм12'},
-    {id: 678, nickname: 'Никнейм13'},
-    {id: 678, nickname: 'Никнейм14'},
-  ]
-})
 const itemsName = [
   ['Пол', 'sex'],
   ['Телосложение', 'body'],
@@ -104,216 +91,10 @@ const getActiveNavigationItems = computed(() => {
   }
 })
 
-const gamerData = [
-  {
-    nickname: 'Никнейм1234567', imgLink: '', access: 'vip', isDead: false, id: 1,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'mvp', isDead: false, id: 2,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'admin', isDead: false, id: 3,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'default', isDead: false, id: 4,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'noreg', isDead: false, id: 5,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 6,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 7,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 8,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 9,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 10,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 11,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 12,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 13,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 14,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-  {
-    nickname: 'Никнейм', imgLink: '', access: 'vip', isDead: true, id: 15,
-    sex: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    physique: {title: "Крепкое (Рост: 182 см.)", isReload: true, isLocked: true},
-    trait: {title: "Брезгливый", isReload: true, isLocked: true},
-    profession: {title: "Астролог (Стажер)", isReload: true, isLocked: false, info: "Какое то всплывающее окно"},
-    health: {title: "Перикардит (Легкая степень)", isReload: true, isLocked: true},
-    hobbies: {title: "Мужчина 41 год (взрослый) чайлдфри", isReload: true, isLocked: true},
-    phobia: {title: "Парентофобия (боязнь родителей)", isReload: false, isLocked: true},
-    inventory: {title: "Книга “Как распознать ложь”", isReload: true, isLocked: true},
-    backpack: {title: "Консервы", isReload: true, isLocked: true},
-    addInfo: {title: "Практикует нестандартные эксперименты", isReload: true, isLocked: false},
-  },
-]
 const specItems = [
   ['Спец. возможность 1', 'spec1'],
   ['Спец. возможность 2', 'spec2'],
 ]
-const votedData = {
-  votedList: [
-    {nickname: 'Nick1', whoVote: ['Ева', 'Максим']},
-    {nickname: 'Nick2', whoVote: ['Ева2', 'Максим2']},
-    {nickname: 'Nick3333', whoVote: ['Ева3', 'Максим3', 'ОЛЕГЗЕЙ']},
-  ],
-  abstainedList: ['Витя', 'Леша', 'Игорь', 'Лена'],
-  allVoteNum: 7,
-}
 
 let isActive = ref(null)
 
@@ -357,7 +138,7 @@ function getAccessStr(access) {
 }
 
 function getPercent(vote) {
-  return (vote.whoVote.length / votedData.allVoteNum * 100).toFixed(2)
+  return ((vote.whoVote.length / selectedGameData.getNonVoitingUsersNicknames.allVoteNum) * 100).toFixed(2)
 }
 
 function voteCalc() {
@@ -503,8 +284,8 @@ function createCustomGame() {
                 v-for="(item,index) in getActiveNavigationItems"
                 :key="item.name"
                 @click="showInfoHandler">
-              <div @click="goToBlock(`${item.goToId}`)" class="navigation__text">{{index+1}}</div>
-              <div class="navigation__window">{{item.name}}</div>
+              <div @click="goToBlock(`${item.goToId}`)" class="navigation__text">{{ index + 1 }}</div>
+              <div class="navigation__window">{{ item.name }}</div>
             </li>
           </ul>
         </div>
@@ -696,7 +477,9 @@ function createCustomGame() {
       <div class="listGamer__container">
         <h2 v-slide class="listGamer__title titleH2">
           Желающие попасть в бункер:
-          <span> {{ selectedGameData.getAlivePlayers.length }}/{{ selectedGameData.getActivePlayersFromUserData.length }}</span>
+          <span> {{ selectedGameData.getAlivePlayers.length }}/{{
+              selectedGameData.getActivePlayersFromUserData.length
+                 }}</span>
         </h2>
         <div slidebody>
           <div class="wrapper-listGamer">
@@ -728,7 +511,8 @@ function createCustomGame() {
                              :color="data.data.accessLevel"
                              style="cursor: pointer"
                   />
-                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
+                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img"
+                             :color="data.data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
                     <div class="texts-profile-column__nickname"
                          :title="data.data.nickname"
@@ -738,7 +522,8 @@ function createCustomGame() {
                       {{ data.data.nickname }}
                     </div>
                     <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
-                    <div v-if="!selectedGame.imWatcher && hostFunctional.haveAccess" class="texts-profile-column__banish"
+                    <div v-if="!selectedGame.imWatcher && hostFunctional.haveAccess"
+                         class="texts-profile-column__banish"
                          :class="{dead:!data.data.isAlive}">
                       {{ !data.data.isAlive? 'вернуть':'изгнать' }}
                     </div>
@@ -749,7 +534,7 @@ function createCustomGame() {
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  {{ selectedGameData.getCharForPlayer(data.id,item[1]) }}
+                  {{ selectedGameData.getCharForPlayer(data.id, item[1]) }}
                   <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
                                 :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
@@ -759,32 +544,42 @@ function createCustomGame() {
         </div>
       </div>
     </div>
-    <div v-if="!selectedGame.imWatcher" class="voting">
+    <div v-if="(!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)"
+         class="voting">
       <div class="voting__container">
-        <div class="voting__now now-voting">
-          <h2 v-slide class="now-voting__title titleH2">Голосование</h2>
-          <div slidebody>
-            <form @submit.prevent="voteCalc" class="now-voting__body">
+        <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
+          <h2 id="voting" v-slide class="now-voting__title titleH2">Голосование</h2>
+          <div v-if="!selectedGameData.userVoitingChoice" slidebody>
+            <form @submit.prevent="selectedGameGameplay.voteHandler(isActive)" class="now-voting__body">
               <div class="now-voting__voteList">
                 <TheVoteBlock
-                    v-for="(gamer,index) in gamerData"
+                    v-for="(gamer,index) in selectedGameData.getAlivePlayers"
                     :key="gamer.id"
                     :index="index"
-                    :nickname="gamer.nickname"
+                    :nickname="gamer.data.nickname"
                     :value="gamer.id"
                     v-model:isActive="isActive"
                 />
               </div>
-              <AppButton v-if="isActive" class="now-voting__submit" color="gold">Проголосовать</AppButton>
+              <AppButton v-if="isActive && !selectedGameData.voitingData.isLoading" class="now-voting__submit"
+                         color="gold">Проголосовать
+              </AppButton>
+              <AppLoader v-if="selectedGameData.voitingData.isLoading" />
             </form>
           </div>
+          <div v-else class="now-voting__choiceUser">
+            <p>
+              Вы проголосовали за игрока <b>{{ selectedGameData.userVoitingChoice }}</b>.
+              Ожидаем окончание голосования...
+            </p>
+          </div>
         </div>
-        <div class="voting__result results-voting">
+        <div v-else-if="!objIsEmpty(selectedGameData.voitingData)" class="voting__result results-voting">
           <h2 v-slide class="results-voting__title titleH2">Результат последнего голосования</h2>
           <div slidebody>
             <div class="results-voting__body">
               <div
-                  v-for="vote in votedData.votedList"
+                  v-for="vote in selectedGameData.getNonVoitingUsersNicknames.votedList"
                   :key="vote.nickname"
                   class="results-voting__line line-results-voting"
               >
@@ -806,9 +601,13 @@ function createCustomGame() {
                 </div>
               </div>
             </div>
-            <div class="results-voting__listAbstained">
+            <div v-if="selectedGameData.getNonVoitingUsersNicknames.abstainedList.length"
+                 class="results-voting__listAbstained">
               Игроки, которые не приняли участие в голосовании:
-              <span>{{ votedData.abstainedList.join(', ') }}</span>
+              <span>{{ selectedGameData.getNonVoitingUsersNicknames.abstainedList.join(', ') }}</span>
+            </div>
+            <div v-else class="results-voting__listAbstained">
+              Все игроки приняли участие в голосовании
             </div>
           </div>
         </div>
@@ -848,7 +647,8 @@ function createCustomGame() {
                              :color="data.data.accessLevel"
                              style="cursor: pointer"
                   />
-                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img" :color="data.data.accessLevel" />
+                  <AppAvatar v-else v-model:href="data.data.avatar" class="profile-column__img"
+                             :color="data.data.accessLevel" />
                   <div class="profile-column__texts texts-profile-column">
                     <div class="texts-profile-column__nickname"
                          :title="data.data.nickname"
@@ -882,7 +682,8 @@ function createCustomGame() {
           <h2 v-slide class="notes__title titleH2">Заметки</h2>
           <div slidebody>
             <div class="notes__body">
-              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea" maxlength="5500"
+              <textarea @input="noteInputHandler" ref="noteTextArea" cols="30" rows="10" class="notes__textarea"
+                        maxlength="5500"
                         placeholder="Ваши заметки"></textarea>
               <div class="notes__textarea-warning">* После обновления страницы данные будут сохранены!</div>
             </div>
@@ -1157,7 +958,7 @@ function createCustomGame() {
     max-width: 560px;
     margin-right: 100px;
 
-    @media (max-width:1200px){
+    @media (max-width: 1200px) {
       margin-right: 0;
     }
     @media (max-width: $tablet) {
@@ -1261,11 +1062,11 @@ function createCustomGame() {
     font-weight: 700;
     white-space: nowrap;
 
-    @media (max-width:1200px){
+    @media (max-width: 1200px) {
       white-space: wrap;
       min-width: 300px;
     }
-    @media (max-width:$tablet){
+    @media (max-width: $tablet) {
       min-width: 250px;
     }
     @media (max-width: $mobile) {
@@ -1660,7 +1461,6 @@ function createCustomGame() {
 
 .now-voting {
 
-
   &__title {
   }
 
@@ -1684,6 +1484,26 @@ function createCustomGame() {
   &__submit {
     margin: 0 auto;
     padding: 14px 38px;
+  }
+
+  &__choiceUser {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    p {
+      margin-bottom: 60px;
+      padding: 20px 50px;
+      background: $greenColor;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 13px;
+      max-width: 1300px;
+
+      @media (max-width: $mobile) {
+        padding: 20px;
+      }
+    }
   }
 }
 

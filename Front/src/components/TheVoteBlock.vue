@@ -1,5 +1,6 @@
 <script setup="">
 import { ref } from "vue";
+import { useSelectedGame } from "@/stores/game.js";
 
 defineProps([
   'index',
@@ -7,6 +8,8 @@ defineProps([
   'value'
 ])
 const isActive = defineModel('isActive')
+
+const selectedGame = useSelectedGame()
 
 const inputVote = ref(null)
 
@@ -17,7 +20,7 @@ function changeVote() {
 </script>
 
 <template>
-  <div @click="changeVote" class="voteBlock linear-border white">
+  <div v-if="+value!==+selectedGame.userId" @click="changeVote" class="voteBlock linear-border white">
     <div class="voteBlock__body" :class="inputVote && inputVote.checked?'_active':''">
       <div class="voteBlock__checkImg">
         <svg width="30.000000" height="30.000000" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
