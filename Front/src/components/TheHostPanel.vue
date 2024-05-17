@@ -1,6 +1,24 @@
 <script setup="">
 import AppSpoiler from "@/components/Forms/AppSpoiler.vue";
 
+let props = defineProps({
+  playerItems: Array
+})
+
+let editPlayerItems = []
+const professionItems = [
+  {text:'Дилетант',value: 'Дилетант'},
+  {text:'Стажер',value: 'Стажер'},
+  {text:'Любитель',value: 'Любитель'},
+  {text:'Опытный',value: 'Опытный'},
+  {text:'Эксперт',value: 'Эксперт'},
+  {text:'Профессионал',value: 'Профессионал'},
+]
+
+for (let data of props.playerItems) {
+  editPlayerItems.push({text:data[0],value:data[1]})
+}
+
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
 
@@ -8,10 +26,20 @@ const charPerson = ref(null)
 const charItem = ref(null)
 const charInput = ref(null)
 const isOpen = ref(false)
+const funcData = ref({
+  chart: {id:0,chart:''},
+  profession: {id:0,chart:''},
+  health: {id:0,chart:''},
+  body: {id:0},
+  rotate: {chart:'',deg:''},
+  bunker: {chart:''},
+  swap: {id1:0,id2:0,chart:''},
+  steal: {id1:0,id2:0,chart:''},
+  change: {id:0,chart:'',text:''},
+  add: {id:0,chart:''},
+  deleteInventory: {id:0,value:''},
+})
 
-function activateTimer() {
-
-}
 
 onMounted(() => {
   fieldsInit()
@@ -31,6 +59,10 @@ function closeRoom(e) {
   }, 'Вы уверены, что хотите закрыть комнату?')
 }
 
+function clickTest() {
+  console.log(funcData);
+}
+
 import AppButton from "@/components/AppButton.vue";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import AppSelect from "@/components/Forms/AppSelect.vue";
@@ -48,32 +80,54 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
       <div class="hostPanel__body">
         <div class="hostPanel__timers timers-hostPanel">
           <div class="timers-hostPanel__num">
-            <AppButton @click="activateTimer" class="timers-hostPanel__btn">15</AppButton>
-            <AppButton @click="activateTimer" class="timers-hostPanel__btn">30</AppButton>
-            <AppButton @click="activateTimer" class="timers-hostPanel__btn">60</AppButton>
+            <AppButton @click="hostFunctional.activateTimer(15)" class="timers-hostPanel__btn"
+                       :class="selectedGameData.activeTimers[0]?'gold border':''">15
+            </AppButton>
+            <AppButton @click="hostFunctional.activateTimer(30)" class="timers-hostPanel__btn"
+                       :class="selectedGameData.activeTimers[1]?'gold border':''">30
+            </AppButton>
+            <AppButton @click="hostFunctional.activateTimer(60)" class="timers-hostPanel__btn"
+                       :class="selectedGameData.activeTimers[2]?'gold border':''">60
+            </AppButton>
           </div>
-          <div class="timers-hostPanel__nav">
-            <AppButton color="gold" class="timers-hostPanel__btn" border="true" iconName="pause.png" />
-            <AppButton color="gold" class="timers-hostPanel__btn" border="true" iconName="stop.png" />
+          <div v-if="selectedGameData.timerStart" class="timers-hostPanel__nav">
+            <AppButton
+                @click="selectedGameData.isPauseTimer?hostSocket.emit('timer:resume'):hostSocket.emit('timer:pause')"
+                color="gold" class="timers-hostPanel__btn" border="true"
+                :iconName="!selectedGameData.isPauseTimer?'pause.png':'play.png'" />
+            <AppButton @click="hostSocket.emit('timer:stop')" color="gold" class="timers-hostPanel__btn" border="true"
+                       iconName="stop.png" />
           </div>
         </div>
         <div class="hostPanel__buttons buttons-hostPanel">
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить катаклизм</AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить бункер</AppButton>
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
-                     @click="selectedGameData.isVoiting?hostFunctional.endVoiting():hostFunctional.startVoiting()"
+                     @click="hostFunctional.refreshBunkerData($event,'catastrophe')">Изменить катаклизм
+          </AppButton>
+          <AppButton @click="hostFunctional.refreshBunkerData($event)" class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить бункер</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
+                     @click="selectedGameData.isVoiting?hostFunctional.endVoiting($event):hostFunctional.startVoiting($event)"
                      :class="selectedGameData.isVoiting?'_active':''"
           >
-            {{selectedGameData.isVoiting?"Завершить голосование":"Начать голосование"}}
+            {{ selectedGameData.isVoiting? "Завершить голосование":"Начать голосование" }}
           </AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Аннулировать всем специальность</AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Специальности по часовой стрелке</AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Аннулировать всем специальность
+          </AppButton>
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Специальности по часовой стрелке
+          </AppButton>
         </div>
         <div class="hostPanel__space space-hostPanel">
           <div class="space-hostPanel__title">Мест в бункере</div>
           <div class="space-hostPanel__buttons">
-            <AppButton color="red" class="space-hostPanel__btn">-</AppButton>
-            <AppButton color="green" class="space-hostPanel__btn">+</AppButton>
+            <AppButton color="red"
+                       @click="hostFunctional.changeSpaceNum(false,$event)" class="space-hostPanel__btn"
+                       :disabled="selectedGameData.bunkerData.maxSurvivor<=1"
+            >-
+            </AppButton>
+            <AppButton color="green" class="space-hostPanel__btn"
+                       @click="hostFunctional.changeSpaceNum(true,$event)"
+                       :disabled="selectedGameData.bunkerData.maxSurvivor>=selectedGameData.getActivePlayersFromUserData.length"
+            >+
+            </AppButton>
           </div>
         </div>
         <div class="hostPanel__settings settings-hostPanel">
@@ -96,19 +150,12 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить стаж специальности">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <AppSelect :options="selectedGameData.getPlayerForSelect" v-model="funcData.profession.id"/>
+            <AppSelect :options="professionItems" v-model="funcData.profession.chart"/>
+<!--            <button class="hostButton btn grayGold border" @click.prevent="clickTest">-->
+<!--              <span class="text">Изменить стаж профессии</span>-->
+<!--            </button>-->
+            <button class="hostButton btn grayGold border" @click.prevent="hostSocket.emit('refresh:professionExp',funcData.profession.id.value,funcData.profession.chart.value)">
               <span class="text">Изменить стаж профессии</span>
             </button>
           </AppSpoiler>
@@ -269,9 +316,9 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
           <div class="settings-hostPanel__dice dice-settings">
             <div class="dice-settings__title">Бросить кубик</div>
             <div class="dice-settings__body">
-              <button class="hostButton btn grayGold border">
+              <button @click="hostFunctional.rollTheDice($event,6)" class="hostButton btn grayGold border">
                 <span class="text">С 6 гранями</span></button>
-              <button class="hostButton btn grayGold border">
+              <button @click="hostFunctional.rollTheDice($event,20)" class="hostButton btn grayGold border">
                 <span class="text">С 20 гранями</span>
               </button>
             </div>
@@ -301,7 +348,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
         </div>
       </div>
     </div>
-  </div>
+  </div>А
   <button @click.left="isOpen=!isOpen" class="hostActivateButton btn gold border" :class="isOpen?'_active':''">
     <span class="hostActivateButton__icon">
       <span class=""></span>
@@ -347,6 +394,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
             height: 4px;
             transform: translateX(-3px) translateY(-7px);
           }
+
           &::after {
             width: 2px;
             transform: translateX(-9px) translateY(-3px);
@@ -358,10 +406,12 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
           height: 2px;
           transform: translateX(-1px);
 
-          &::before {width: 2px;
+          &::before {
+            width: 2px;
             height: 2px;
             transform: translateX(1px);
           }
+
           &::after {
             width: 4px;
             height: 2px;
@@ -378,6 +428,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
             height: 4px;
             transform: translateX(-6px) translateY(3px);
           }
+
           &::after {
             height: 2px;
             transform: translateX(-6px) translateY(-2px);
@@ -406,7 +457,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
       border-radius: 1.5px;
       transition: .3s width, .3s opacity, .3s transform;
 
-      &::before,&::after {
+      &::before, &::after {
         content: '';
         position: absolute;
         display: block;
@@ -417,6 +468,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
         border-radius: 1.5px;
         transition: .3s transform, .3s width, .3s height, .3s border-radius;
       }
+
       &::after {
         left: 400%;
       }
@@ -424,6 +476,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
       &:nth-child(2) {
         margin-top: -1.5px;
       }
+
       &:nth-child(3) {
         margin-top: 4.5px;
       }
@@ -490,7 +543,7 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 
 .timers-hostPanel {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   margin-bottom: 30px;
 
   &__num {

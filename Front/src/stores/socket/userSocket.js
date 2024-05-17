@@ -5,8 +5,8 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
-import { useSelectedGame, useSelectedGameData } from "@/stores/game.js";
-import { userSocket } from "@/socket/sockets.js";
+import { useSelectedGame, useSelectedGameData, useSelectedGameGameplay } from "@/stores/game.js";
+import { hostSocket, userSocket } from "@/socket/sockets.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
 import { switchError } from "@/logics/socketLogic.js";
 
@@ -20,6 +20,8 @@ export const useUserSocketStore = defineStore('userSocket', () => {
   const selectedGame = useSelectedGame()
   const hostSocket = useHostSocketStore()
   const selectedGameData = useSelectedGameData()
+  const selectedGameGameplay = useSelectedGameGameplay()
+  
   
   function bindEvents() {
     userSocket.on('setError', async data => {
@@ -119,6 +121,25 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.on('voiting:start',() => {
       globalPopup.activate('Сообщение от ведущего','Голосование началось','green')
       router.push('#voting')
+    })
+    
+    userSocket.on('timer:start',(second) => {
+      selectedGameGameplay.startTimer(+second)
+    })
+    userSocket.on('timer:pause',() => {
+      selectedGameGameplay.pauseTimer()
+    })
+    userSocket.on('timer:resume',() => {
+      selectedGameGameplay.resumeTimer()
+    })
+    userSocket.on('timer:stop',() => {
+      selectedGameGameplay.stopTimer()
+    })
+    userSocket.on('rollTheDice:6',(num) => {
+      globalPopup.activate('6',num)
+    })
+    userSocket.on('rollTheDice:20',(num) => {
+      globalPopup.activate('20',num)
     })
   }
   

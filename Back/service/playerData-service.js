@@ -49,6 +49,40 @@ class playerDataService {
     return systemData
   }
   
+  async refreshChartBunker(chartName = null, idRoom, userId) {
+    this.systemSettings = await this.getSystemSettingsData()
+    let gameRoom = await UserModel.GameRooms.findOne({
+      attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerCreated', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'imageId'],
+      where: {idRoom: idRoom}
+    })
+    console.log('ONE', gameRoom.id)
+    let host = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
+    console.log('2', gameRoom.id)
+    let usePack = JSON.parse(host.usePack)
+    console.log('ONE')
+    await this.collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName)
+    console.log('TWO')
+    let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
+    console.log('Three')
+    if (chartName && chartName!=='catastrophe') {
+      gameRoom[chartName] = data.id
+      data = {[chartName]: data.text}
+      
+    }else if(chartName ==='bunkerSize'){
+      gameRoom[chartName] = data.bunkerSize
+      data.bunkerSize = `${data.bunkerSize} кв.м`
+    }
+    else if (chartName==='catastrophe') {
+      gameRoom[chartName] = data.newChart.id
+      gameRoom[chartName] = data.imageId
+      data = {[chartName]: data.newChart.text, imageName: data.imageName}
+      
+    }
+    console.log(data)
+    return data
+    
+    
+  }
   
   async refreshChartMvp(player, chartName, gameRoomId) {
     this.systemSettings = await this.getSystemSettingsData()
@@ -99,7 +133,7 @@ class playerDataService {
     return data
   }
   
-  async createDataBunker(players, idRoom) {
+  async createDataBunker(idRoom,maxSurvivor = null,players = null) {
     let bunkerTime = null
     let bunkerLocation = null
     let bunkerCreated = null
@@ -109,10 +143,13 @@ class playerDataService {
     let catastrophe = null
     let imageId = null
     let imageName = null
-    let bunkerSize = null
-    let maxSurvivor = null
+   let  bunkerSize = null
     bunkerSize = this.getRandomInt(20, 200)
-    maxSurvivor = Math.floor(+players.length / 2)
+
+    if (players!==null) {
+      bunkerSize = this.getRandomInt(20, 200)
+      maxSurvivor = Math.floor(+players.length / 2)
+    }
     bunkerTime = this.getRandomDataBunker('bunkerTime')
     bunkerLocation = this.getRandomDataBunker('bunkerLocation')
     bunkerCreated = this.getRandomDataBunker('bunkerCreated')
@@ -139,7 +176,14 @@ class playerDataService {
       imageId = image.id
       imageName = image.imageName
     }
+    
+    
     let thisGame = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    if (players!==null) {
+      thisGame.bunkerSize = bunkerSize
+      thisGame.maxSurvivor = maxSurvivor
+    }
+    
     thisGame.bunkerSize = bunkerSize
     thisGame.maxSurvivor = maxSurvivor
     thisGame.bunkerLocation = bunkerLocation.id
@@ -157,8 +201,8 @@ class playerDataService {
     
     return {
       bunkerTime: bunkerTime.text,
-      bunkerSize: `${bunkerSize} кв.м`,
-      maxSurvivor: maxSurvivor,
+      bunkerSize: `${bunkerSize} кв.м` || null,
+      maxSurvivor: maxSurvivor || null,
       bunkerLocation: bunkerLocation.text,
       bunkerCreated: bunkerCreated.text,
       bunkerBedroom: bunkerBedroom.text,
@@ -171,13 +215,13 @@ class playerDataService {
   }
   
   async getAvailableVoitingData(gameRoom, playerId) {
-
+    
     if (gameRoom.voitingStatus===null) {
       return null
     }
     console.log(gameRoom.voitingStatus)
     let voitingPull = {}
-   // voitingPull.status = gameRoom.voitingStatus
+    // voitingPull.status = gameRoom.voitingStatus
     if (gameRoom.voitingStatus===1) {
       let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
       for (let player of players) {
@@ -188,7 +232,7 @@ class playerDataService {
           voitingPull[player.votedFor].push(player.userId)
         }
       }
-      return {status:gameRoom.voitingStatus,voitingPull:voitingPull}
+      return {status: gameRoom.voitingStatus, voitingPull: voitingPull}
     }
     else {
       let player = await UserModel.RoomSession.findOne(
@@ -201,18 +245,17 @@ class playerDataService {
           voitingPull.userChoise = player.votedFor
         }
       }
-      return {status:gameRoom.voitingStatus,userChoise:voitingPull.userChoise}
-
-
+      return {status: gameRoom.voitingStatus, userChoise: voitingPull.userChoise}
+      
+      
     }
     console.log(voitingPull)
   }
-
-
+  
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId','voitingStatus'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'voitingStatus'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -221,7 +264,7 @@ class playerDataService {
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3'&& key.toString()!=='voitingStatus') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
         bunkerData[key] = chartBunker.text
         
@@ -324,6 +367,50 @@ class playerDataService {
     return data
     
     
+  }
+  
+  async refreshDataBunker(usePack, chartName = null, gameRoom, idRoom) {
+    let isUsedSystemAdvancePack = false
+    if (usePack.includes(this.systemSettings.advancePack)) {
+      isUsedSystemAdvancePack = true
+    }
+    if (chartName===null) {
+      let result = await this.createDataBunker(idRoom,gameRoom.maxSurvivor)
+
+
+      return result
+    }
+    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
+      let newChart = this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
+      return newChart
+      
+    }
+    else if (chartName==='catastrophe') {
+      let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
+      let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
+      // console.log('allImageId', allImageId)
+      let imageId = null
+      let imageName = null
+      if (allImageId.length===1) {
+        imageId = allImageId[0].id
+        imageName = allImageId[0].imageName
+      }else if(chartName==='bunkerSize'){
+       let bunkerSize = this.getRandomInt(20, 200)
+       return {bunkerSize:bunkerSize}
+      }
+      else {
+        let index = this.getRandomInt(0, allImageId.length - 1)
+        let image = allImageId[index]
+        imageId = image.id
+        imageName = image.imageName
+      }
+      return {newChart: newChart, imageName: imageName, imageId: imageId}
+      
+    }
+    else {
+      let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
+      return newChart
+    }
   }
   
   async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
@@ -619,6 +706,12 @@ class playerDataService {
         index = this.usedPack.chartBunkerData.indexOf(nameArray[index])
         this.usedPack.chartBunkerData.splice(index, 1)
       }
+      if(name ==='bunkerCreated'){
+        let age =this.getRandomInt(1, 50)
+        let bunkerAge = `${age} ${this.getAgeText(age)}`
+        result.text = result.text.replace('[year]',bunkerAge)
+      }
+
       whileCount += 1
     }
     return result
@@ -872,6 +965,49 @@ class playerDataService {
     
   }
   
+  async collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName = null) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
+    let useChartId = []
+    if (chartName===null) {
+      for (let key in gameRoom) {
+        if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
+          
+          useChartId.push(gameRoom[key])
+          
+          
+        }
+      }
+    }
+    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
+      useChartId.push(gameRoom.bunkerItems1)
+      useChartId.push(gameRoom.bunkerItems2)
+      useChartId.push(gameRoom.bunkerItems3)
+      
+    }
+    else {
+      if(gameRoom[chartName]){
+      useChartId.push(gameRoom[chartName])
+      }
+    }
+    if(chartName!=='bunkerSize'){
+    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+      console.log(this.systemSettings.basePack)
+      this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
+      //  console.log('Сделали системный пак')
+    }
+
+    if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
+      this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
+        true)
+    }
+    console.log(baseIdPack, advanceIdPack)
+    this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
+    this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
+    }
+    
+    
+  }
+  
   async collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
     let players = await UserModel.RoomSession.findAll(
@@ -1010,10 +1146,10 @@ class playerDataService {
     return hostPack
   }
   
-  async getDataPackRefresh(dataPackId, useChartId, chartName) {
+  async getDataPackRefresh(dataPackId, useChartId, chartName, isBunkerData = false) {
     console.log(useChartId)
     console.log(dataPackId)
-    if (chartName==='profession') {
+    if (chartName==='profession' && !isBunkerData) {
       let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
         {attributes: ['professionId'], where: {chartPackId: dataPackId}})
       let dataProfessionIdPlayerData = []
@@ -1031,7 +1167,7 @@ class playerDataService {
       return {professionData: dataProfessionChartData}
       
     }
-    else {
+    else if (!isBunkerData) {
       let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
         {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
       
@@ -1047,6 +1183,19 @@ class playerDataService {
         {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
       
       return {chartPlayerData: dataPlayerChartData}
+    }
+    else {
+      let bunkerChart = await UserModel.BunkerChartPack.findAll(
+        {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
+      let dataBunker = []
+      for (let chartId of bunkerChart) {
+        if (!useChartId.includes(chartId.chartBunkerId)) {
+          dataBunker.push(chartId.chartBunkerId)
+        }
+      }
+      let dataBunkerChart = await UserModel.ChartBunker.findAll(
+        {attributes: ['id', 'name', 'text'], where: {id: dataBunker}, raw: true})
+      return {chartBunkerData: dataBunkerChart}
     }
     
   }

@@ -290,7 +290,18 @@ function createCustomGame() {
           </ul>
         </div>
       </div>
-      <TheHostPanel v-if="hostFunctional.haveAccess" />
+      <TheHostPanel v-if="hostFunctional.haveAccess" :player-items="itemsName.concat(specItems)"/>
+      <div class="watchersIcon"
+           :class="selectedGame.watchersCount>0?'_active':''">
+        <img src="/img/icons/watcher.svg" alt="">
+      </div>
+      <div class="timerBlock"
+           :class="hostFunctional.haveAccess?'_host':''"
+      >
+        <div class="timerBlock__body btn gold border">
+          <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
+        </div>
+      </div>
     </Teleport>
     <div id="welcome" class="welcome">
       <AppBackground img-name="cataclysm.jpg" />
@@ -693,10 +704,6 @@ function createCustomGame() {
     </div>
     <TheLogs v-if="!selectedGame.imWatcher" />
     <div v-if="selectedGame.imWatcher" class="spaceDown"></div>
-    <div class="watchersIcon"
-         :class="selectedGame.watchersCount>0?'_active':''">
-      <img src="/img/icons/watcher.svg" alt="">
-    </div>
   </main>
   <main v-else>
     <div v-if="!selectedGame.isCreateCustomGame" class="awaitRoom">
@@ -2031,4 +2038,39 @@ function createCustomGame() {
   }
 }
 
+</style>
+
+<style lang="scss">
+@import "@/assets/scss/style";
+
+.timerBlock {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 9;
+
+  @media (max-width: $mobile) {
+    left: 20px;
+    transform: translate(0);
+  }
+
+  &._host {
+    @media (max-width: $mobile) {
+      bottom: 70px;
+    }
+  }
+
+
+  &__body {
+    padding: 15px 20px;
+    font-size: 18px;
+
+    @media (max-width: $mobile) {
+      font-size: 14px;
+      padding: 13px 14px;
+      width: 83px;
+    }
+  }
+}
 </style>

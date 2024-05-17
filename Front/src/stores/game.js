@@ -130,18 +130,44 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     return !!selectedGame.hostId && selectedGame.hostId===selectedGame.userId
   })
   
-  function startVoiting() {
-    hostSocket.emit('voiting:start')
-    selectedGameData.isVoiting = true
+  function startVoiting(e) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('voiting:start')
+      // selectedGameData.isVoiting = true
+    })
   }
   
-  function endVoiting() {
-    hostSocket.emit('voiting:finished')
-    selectedGameData.isVoiting = false
+  function endVoiting(e) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('voiting:finished')
+      // selectedGameData.isVoiting = false
+    })
   }
   
   function clearData() {
     isPlayerToo.value = true
+  }
+  
+  function activateTimer(second) {
+    hostSocket.emit('timer:start', second)
+  }
+  
+  function refreshBunkerData(e,chartName=null) {
+    showConfirmBlock(e.target,() => {
+      hostSocket.emit('refresh:bunkerData',chartName)
+    })
+  }
+  
+  function changeSpaceNum(isPlus, e) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:maxSurvivor', isPlus)
+    }, `Вы уверены, что хотите ${isPlus? 'увеличить':'уменьшить'} количество мест?`)
+  }
+  
+  function rollTheDice(e,num) {
+    showConfirmBlock(e.target,() => {
+      hostSocket.emit('rollTheDice',num)
+    })
   }
   
   return {
@@ -150,6 +176,10 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     clearData,
     startVoiting,
     endVoiting,
+    activateTimer,
+    changeSpaceNum,
+    refreshBunkerData,
+    rollTheDice,
   }
 })
 
@@ -174,6 +204,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const voitingData = ref({})
   const isVoiting = ref(false)
   const userVoitingChoice = ref("")
+  const timerStart = ref(false)
+  const timerSeconds = ref(0)
+  const isPauseTimer = ref(false)
+  const activeTimers = ref([false, false, false])
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -207,17 +241,17 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     for (let choiceIdPlayer in voitingData.value.voitingPull) {
       let choicePlayerNickname = userData.value[choiceIdPlayer].nickname
       let localVotedListNicknames = []
-      for(let index in voitingData.value.voitingPull[choiceIdPlayer]) {
+      for (let index in voitingData.value.voitingPull[choiceIdPlayer]) {
         let votedPlayerNickname = userData.value[voitingData.value.voitingPull[choiceIdPlayer][index]].nickname
         votedPlayerIds.push(voitingData.value.voitingPull[choiceIdPlayer][index])
         localVotedListNicknames.push(votedPlayerNickname)
         allVoteNum++
       }
-      votedList.push({nickname:choicePlayerNickname,whoVote:localVotedListNicknames})
+      votedList.push({nickname: choicePlayerNickname, whoVote: localVotedListNicknames})
     }
     
     for (let dataKey in userData.value) {
-      if(!votedPlayerIds.includes(+dataKey)) {
+      if (!votedPlayerIds.includes(+dataKey)) {
         abstainedList.push(userData.value[dataKey].nickname)
       }
     }
@@ -228,6 +262,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     
     console.log("VOTED DATA", votedData)
     return votedData
+  })
+  const getPlayerForSelect = computed(() => {
+    let players = getAlivePlayers.value.map(item => {
+      return {value: item.id, text: item.data.nickname}
+    })
+    console.log(players)
+    return players
   })
   
   function setData(data) {
@@ -265,16 +306,16 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (data.hasOwnProperty('voitingData')) {
       voitingData.value = data.voitingData
       isVoiting.value = !data.voitingData.status
-      if(data.voitingData.hasOwnProperty('userChoise')) {
+      if (data.voitingData.hasOwnProperty('userChoise')) {
         if (data.voitingData.userChoise) {
           userVoitingChoice.value = userData.value[data.voitingData.userChoise].nickname
-        } else {
+        }
+        else {
           userVoitingChoice.value = ''
         }
       }
     }
   }
-  
   
   function getCharForPlayer(id, item) {
     if (!id || !item) {
@@ -317,7 +358,11 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     userData.value = {}
     voitingData.value = {}
     isVoiting.value = false
-    userVoitingChoice.value = 0
+    userVoitingChoice.value = ''
+    timerStart.value = false
+    timerSeconds.value = 0
+    isPauseTimer.value = false
+    activeTimers.value = [false, false, false]
   }
   
   return {
@@ -332,10 +377,15 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     getMyUserData,
     getActivePlayersFromUserData,
     getNonVoitingUsersNicknames,
+    timerStart,
+    timerSeconds,
+    isPauseTimer,
+    activeTimers,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
     clearData,
+    getPlayerForSelect,
   }
 })
 
@@ -343,6 +393,10 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   const selectedGameData = useSelectedGameData()
   const userSocket = useUserSocketStore()
   const globalPreloader = usePreloaderStore()
+  
+  let timerInterval = setInterval(() => {
+  }, 1000)
+  clearInterval(timerInterval)
   
   function openChart(el, charName) {
     showConfirmBlock(el.target, () => {
@@ -368,17 +422,65 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   }
   
   function voteHandler(userId) {
-    userSocket.on('voiting:choiseUser:good',() => {
+    userSocket.on('voiting:choiseUser:good', () => {
       selectedGameData.userVoitingChoice = selectedGameData.userData[userId].nickname
       selectedGameData.voitingData.isLoading = false
     })
     selectedGameData.voitingData.isLoading = true
-    userSocket.emit('voiting:choiseUser',+userId)
+    userSocket.emit('voiting:choiseUser', +userId)
+  }
+  
+  function startTimer(second) {
+    stopTimer()
+    switch(second) {
+      case 15: {
+        selectedGameData.activeTimers[0] = true
+        break;
+      }
+      case 30: {
+        selectedGameData.activeTimers[1] = true
+        break;
+      }
+      case 60: {
+        selectedGameData.activeTimers[2] = true
+        break;
+      }
+    }
+    selectedGameData.timerStart = true
+    selectedGameData.timerSeconds = second
+    timerInterval = setInterval(() => {
+      if (selectedGameData.timerSeconds<1) {
+        stopTimer()
+      }
+      else if (!selectedGameData.isPauseTimer) {
+        selectedGameData.timerSeconds -= 1
+      }
+    }, 1000)
+  }
+  
+  function pauseTimer() {
+    selectedGameData.isPauseTimer = true
+  }
+  
+  function resumeTimer() {
+    selectedGameData.isPauseTimer = false
+  }
+  
+  function stopTimer() {
+    selectedGameData.timerSeconds = 0
+    selectedGameData.timerStart = false
+    selectedGameData.isPauseTimer = false
+    clearInterval(timerInterval)
+    selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
   
   return {
     openChart,
     mvpReload,
     voteHandler,
+    startTimer,
+    pauseTimer,
+    resumeTimer,
+    stopTimer,
   }
 })
