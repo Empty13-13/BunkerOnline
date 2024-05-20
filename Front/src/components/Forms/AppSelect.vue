@@ -1,5 +1,5 @@
 <script setup="">
-import { onBeforeMount, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 
 const props = defineProps({
   options: Array,
@@ -45,17 +45,19 @@ function selectItem(value, text) {
        ref="originalSelect"
        :class="showDropdown?'_open':''"
   >
-    <div @click="toggleDropdown" class="select__input" ref="input">
+    <div ref="input" class="select__input" @click="toggleDropdown">
       {{model?model.text:options[0].text}}
     </div>
-    <div class="select__dropdown" ref="dropdownSel">
+    <div ref="dropdownSel" :style="showDropdown?`height:${29*options.length}px`:''"
+         class="select__dropdown"
+    >
       <div class="select__list">
-        <div class="select__item"
-             v-for="option in options"
-             :key="option.value"
-             @click="selectItem(option.value,option.text)"
+        <div v-for="{text, value} in options"
+             :key="value"
+             class="select__item"
+             @click="selectItem(value,text)"
         >
-          <p class="select__text">{{ option.text }}</p>
+          <p class="select__text">{{ text }}</p>
         </div>
       </div>
     </div>
@@ -74,7 +76,7 @@ function selectItem(value, text) {
     &__dropdown {
       border-radius: 0 8px;
       height: 0;
-      transition: height 0.3s ease;
+      transition: height 0.2s ease;
       display: block;
     }
 
@@ -84,9 +86,10 @@ function selectItem(value, text) {
       }
 
       .select__dropdown {
-        height: 300px;
         max-height: 150px;
       }
     }
   }
+
+
 </style>

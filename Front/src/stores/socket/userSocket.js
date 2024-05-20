@@ -141,6 +141,10 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.on('rollTheDice:20',(num) => {
       globalPopup.activate('20',num)
     })
+    
+    userSocket.on('refresh:professionByHour:good',() => {
+      globalPopup.activate('Сообщение от ведущего','Смена специальности по часовой стрелке','green')
+    })
   }
   
   function connect() {

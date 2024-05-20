@@ -412,32 +412,37 @@ module.exports = function(io) {
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {bunkerData: {maxSurvivor: gameRoom.maxSurvivor}})
       })
       socket.on('refresh:professionExp', async (playersId, exp) => {
+        console.log('id', playersId)
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = null
-        if (playersId=== -1) {
+        if (playersId===0) {
           players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
         }
         else {
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
           players = [players]
         }
-        
-        let emitData = {players:{}}
+        console.log(players)
+        let emitData = {players: {}}
         console.log(players.length)
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.profession)
+            console.log(data.text)
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
             data.text = data.text.replace(ecsExp, exp)
             let isOpen = data.isOpen
-            data = {profession:data}
-            console.log(data)
             player.profession = JSON.stringify(data)
+            await player.save()
+            data = {profession: data}
+            console.log(data)
+            
             if (isOpen) {
-              console.log("player.userId",player.userId)
+              console.log("player.userId", player.userId)
               emitData.players[player.userId] = data
-            } else {
-              io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data)
+            }
+            else {
+              io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {players: {[player.userId]: data}})
             }
           }
           else {
@@ -448,12 +453,134 @@ module.exports = function(io) {
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         
       })
-       socket.on('rollTheDice', async (value) => {
-         let num = playerDataService.getRandomInt(1,value)
-         console.log('VIPALO',num)
-         
-         io.in([idRoom, `watchers:${idRoom}`]).emit(`rollTheDice:${value}`, num) 
-       })
+      socket.on('rollTheDice', async (value) => {
+        let num = playerDataService.getRandomInt(1, value)
+        console.log('VIPALO', num)
+        
+        io.in([idRoom, `watchers:${idRoom}`]).emit(`rollTheDice:${value}`, num)
+      })
+      socket.on('refresh:professionByHour', async () => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+        let count = players.length
+        let index = 0
+        let dataForNextPlayer = {}
+        let emitData = {players: {}}
+        
+        let lastPlayer = players[players.length - 1]
+        let playerProfessionData = JSON.parse(lastPlayer.profession)
+        dataForNextPlayer = JSON.parse(players[0].profession)
+        playerProfessionData.isOpen = dataForNextPlayer.isOpen
+        
+        
+        if (playerProfessionData.isOpen) {
+          console.log("isOpen", players[0].userId)
+          emitData.players[players[0].userId] = {profession: playerProfessionData}
+        }
+        else {
+          io.to(`user:${players[0].userId}:${idRoom}`).emit('setAllGameData',
+            {players: {[players[0].userId]: {profession: playerProfessionData}}})
+        }
+        players[0].profession = JSON.stringify(playerProfessionData)
+        await players[0].save()
+        
+        for (let i = 1; i<players.length; i++) {
+          let player = players[i]
+          let data = JSON.parse(player.profession)
+          dataForNextPlayer.isOpen = data.isOpen
+          
+          if (data.isOpen) {
+            console.log("isOpen", player.userId)
+            emitData.players[player.userId] = {profession: dataForNextPlayer}
+          }
+          else {
+            io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
+              {players: {[player.userId]: {profession: dataForNextPlayer}}}
+            )
+          }
+          players[i].profession = JSON.stringify(dataForNextPlayer)
+          await players[i].save()
+          
+          dataForNextPlayer = data
+        }
+        
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        
+        
+        // for (let player of players) {
+        //   console.log(index)
+        //   if (index===0) {
+        //     index += 1
+        //     let data = JSON.parse(player.profession)
+        //     let dataLast = JSON.parse(players[count - 1].profession)
+        //     dataForNextPlayer = data
+        //     data.text = dataLast.text
+        //     data.id = dataLast.id
+        //     data.description = dataLast.description
+        //     player.profession = JSON.stringify(data)
+        //     let isOpen = data.isOpen
+        //     //console.log(data)
+        //     data = {profession: data}
+        //     if (isOpen) {
+        //       console.log("player.userId", player.userId)
+        //       emitData.players[player.userId] = data
+        //     }
+        //     else {
+        //       io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data)
+        //     }
+        //
+        //   }
+        //   else if (index!==count - 1 && index!==0) {
+        //
+        //     let data = JSON.parse(player.profession)
+        //     console.log(data)
+        //     console.log(dataForNextPlayer)
+        //     let newData = dataForNextPlayer
+        //     dataForNextPlayer = data
+        //     data.text = newData.text
+        //     data.id = newData.id
+        //     data.description = newData.description
+        //     player.profession = JSON.stringify(data)
+        //     let isOpen = data.isOpen
+        //     //console.log(data)
+        //     data = {profession: data}
+        //     if (isOpen) {
+        //       console.log("player.userId", player.userId)
+        //       emitData.players[player.userId] = data
+        //     }
+        //     else {
+        //       io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data)
+        //     }
+        //
+        //   }
+        //   io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        //   //console.log(emitData)
+        //   //console.log(player.userId)
+        //   //  console.log(players[index].userId)
+        // }
+      })
+      socket.on('refresh:professionSetNull', async () => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        let emitData = {players: {}}
+        for (let player of players) {
+          let data = JSON.parse(player.profession)
+          data.text = 'Без профессии'
+          data.id = 0
+          data.description = ''
+          player.profession = JSON.stringify(data)
+          //console.log(player.userId)
+          await player.save()
+          if (data.isOpen) {
+            console.log("player.userId", player.userId)
+            emitData.players[player.userId] = {profession: data}
+          }
+          else {
+            io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {players: {[player.userId]: {profession:data}}})
+          }
+        }
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+      })
     }
   )
 }

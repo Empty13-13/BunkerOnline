@@ -7,16 +7,16 @@ let props = defineProps({
 
 let editPlayerItems = []
 const professionItems = [
-  {text:'Дилетант',value: 'Дилетант'},
-  {text:'Стажер',value: 'Стажер'},
-  {text:'Любитель',value: 'Любитель'},
-  {text:'Опытный',value: 'Опытный'},
-  {text:'Эксперт',value: 'Эксперт'},
-  {text:'Профессионал',value: 'Профессионал'},
+  {text: 'Дилетант', value: 'Дилетант'},
+  {text: 'Стажер', value: 'Стажер'},
+  {text: 'Любитель', value: 'Любитель'},
+  {text: 'Опытный', value: 'Опытный'},
+  {text: 'Эксперт', value: 'Эксперт'},
+  {text: 'Профессионал', value: 'Профессионал'},
 ]
 
 for (let data of props.playerItems) {
-  editPlayerItems.push({text:data[0],value:data[1]})
+  editPlayerItems.push({text: data[0], value: data[1]})
 }
 
 const hostFunctional = useHostFunctionalStore()
@@ -27,17 +27,17 @@ const charItem = ref(null)
 const charInput = ref(null)
 const isOpen = ref(false)
 const funcData = ref({
-  chart: {id:0,chart:''},
-  profession: {id:0,chart:''},
-  health: {id:0,chart:''},
-  body: {id:0},
-  rotate: {chart:'',deg:''},
-  bunker: {chart:''},
-  swap: {id1:0,id2:0,chart:''},
-  steal: {id1:0,id2:0,chart:''},
-  change: {id:0,chart:'',text:''},
-  add: {id:0,chart:''},
-  deleteInventory: {id:0,value:''},
+  chart: {id: 0, chart: ''},
+  profession: {id: 0, chart: ''},
+  health: {id: 0, chart: ''},
+  body: {id: 0},
+  rotate: {chart: '', deg: ''},
+  bunker: {chart: ''},
+  swap: {id1: 0, id2: 0, chart: ''},
+  steal: {id1: 0, id2: 0, chart: ''},
+  change: {id: 0, chart: '', text: ''},
+  add: {id: 0, chart: ''},
+  deleteInventory: {id: 0, value: ''},
 })
 
 
@@ -103,16 +103,20 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
                      @click="hostFunctional.refreshBunkerData($event,'catastrophe')">Изменить катаклизм
           </AppButton>
-          <AppButton @click="hostFunctional.refreshBunkerData($event)" class="buttons-hostPanel__btn" color="grayGold" border="true">Изменить бункер</AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
+          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"
+                     @click="hostFunctional.refreshBunkerData($event)">Изменить бункер
+          </AppButton>
+          <AppButton :class="selectedGameData.isVoiting?'_active':''" border="true" class="buttons-hostPanel__btn"
+                     color="grayGold"
                      @click="selectedGameData.isVoiting?hostFunctional.endVoiting($event):hostFunctional.startVoiting($event)"
-                     :class="selectedGameData.isVoiting?'_active':''"
           >
             {{ selectedGameData.isVoiting? "Завершить голосование":"Начать голосование" }}
           </AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Аннулировать всем специальность
+          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
+                     @click="hostFunctional.setAllProfessionToNull($event)">Аннулировать всем специальность
           </AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true">Специальности по часовой стрелке
+          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"
+                     @click="hostFunctional.professionRotate($event)">Специальности по часовой стрелке
           </AppButton>
         </div>
         <div class="hostPanel__space space-hostPanel">
@@ -150,12 +154,10 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить стаж специальности">
-            <AppSelect :options="selectedGameData.getPlayerForSelect" v-model="funcData.profession.id"/>
-            <AppSelect :options="professionItems" v-model="funcData.profession.chart"/>
-<!--            <button class="hostButton btn grayGold border" @click.prevent="clickTest">-->
-<!--              <span class="text">Изменить стаж профессии</span>-->
-<!--            </button>-->
-            <button class="hostButton btn grayGold border" @click.prevent="hostSocket.emit('refresh:professionExp',funcData.profession.id.value,funcData.profession.chart.value)">
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.profession.id" />
+            <AppSelect :options="professionItems" v-model="funcData.profession.chart" />
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostSocket.emit('refresh:professionExp',funcData.profession.id.value,funcData.profession.chart.value)">
               <span class="text">Изменить стаж профессии</span>
             </button>
           </AppSpoiler>
@@ -348,7 +350,8 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
         </div>
       </div>
     </div>
-  </div>А
+  </div>
+  А
   <button @click.left="isOpen=!isOpen" class="hostActivateButton btn gold border" :class="isOpen?'_active':''">
     <span class="hostActivateButton__icon">
       <span class=""></span>

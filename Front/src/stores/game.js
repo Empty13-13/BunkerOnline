@@ -1,8 +1,6 @@
-import { ref, computed, reactive } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from "@/api.js";
-import { useMyProfileStore } from "@/stores/profile.js";
-import { isObject } from "@vueuse/core";
 import { objIsEmpty } from "@/plugins/functions.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
@@ -158,6 +156,24 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     })
   }
   
+  function professionRotate(e) {
+    showConfirmBlock(e.target,() => {
+      hostSocket.emit('refresh:professionByHour')
+      hostSocket.on('refresh:professionByHour:bad',() => {
+        globalPopup.activate('Ошибка','Не удалось поменять профессии по часовой стрелке','red')
+        hostSocket.removeListener('refresh:professionByHour:bad')
+      })
+    })
+  }
+  
+  function setAllProfessionToNull(e) {
+    showConfirmBlock(e.target,() => {
+      hostSocket.emit('refresh:professionSetNull')
+    })
+  }
+  
+  //========================================================================================================================================================
+  
   function changeSpaceNum(isPlus, e) {
     showConfirmBlock(e.target, () => {
       hostSocket.emit('refresh:maxSurvivor', isPlus)
@@ -180,6 +196,8 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     changeSpaceNum,
     refreshBunkerData,
     rollTheDice,
+    professionRotate,
+    setAllProfessionToNull,
   }
 })
 
@@ -264,10 +282,15 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     return votedData
   })
   const getPlayerForSelect = computed(() => {
-    let players = getAlivePlayers.value.map(item => {
+    return getAlivePlayers.value.map(item => {
       return {value: item.id, text: item.data.nickname}
     })
-    console.log(players)
+  })
+  const getPlayerForSelectAndAll = computed(() => {
+    let players = [{value:0,text:'Для всех'}]
+    players = players.concat(getAlivePlayers.value.map(item => {
+      return {value: item.id, text: item.data.nickname}
+    }))
     return players
   })
   
@@ -381,11 +404,12 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     timerSeconds,
     isPauseTimer,
     activeTimers,
+    getPlayerForSelect,
+    getPlayerForSelectAndAll,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
     clearData,
-    getPlayerForSelect,
   }
 })
 

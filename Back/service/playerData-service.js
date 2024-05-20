@@ -68,7 +68,8 @@ class playerDataService {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
       
-    }else if(chartName ==='bunkerSize'){
+    }
+    else if (chartName==='bunkerSize') {
       gameRoom[chartName] = data.bunkerSize
       data.bunkerSize = `${data.bunkerSize} кв.м`
     }
@@ -127,13 +128,14 @@ class playerDataService {
     
     let userData = await this.getAvailablePlayerData(idRoom)
     
-    const bunkerData = await this.createDataBunker(players, idRoom)
+    const bunkerData = await this.createDataBunker(idRoom,null,false,players)
     data.userData = Object.assign(data.userData, userData)
     data.bunkerData = Object.assign(data.bunkerData, bunkerData)
+   // console.log(data)
     return data
   }
   
-  async createDataBunker(idRoom,maxSurvivor = null,players = null) {
+  async createDataBunker(idRoom, maxSurvivor = null, isCatastrophe = false, players = null) {
     let bunkerTime = null
     let bunkerLocation = null
     let bunkerCreated = null
@@ -143,9 +145,9 @@ class playerDataService {
     let catastrophe = null
     let imageId = null
     let imageName = null
-   let  bunkerSize = null
+    let bunkerSize = null
     bunkerSize = this.getRandomInt(20, 200)
-
+    
     if (players!==null) {
       bunkerSize = this.getRandomInt(20, 200)
       maxSurvivor = Math.floor(+players.length / 2)
@@ -162,21 +164,23 @@ class playerDataService {
     }
     // bunkerItems = this.getRandomDataBunker('bunkerItems')
     bunkerFood = this.getRandomDataBunker('bunkerFood')
-    catastrophe = this.getRandomDataBunker('catastrophe')
+    if (!isCatastrophe) {
+      catastrophe = this.getRandomDataBunker('catastrophe')
+      let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: catastrophe.id}})
+      // console.log('allImageId', allImageId)
+      if (allImageId.length===1) {
+        imageId = allImageId[0].id
+        imageName = allImageId[0].imageName
+      }
+      else {
+        let index = this.getRandomInt(0, allImageId.length - 1)
+        let image = allImageId[index]
+        imageId = image.id
+        imageName = image.imageName
+      }
+    }
     //console.log('catastrophe', catastrophe)
-    let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: catastrophe.id}})
-    // console.log('allImageId', allImageId)
-    if (allImageId.length===1) {
-      imageId = allImageId[0].id
-      imageName = allImageId[0].imageName
-    }
-    else {
-      let index = this.getRandomInt(0, allImageId.length - 1)
-      let image = allImageId[index]
-      imageId = image.id
-      imageName = image.imageName
-    }
-    
+
     
     let thisGame = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     if (players!==null) {
@@ -190,26 +194,43 @@ class playerDataService {
     thisGame.bunkerCreated = bunkerCreated.id
     thisGame.bunkerBedroom = bunkerBedroom.id
     thisGame.bunkerFood = bunkerFood.id
-    thisGame.imageId = imageId
-    thisGame.catastrophe = catastrophe.id
+    
+    if (!isCatastrophe) {
+      thisGame.catastrophe = catastrophe.id
+      thisGame.imageId = imageId
+    }
     thisGame.bunkerItems1 = itemId[0]
     thisGame.bunkerItems2 = itemId[1]
     thisGame.bunkerItems3 = itemId[2]
     thisGame.bunkerTime = bunkerTime.id
     await thisGame.save()
     
-    
-    return {
-      bunkerTime: bunkerTime.text,
-      bunkerSize: `${bunkerSize} кв.м` || null,
-      maxSurvivor: maxSurvivor || null,
-      bunkerLocation: bunkerLocation.text,
-      bunkerCreated: bunkerCreated.text,
-      bunkerBedroom: bunkerBedroom.text,
-      bunkerItems: bunkerItems,
-      bunkerFood: bunkerFood.text,
-      catastrophe: catastrophe.text,
-      imageName: imageName
+    if (!isCatastrophe) {
+      return {
+        bunkerTime: bunkerTime.text,
+        bunkerSize: `${bunkerSize} кв.м` || null,
+        maxSurvivor: maxSurvivor || null,
+        bunkerLocation: bunkerLocation.text,
+        bunkerCreated: bunkerCreated.text,
+        bunkerBedroom: bunkerBedroom.text,
+        bunkerItems: bunkerItems,
+        bunkerFood: bunkerFood.text,
+        catastrophe: catastrophe.text,
+        imageName: imageName
+      }
+    }
+    else {
+      return {
+        bunkerTime: bunkerTime.text,
+        bunkerSize: `${bunkerSize} кв.м` || null,
+        maxSurvivor: maxSurvivor || null,
+        bunkerLocation: bunkerLocation.text,
+        bunkerCreated: bunkerCreated.text,
+        bunkerBedroom: bunkerBedroom.text,
+        bunkerItems: bunkerItems,
+        bunkerFood: bunkerFood.text
+        
+      }
     }
     
   }
@@ -375,9 +396,9 @@ class playerDataService {
       isUsedSystemAdvancePack = true
     }
     if (chartName===null) {
-      let result = await this.createDataBunker(idRoom,gameRoom.maxSurvivor)
-
-
+      let result = await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
+      
+      
       return result
     }
     else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
@@ -394,22 +415,22 @@ class playerDataService {
       if (allImageId.length===1) {
         imageId = allImageId[0].id
         imageName = allImageId[0].imageName
-      }else if(chartName==='bunkerSize'){
-       let bunkerSize = this.getRandomInt(20, 200)
-       return {bunkerSize:bunkerSize}
+      }
+      else if (chartName==='bunkerSize') {
+        let bunkerSize = this.getRandomInt(20, 200)
+        return {bunkerSize: bunkerSize}
       }
       else {
         let index = this.getRandomInt(0, allImageId.length - 1)
         let image = allImageId[index]
         imageId = image.id
-        imageName = image.imageName
+        imageName = image.imageName 
       }
-      return {newChart: newChart, imageName: imageName, imageId: imageId}
+      return {newChart, imageName, imageId}
       
     }
     else {
-      let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
-      return newChart
+      return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
     }
   }
   
@@ -706,12 +727,12 @@ class playerDataService {
         index = this.usedPack.chartBunkerData.indexOf(nameArray[index])
         this.usedPack.chartBunkerData.splice(index, 1)
       }
-      if(name ==='bunkerCreated'){
-        let age =this.getRandomInt(1, 50)
+      if (name==='bunkerCreated') {
+        let age = this.getRandomInt(1, 50)
         let bunkerAge = `${age} ${this.getAgeText(age)}`
-        result.text = result.text.replace('[year]',bunkerAge)
+        result.text = result.text.replace('[year]', bunkerAge)
       }
-
+      
       whileCount += 1
     }
     return result
@@ -985,24 +1006,24 @@ class playerDataService {
       
     }
     else {
-      if(gameRoom[chartName]){
-      useChartId.push(gameRoom[chartName])
+      if (gameRoom[chartName]) {
+        useChartId.push(gameRoom[chartName])
       }
     }
-    if(chartName!=='bunkerSize'){
-    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-      console.log(this.systemSettings.basePack)
-      this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
-      //  console.log('Сделали системный пак')
-    }
-
-    if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
-      this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
-        true)
-    }
-    console.log(baseIdPack, advanceIdPack)
-    this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
-    this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
+    if (chartName!=='bunkerSize') {
+      if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+        console.log(this.systemSettings.basePack)
+        this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
+        //  console.log('Сделали системный пак')
+      }
+      
+      if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
+        this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
+          true)
+      }
+      console.log(baseIdPack, advanceIdPack)
+      this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
+      this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
     }
     
     

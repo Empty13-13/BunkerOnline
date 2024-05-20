@@ -386,6 +386,17 @@ module.exports = function(io) {
 //{'B8FDJ',1,-5,'changeBody','рост(110)','рост(180)'}
 
 
+/*
+{idRoom,step, userId, funcName, lastVar, text, isBack }
+{'B8FDJ',1,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',false}
+{'B8FDJ',0,null,'changeBody:health','рост(180)','Игрок MVP 1232 изменил себе здоровье',false}
+ {'B8FDJ',2,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',false}
+ {'B8FDJ',0,null,'changeBody:health','рост(180)','Игрок MVP 1232 изменил себе здоровье',false}
+ {'B8FDJ',10,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',true}
+
+ */
+
+
 //========================================================================================================================================================
 // id|idGame|idUser|{sex,0}|{body,1}|trait|{id:0,'Клоун', isOpen: false}|health|hobbies|phobia|inventory|backpack|addInfo|spec1|spec2|isRefreshMVP|isBanished
 // JSON.format({id:0,'Клоун', isOpen: false})
