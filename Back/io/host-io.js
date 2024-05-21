@@ -5,7 +5,7 @@ const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
 const playerDataService = require('../service/playerData-service')
 const systemFunction = require('../systemFunction/systemFunction')
-
+const sequelize = require('../db')
 module.exports = function(io) {
   // const userIo = io
   const host = io.of("/host")
@@ -279,6 +279,7 @@ module.exports = function(io) {
             room.isStarted = 1
             await room.save()
             let sendData = {}
+            sendData.logsData = data.logsData
             sendData.userData = data.userData
             sendData.bunkerData = data.bunkerData
             sendData.players = {}
@@ -315,7 +316,11 @@ module.exports = function(io) {
               
             }
             await gameRoom.save()
-            io.in(idRoom).emit('setAllGameData', {voitingData: {status: gameRoom.voitingStatus, userChoise: null}})
+            await UserModel.Logi.create({idRoom: idRoom, funcName: 'voitingStart', text: 'Голосование началось', step: 0})
+            io.in(idRoom).emit('setAllGameData', {
+              voitingData: {status: gameRoom.voitingStatus, userChoise: null},
+              logsData: [{type: 'text', value: 'Голосование началось'}]
+            })
             io.in(idRoom).emit('voiting:start')
           }
           else {
@@ -335,7 +340,22 @@ module.exports = function(io) {
             gameRoom.voitingStatus = 1
             let voitingData = await playerDataService.getAvailableVoitingData(gameRoom, userId)
             await gameRoom.save()
-            io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {voitingData: voitingData})
+            let logs = JSON.stringify(voitingData)
+            await UserModel.Logi.create(
+            {
+              idRoom: idRoom, funcName
+            :
+              'voitingFinished', text
+            :
+              'Голосование закончилось', step
+            :
+              0, lastVar
+            :
+              logs
+            }
+          )
+            io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+              {voitingData: voitingData, logsData: [{type: 'voiting', value: voitingData}]})
             // io.in(`watchers:${idRoom}`).emit('setAllGameData', {voitingData: voitingData})
           }
           else {
@@ -376,9 +396,18 @@ module.exports = function(io) {
       socket.on('refresh:maxSurvivor', async (value) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        let textForLog = ''
         if (value) {
           if ((gameRoom.maxSurvivor + 1)<=players.length) {
             console.log(gameRoom.maxSurvivor)
+            await UserModel.Logi.create({
+              idRoom: idRoom,
+              funcName: 'maxSurvivor',
+              text: `Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor+1}`,
+              step: await playerDataService.howStepLog(idRoom),
+              lastVar: gameRoom.maxSurvivor
+            })
+            textForLog =`Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor+1}`
             gameRoom.maxSurvivor += 1
             await gameRoom.save()
             console.log(gameRoom.maxSurvivor)
@@ -395,6 +424,14 @@ module.exports = function(io) {
         }
         else {
           if ((gameRoom.maxSurvivor - 1)>=1) {
+            await UserModel.Logi.create({
+                          idRoom: idRoom,
+                          funcName: 'maxSurvivor',
+                          text: `Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor-1}`,
+                          step: await playerDataService.howStepLog(idRoom),
+                          lastVar: gameRoom.maxSurvivor
+                        })
+             textForLog =`Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor-1}`
             gameRoom.maxSurvivor -= 1
             await gameRoom.save()
           }
@@ -409,7 +446,7 @@ module.exports = function(io) {
           }
           
         }
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {bunkerData: {maxSurvivor: gameRoom.maxSurvivor}})
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {bunkerData: {maxSurvivor: gameRoom.maxSurvivor},logsData:[{type:'text',value:textForLog}]})
       })
       socket.on('refresh:professionExp', async (playersId, exp) => {
         console.log('id', playersId)
@@ -456,8 +493,17 @@ module.exports = function(io) {
       socket.on('rollTheDice', async (value) => {
         let num = playerDataService.getRandomInt(1, value)
         console.log('VIPALO', num)
-        
+        await UserModel.Logi.create(
+          {
+            idRoom: idRoom,
+            funcName: 'rollTheDice',
+            text: `Был брошен кубик с ${value} гранями, выпало   [${num}]`,
+            step: 0,
+            lastVar: num
+          })
         io.in([idRoom, `watchers:${idRoom}`]).emit(`rollTheDice:${value}`, num)
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+          {logsData: [{type: 'rollDice', value: `Был брошен кубик с ${value} гранями, выпало [${num}]`}]})
       })
       socket.on('refresh:professionByHour', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -576,7 +622,8 @@ module.exports = function(io) {
             emitData.players[player.userId] = {profession: data}
           }
           else {
-            io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {players: {[player.userId]: {profession:data}}})
+            io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
+              {players: {[player.userId]: {profession: data}}})
           }
         }
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)

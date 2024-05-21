@@ -226,6 +226,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const timerSeconds = ref(0)
   const isPauseTimer = ref(false)
   const activeTimers = ref([false, false, false])
+  const logs = ref([])
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -338,6 +339,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         }
       }
     }
+    if (data.hasOwnProperty('logsData')) {
+      logs.value = logs.value.concat(data.logsData)
+    }
   }
   
   function getCharForPlayer(id, item) {
@@ -345,7 +349,16 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       return
     }
     if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen) {
-      return playersData.value[id][item].text
+      let textArray = playersData.value[id][item].text.split(' ')
+      let resultArray = []
+      textArray.forEach(word => {
+        if(word.length>9) {
+          resultArray.push(word.replace(/...../g,"$&&shy;").replace(/\/$/g,""));
+        } else {
+          resultArray.push(word)
+        }
+      })
+      return resultArray.join(' ')
     }
     else {
       return null
@@ -362,6 +375,20 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     else {
       return null
     }
+  }
+  
+  function getLogHtml(logData) {
+    switch (logData.type) {
+      case 'voiting':{
+       
+        break;
+      }
+      case 'rollDice': {
+        logData.value = logData.value.trim().replace(/(\[(.|..)g\])/,'').replace(/\/$/g,"");
+        break;
+      }
+    }
+    return logData.value
   }
   
   function clearData() {
@@ -406,10 +433,12 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     activeTimers,
     getPlayerForSelect,
     getPlayerForSelectAndAll,
+    logs,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
     clearData,
+    getLogHtml,
   }
 })
 

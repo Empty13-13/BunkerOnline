@@ -545,7 +545,7 @@ function createCustomGame() {
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  {{ selectedGameData.getCharForPlayer(data.id, item[1]) }}
+                  <p v-html="selectedGameData.getCharForPlayer(data.id, item[1])"></p>
                   <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
                                 :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
@@ -1120,7 +1120,7 @@ function createCustomGame() {
 }
 
 .table-listGamer {
-  width: 1300px;
+  min-width: 1300px;
   padding-bottom: 130px;
 
   @media (max-width: $pc) {
@@ -1140,10 +1140,11 @@ function createCustomGame() {
     border-bottom: 1px solid #323232;
     display: grid;
     grid-template-columns: 13fr 10.1fr 8.5fr 9.24fr 8.29fr 8fr 8.21fr 9.8fr 7.6fr 7.9fr 9.4fr;
+    //display: flex;
 
     &._main {
-
       .table-listGamer__column {
+        padding-top: 13px;
         .smallInfo {
           position: absolute;
           right: 4px;
@@ -1346,7 +1347,7 @@ function createCustomGame() {
 
   &__column {
     border-right: 1px solid #323232;
-    padding: 13px 3px 13px 15px;
+    padding: 25px 3px 13px 15px;
     font-size: 11px;
     font-weight: 600;
     position: relative;

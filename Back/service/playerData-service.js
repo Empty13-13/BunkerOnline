@@ -5,6 +5,7 @@ require('dotenv').config()
 const path = require('path')
 const {Op} = require('sequelize')
 const {logger} = require("sequelize/lib/utils/logger");
+const sequelize = require('../db')
 
 function objIsEmpty(obj) {
   for (let key in obj) {
@@ -47,6 +48,11 @@ class playerDataService {
     }
     this.systemSettings = systemData
     return systemData
+  }
+
+  async howStepLog(idRoom){
+    let log = await UserModel.Logi.findAll({attributes:[sequelize.fn('MAX', sequelize.col('step'))],where:{idRoom:idRoom},raw:true})
+    return (+log[0]['MAX(`step`)'])+1
   }
   
   async refreshChartBunker(chartName = null, idRoom, userId) {
@@ -106,7 +112,8 @@ class playerDataService {
     const data = {
       players: {},
       userData: {},
-      bunkerData: {}
+      bunkerData: {},
+      logsData: {}
     }
     await this.collectAndSetDataForPlayer(hostPackIds, players)
     
@@ -128,10 +135,12 @@ class playerDataService {
     
     let userData = await this.getAvailablePlayerData(idRoom)
     
-    const bunkerData = await this.createDataBunker(idRoom,null,false,players)
+    const bunkerData = await this.createDataBunker(idRoom, null, false, players)
     data.userData = Object.assign(data.userData, userData)
     data.bunkerData = Object.assign(data.bunkerData, bunkerData)
-   // console.log(data)
+    await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: 'Игра началась', step: 0})
+    data.logsData = {type:'text',value: 'Игра началась'}
+    // console.log(data)
     return data
   }
   
@@ -281,6 +290,30 @@ class playerDataService {
       raw: true
     })
     let bunkerData = {}
+    let logsData = []
+    let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
+    
+    if (!objIsEmpty(logs)) {
+
+      for (let log of logs) {
+        let obLog = {}
+
+        if(log.funcName==='rollTheDice'){
+          obLog.type='rollDice'
+          obLog.value = log.text
+        }else if(log.funcName==='voitingFinished'){
+          let data = JSON.parse(log.lastVar)
+          obLog.value = data
+          obLog.type='voiting'
+        }else{
+          obLog.type='text'
+          obLog.value = log.text
+        }
+        console.log(obLog)
+        logsData.push(obLog)
+      }
+    }
+    console.log(objIsEmpty(logs))
     bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
     let bunkerItems = []
@@ -341,10 +374,16 @@ class playerDataService {
     }
     
     if (voitingData===null) {
-      return {players: players, userData: userData, bunkerData: bunkerData}
+      return {players: players, userData: userData, bunkerData: bunkerData, logsData: logsData}
     }
     else {
-      return {players: players, userData: userData, bunkerData: bunkerData, voitingData: voitingData}
+      return {
+        players: players,
+        userData: userData,
+        bunkerData: bunkerData,
+        voitingData: voitingData,
+        logsData: logsData
+      }
     }//{id:1}
     //key = id
     //gameRoom[key]=1
@@ -396,15 +435,10 @@ class playerDataService {
       isUsedSystemAdvancePack = true
     }
     if (chartName===null) {
-      let result = await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
-      
-      
-      return result
+      return await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
     }
     else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
-      let newChart = this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
-      return newChart
-      
+      return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
     }
     else if (chartName==='catastrophe') {
       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
@@ -424,7 +458,7 @@ class playerDataService {
         let index = this.getRandomInt(0, allImageId.length - 1)
         let image = allImageId[index]
         imageId = image.id
-        imageName = image.imageName 
+        imageName = image.imageName
       }
       return {newChart, imageName, imageId}
       
@@ -438,7 +472,7 @@ class playerDataService {
     let isUsedSystemAdvancePack = false
     if (usePack.includes(this.systemSettings.advancePack)) {
       isUsedSystemAdvancePack = true
-    }
+    } 
     
     let players = await UserModel.RoomSession.findAll(
       {attributes: [chartName], where: {gameRoomId: gameRoomId, isPlayer: 1}})
@@ -447,8 +481,6 @@ class playerDataService {
         let playerData = JSON.parse(player[chartName])
         if (playerData.text.includes('чайлдфри')) {
           this.childFreeCount += 1
-          
-          
         }
       }
     }

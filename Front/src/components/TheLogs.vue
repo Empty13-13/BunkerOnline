@@ -1,5 +1,9 @@
 <script setup="">
 
+import { useSelectedGameData, useSelectedGameGameplay } from "@/stores/game.js";
+
+const selectedGameData = useSelectedGameData()
+
 </script>
 
 <template>
@@ -9,85 +13,13 @@
         <h2 v-slide class="logs__title titleH2">Логи</h2>
         <div slideBody class="logs__body" hidden="">
           <ul class="list-logs">
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий изменил телосложение игрока ДжоДжо с "Крепкое (Рост: 182 см.)" на "Вялое
-                (Рост: 155 см.)
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий сделал действие "аннулировать специальность"
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий бросил кубик с 6 гранями и выпало 5
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий изменил телосложение игрока ДжоДжо с "Крепкое (Рост: 182 см.)" на "Вялое
-                (Рост: 155 см.)
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий сделал действие "аннулировать специальность"
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий бросил кубик с 6 гранями и выпало 5
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий изменил телосложение игрока ДжоДжо с "Крепкое (Рост: 182 см.)" на "Вялое
-                (Рост: 155 см.)
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий сделал действие "аннулировать специальность"
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий бросил кубик с 6 гранями и выпало 5
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий изменил телосложение игрока ДжоДжо с "Крепкое (Рост: 182 см.)" на "Вялое
-                (Рост: 155 см.)
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий сделал действие "аннулировать специальность"
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий бросил кубик с 6 гранями и выпало 5
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий изменил телосложение игрока ДжоДжо с "Крепкое (Рост: 182 см.)" на "Вялое
-                (Рост: 155 см.)
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий сделал действие "аннулировать специальность"
-              </p>
-            </li>
-            <li class="list-logs__item">
-              <p class="list-logs__text">
-                Ведущий бросил кубик с 6 гранями и выпало 5
-              </p>
+            <li class="list-logs__item"
+                v-for="log in selectedGameData.logs"
+                :key="log.value"
+            >
+              <p class="list-logs__text"
+              v-html="selectedGameData.getLogHtml(log)"
+              ></p>
             </li>
           </ul>
         </div>

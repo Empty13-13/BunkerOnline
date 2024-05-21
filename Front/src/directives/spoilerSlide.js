@@ -7,8 +7,6 @@ function slide(el) {
 }
 
 let sliderFunc = (el) => f => {
-  console.log(el)
-  console.log(el.parentNode,el.parentNode.querySelector('[slideBody]'))
   slideToggle(el.parentNode.querySelector('[slideBody]'))
 }
 
@@ -20,7 +18,6 @@ export default {
   },
   
   beforeUnmount(el) {
-    console.log('unmount')
     el.removeEventListener('click',slideToggle.bind(null,el.parentNode.querySelector('[slideBody]'),500))
     el.removeEventListener('click',slide(el))
   }

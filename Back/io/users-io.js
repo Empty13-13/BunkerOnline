@@ -238,9 +238,19 @@ module.exports = function(io) {
                 let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
                 if (player[chartName] && player.isMVPRefresh!==1) {
                   let data = await playerDataService.refreshChartMvp(player, chartName, game.id)
+                  let lastVar = JSON.stringify({chartName: chartName, lastVar: JSON.parse(player[chartName]).text})
                   player[chartName] = JSON.stringify(data)
                   player.isMVPRefresh = 1
                   await player.save()
+                  let user = await UserModel.User.findOne({where: {id: isValidateId}})
+                  await UserModel.Logi.create({
+                    idRoom: idRoom,
+                    funcName: 'refreshChartMVP',
+                    text: `Пользователь MVP ${user.nickname} изменил характеристику`,
+                    userId: isValidateId,
+                    lastVar: lastVar,
+                    step: 0
+                  })
                   
                   if (data.isOpen) {
                     io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
@@ -248,7 +258,8 @@ module.exports = function(io) {
                   else {
                     socket.emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                   }
-                  
+                  io.in(idRoom).emit('setAllGameData',
+                    {logsData: [{type: 'text', value: `Пользователь MVP ${user.nickname} изменил характеристику`}]})
                   socket.emit('refreshChartMVP:good', chartName)
                 }
                 else {
@@ -311,19 +322,19 @@ module.exports = function(io) {
               {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: isValidateId}})
             if (player) {
               if (player.isAlive) {
-                if(choiseId!==isValidateId){
-                  console.log(choiseId,isValidateId)
-                player.votedFor = choiseId
-                await player.save()
-                socket.emit('voiting:choiseUser:good')
+                if (choiseId!==isValidateId) {
+                  console.log(choiseId, isValidateId)
+                  player.votedFor = choiseId
+                  await player.save()
+                  socket.emit('voiting:choiseUser:good')
                 }
-                else{
+                else {
                   socket.emit("setError",
-                                    {
-                                      message: "Вы не можете голосовать за себя",
-                                      status: 603,
-                                      functionName: 'voiting:choiseUser'
-                                    })
+                    {
+                      message: "Вы не можете голосовать за себя",
+                      status: 603,
+                      functionName: 'voiting:choiseUser'
+                    })
                 }
               }
               else {
@@ -387,13 +398,13 @@ module.exports = function(io) {
 
 
 /*
-{idRoom,step, userId, funcName, lastVar, text, isBack }
-{'B8FDJ',1,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',false}
-{'B8FDJ',0,null,'changeBody:health','рост(180)','Игрок MVP 1232 изменил себе здоровье',false}
+ {idRoom,step, userId, funcName, lastVar, text, isBack }
+ {'B8FDJ',1,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',false}
+ {'B8FDJ',0,null,'changeBody:health','рост(180)','Игрок MVP 1232 изменил себе здоровье',false}
  {'B8FDJ',2,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',false}
  {'B8FDJ',0,null,'changeBody:health','рост(180)','Игрок MVP 1232 изменил себе здоровье',false}
  {'B8FDJ',10,null,'changeBody:health','рост(180)','Ведущий поменял игроку 123456 стаж профессии',true}
-
+ 
  */
 
 

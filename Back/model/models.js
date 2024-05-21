@@ -155,6 +155,17 @@ const SystemSettings = sequelize.define('systemSettings', {
   value: {type: DataTypes.INTEGER}
 })
 
+const Logi = sequelize.define('logi', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  idRoom: {type: DataTypes.STRING},
+  funcName: {type: DataTypes.STRING},
+  lastVar: {type: DataTypes.STRING(1000)},
+  text: {type: DataTypes.STRING(500)},
+  step: {type: DataTypes.INTEGER},
+  userId: {type: DataTypes.INTEGER},
+  isBack: {type: DataTypes.TINYINT, defaultValue: 0}
+})
+
 const CatastropheImage = sequelize.define('catastropheImage', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   imageName: {type: DataTypes.STRING},
@@ -201,5 +212,6 @@ module.exports = {
   Profession,
   UserUsePack,
   SystemSettings,
-  CatastropheImage
+  CatastropheImage,
+  Logi
 }
