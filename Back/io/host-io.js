@@ -497,13 +497,13 @@ module.exports = function(io) {
           {
             idRoom: idRoom,
             funcName: 'rollTheDice',
-            text: `Был брошен кубик с ${value} гранями, выпало   [${num}]`,
+            text: `Был брошен кубик с ${value} гранями, выпало ${num}`,
             step: 0,
             lastVar: num
           })
         io.in([idRoom, `watchers:${idRoom}`]).emit(`rollTheDice:${value}`, num)
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
-          {logsData: [{type: 'rollDice', value: `Был брошен кубик с ${value} гранями, выпало [${num}]`}]})
+          {logsData: [{type: 'rollDice', value: `Был брошен кубик с ${value} гранями, выпало ${num}`}]})
       })
       socket.on('refresh:professionByHour', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})

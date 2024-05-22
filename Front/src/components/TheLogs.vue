@@ -1,6 +1,7 @@
 <script setup="">
 
 import { useSelectedGameData, useSelectedGameGameplay } from "@/stores/game.js";
+import { getPercentForVote } from "@/plugins/functions.js";
 
 const selectedGameData = useSelectedGameData()
 
@@ -17,8 +18,45 @@ const selectedGameData = useSelectedGameData()
                 v-for="log in selectedGameData.logs"
                 :key="log.value"
             >
-              <p class="list-logs__text"
-              v-html="selectedGameData.getLogHtml(log)"
+              <div v-if="log.type==='voiting'" class="">
+                <h2 v-slide class="list-logs__text" style="cursor:pointer;">Голосование завершилось (нажмите чтобы увидеть результат)</h2>
+                <div slidebody hidden>
+                  <div class="results-voting__body" style="padding-top: 20px;">
+                    <div
+                        v-for="vote in selectedGameData.getNonVoitingUsersNicknames(log.value).votedList"
+                        :key="vote.nickname"
+                        class="results-voting__line line-results-voting"
+                    >
+                      <div class="line-results-voting__name">
+                        {{ vote.nickname }} <span>{{ vote.whoVote.length }}</span>
+                      </div>
+                      <div class="line-results-voting__progress progress-result">
+                        <div class="progress-result__backline"
+                             :style="'width:'+getPercentForVote(vote,selectedGameData.getNonVoitingUsersNicknames(log.value).allVoteNum)+'%'"
+                        >
+                          <span></span>
+                        </div>
+                        <div class="progress-result__nickList">
+                          {{ vote.whoVote.join(', ') }}
+                        </div>
+                      </div>
+                      <div class="progress-result__percentages">
+                        {{ getPercentForVote(vote,selectedGameData.getNonVoitingUsersNicknames(log.value).allVoteNum) }} %
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="selectedGameData.getNonVoitingUsersNicknames(log.value).abstainedList.length"
+                       class="results-voting__listAbstained" style="padding-bottom: 10px !important;">
+                    Игроки, которые не приняли участие в голосовании:
+                    <span>{{ selectedGameData.getNonVoitingUsersNicknames(log.value).abstainedList.join(', ') }}</span>
+                  </div>
+                  <div v-else class="results-voting__listAbstained" style="padding-bottom: 10px !important;">
+                    Все игроки приняли участие в голосовании
+                  </div>
+                </div>
+              </div>
+              <p v-else class="list-logs__text"
+                 v-html="selectedGameData.getLogHtml(log)"
               ></p>
             </li>
           </ul>
@@ -49,7 +87,7 @@ const selectedGameData = useSelectedGameData()
 
 .list-logs {
   margin-left: 60px;
-  max-height: 137px;
+  max-height: 180px;
   overflow: auto;
   font-size: 15px;
 

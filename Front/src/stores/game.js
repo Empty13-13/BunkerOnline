@@ -227,6 +227,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const isPauseTimer = ref(false)
   const activeTimers = ref([false, false, false])
   const logs = ref([])
+  const diceNum = ref(0)
+  const showDice6 = ref(false)
+  const showDice20 = ref(false)
+  
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -249,38 +253,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       }
     }
     return resultArr
-  })
-  const getNonVoitingUsersNicknames = computed(() => {
-    let votedData = {}
-    let votedList = []
-    let abstainedList = []
-    let allVoteNum = 0
-    let votedPlayerIds = []
-    
-    for (let choiceIdPlayer in voitingData.value.voitingPull) {
-      let choicePlayerNickname = userData.value[choiceIdPlayer].nickname
-      let localVotedListNicknames = []
-      for (let index in voitingData.value.voitingPull[choiceIdPlayer]) {
-        let votedPlayerNickname = userData.value[voitingData.value.voitingPull[choiceIdPlayer][index]].nickname
-        votedPlayerIds.push(voitingData.value.voitingPull[choiceIdPlayer][index])
-        localVotedListNicknames.push(votedPlayerNickname)
-        allVoteNum++
-      }
-      votedList.push({nickname: choicePlayerNickname, whoVote: localVotedListNicknames})
-    }
-    
-    for (let dataKey in userData.value) {
-      if (!votedPlayerIds.includes(+dataKey)) {
-        abstainedList.push(userData.value[dataKey].nickname)
-      }
-    }
-    
-    votedData.votedList = votedList
-    votedData.allVoteNum = allVoteNum
-    votedData.abstainedList = abstainedList
-    
-    console.log("VOTED DATA", votedData)
-    return votedData
   })
   const getPlayerForSelect = computed(() => {
     return getAlivePlayers.value.map(item => {
@@ -344,6 +316,40 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
   }
   
+  
+  function getNonVoitingUsersNicknames(voitingData){
+    let votedData = {}
+    let votedList = []
+    let abstainedList = []
+    let allVoteNum = 0
+    let votedPlayerIds = []
+    
+    for (let choiceIdPlayer in voitingData.voitingPull) {
+      let choicePlayerNickname = userData.value[choiceIdPlayer].nickname
+      let localVotedListNicknames = []
+      for (let index in voitingData.voitingPull[choiceIdPlayer]) {
+        let votedPlayerNickname = userData.value[voitingData.voitingPull[choiceIdPlayer][index]].nickname
+        votedPlayerIds.push(voitingData.voitingPull[choiceIdPlayer][index])
+        localVotedListNicknames.push(votedPlayerNickname)
+        allVoteNum++
+      }
+      votedList.push({nickname: choicePlayerNickname, whoVote: localVotedListNicknames})
+    }
+    
+    for (let dataKey in userData.value) {
+      if (!votedPlayerIds.includes(+dataKey)) {
+        abstainedList.push(userData.value[dataKey].nickname)
+      }
+    }
+    
+    votedData.votedList = votedList
+    votedData.allVoteNum = allVoteNum
+    votedData.abstainedList = abstainedList
+    
+    console.log("VOTED DATA", votedData)
+    return votedData
+  }
+  
   function getCharForPlayer(id, item) {
     if (!id || !item) {
       return
@@ -380,7 +386,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   function getLogHtml(logData) {
     switch (logData.type) {
       case 'voiting':{
-       
+        
         break;
       }
       case 'rollDice': {
@@ -413,6 +419,8 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     timerSeconds.value = 0
     isPauseTimer.value = false
     activeTimers.value = [false, false, false]
+    logs.value = []
+    diceNum.value = 0
   }
   
   return {
@@ -426,7 +434,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     getMyPlayerData,
     getMyUserData,
     getActivePlayersFromUserData,
-    getNonVoitingUsersNicknames,
     timerStart,
     timerSeconds,
     isPauseTimer,
@@ -434,11 +441,15 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     getPlayerForSelect,
     getPlayerForSelectAndAll,
     logs,
+    diceNum,
+    showDice6,
+    showDice20,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
     clearData,
     getLogHtml,
+    getNonVoitingUsersNicknames,
   }
 })
 
@@ -446,6 +457,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   const selectedGameData = useSelectedGameData()
   const userSocket = useUserSocketStore()
   const globalPreloader = usePreloaderStore()
+  const globalPopup = useGlobalPopupStore()
   
   let timerInterval = setInterval(() => {
   }, 1000)
@@ -527,6 +539,31 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
   
+  function rollDice(type,num) {
+    if(type===6) {
+      selectedGameData.showDice6 = true
+      selectedGameData.diceNum = 0
+      setTimeout(() => {
+        selectedGameData.diceNum = num
+      },300)
+      setTimeout(() => {
+        // globalPopup.activate(`Бросили кубик с ${type} гранями`,`Выпало значение ${num}`)
+        selectedGameData.showDice6 = false
+      },3000)
+    } else {
+      selectedGameData.showDice20 = true
+      selectedGameData.diceNum = 0
+      setTimeout(() => {
+        selectedGameData.diceNum = num
+      },100)
+      setTimeout(() => {
+        // globalPopup.activate(`Бросили кубик с ${type} гранями`,`Выпало значение ${num}`)
+        selectedGameData.showDice20 = false
+      },2700)
+    }
+
+  }
+  
   return {
     openChart,
     mvpReload,
@@ -535,5 +572,6 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     pauseTimer,
     resumeTimer,
     stopTimer,
+    rollDice,
   }
 })

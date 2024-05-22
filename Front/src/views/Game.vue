@@ -20,7 +20,15 @@ import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
 import TheLogs from "@/components/TheLogs.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { copyLinkToBuffer, getId, getLinkParams, getLocalData, objIsEmpty, setLocalData } from "@/plugins/functions.js";
+import {
+  copyLinkToBuffer,
+  getId,
+  getLinkParams,
+  getLocalData,
+  getPercentForVote, getRandomInt,
+  objIsEmpty,
+  setLocalData
+} from "@/plugins/functions.js";
 import {
   useHostFunctionalStore,
   useSelectedGame,
@@ -34,6 +42,7 @@ import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
 import router from "@/router/index.js";
 import { goToBlock, openNavigation, showInfoHandler } from "@/plugins/navigationPlugin.js";
 import AppLoader from "@/components/AppLoader.vue";
+import AppDice6 from "@/components/dices/AppDice6.vue";
 
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
@@ -48,7 +57,6 @@ const selectedGameGameplay = useSelectedGameGameplay()
 const noteTextArea = ref(null)
 
 const firstItem = ['№ Имя', 'num']
-
 const itemsName = [
   ['Пол', 'sex'],
   ['Телосложение', 'body'],
@@ -90,13 +98,12 @@ const getActiveNavigationItems = computed(() => {
     return navigationItems
   }
 })
-
 const specItems = [
   ['Спец. возможность 1', 'spec1'],
   ['Спец. возможность 2', 'spec2'],
 ]
-
 let isActive = ref(null)
+const diceNum = ref(0)
 
 const mayStartGame = computed(() => {
   return selectedGame.players.length>0
@@ -135,14 +142,6 @@ function getAccessStr(access) {
     return 'Гость'
   }
   return access
-}
-
-function getPercent(vote) {
-  return ((vote.whoVote.length / selectedGameData.getNonVoitingUsersNicknames.allVoteNum) * 100).toFixed(2)
-}
-
-function voteCalc() {
-  console.log(isActive.value)
 }
 
 function removeGamer(index, id) {
@@ -258,6 +257,10 @@ function noteInputHandler(e) {
 
 function createCustomGame() {
   selectedGame.isCreateCustomGame = true
+}
+
+function getRandomNumToDice() {
+  diceNum.value = getRandomInt(1,6)
 }
 
 </script>
@@ -479,6 +482,8 @@ function createCustomGame() {
         </div>
       </div>
     </div>
+    <button @click="getRandomNumToDice">Крутить</button>
+    <AppDice6 v-model="diceNum"/>
     <TheGamerInfo v-if="!selectedGame.imWatcher"
                   :data="selectedGameData.getMyPlayerData"
                   :isReg="myProfile.isReg"
@@ -590,7 +595,7 @@ function createCustomGame() {
           <div slidebody>
             <div class="results-voting__body">
               <div
-                  v-for="vote in selectedGameData.getNonVoitingUsersNicknames.votedList"
+                  v-for="vote in selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).votedList"
                   :key="vote.nickname"
                   class="results-voting__line line-results-voting"
               >
@@ -599,7 +604,7 @@ function createCustomGame() {
                 </div>
                 <div class="line-results-voting__progress progress-result">
                   <div class="progress-result__backline"
-                       :style="'width:'+getPercent(vote)+'%'"
+                       :style="'width:'+getPercentForVote(vote,selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).allVoteNum)+'%'"
                   >
                     <span></span>
                   </div>
@@ -608,14 +613,14 @@ function createCustomGame() {
                   </div>
                 </div>
                 <div class="progress-result__percentages">
-                  {{ getPercent(vote) }} %
+                  {{ getPercentForVote(vote,selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).allVoteNum) }} %
                 </div>
               </div>
             </div>
-            <div v-if="selectedGameData.getNonVoitingUsersNicknames.abstainedList.length"
+            <div v-if="selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.length"
                  class="results-voting__listAbstained">
               Игроки, которые не приняли участие в голосовании:
-              <span>{{ selectedGameData.getNonVoitingUsersNicknames.abstainedList.join(', ') }}</span>
+              <span>{{ selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.join(', ') }}</span>
             </div>
             <div v-else class="results-voting__listAbstained">
               Все игроки приняли участие в голосовании
@@ -1558,9 +1563,13 @@ function createCustomGame() {
 
 .line-results-voting {
   display: grid;
-  grid-template-columns: 14fr 100fr 10fr;
+  grid-template-columns: 127px  100fr 70px;
   margin-bottom: 30px;
   gap: 60px 35px;
+
+  @media (max-width: $mobile) {
+    gap: 15px;
+  }
 
   &__name {
     font-size: 11px;

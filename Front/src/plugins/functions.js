@@ -167,8 +167,8 @@ export function isAsync(func) {
 export async function copyLinkToBuffer() {
   let result = null
   await navigator.clipboard.writeText(window.location.href)
-           .then(() => result = true)
-           .catch(() => result = false)
+                 .then(() => result = true)
+                 .catch(() => result = false)
   return result
 }
 
@@ -188,7 +188,7 @@ export function getLocalData(nameData) {
   return null
 }
 
-export function setLocalData(nameData,data) {
+export function setLocalData(nameData, data) {
   try {
     localStorage.setItem(nameData, JSON.stringify(data))
   } catch(e) {
@@ -197,13 +197,24 @@ export function setLocalData(nameData,data) {
 }
 
 export function getCountObject(object) {
-  console.log(object,object['<target>'])
-  if(object.target) {
+  console.log(object, object['<target>'])
+  if (object.target) {
     object = object.target
   }
-  let count=0
+  let count = 0
   for (let i of object) {
     count++
   }
   return count
+}
+
+export function getPercentForVote(vote, allVoteNum) {
+  return ((vote.whoVote.length / allVoteNum) * 100).toFixed(2)
+}
+
+export function getRandomInt(min, max) {
+  max += 1
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); // Максимум не включается, минимум включается
 }

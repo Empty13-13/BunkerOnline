@@ -318,9 +318,13 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
           <div class="settings-hostPanel__dice dice-settings">
             <div class="dice-settings__title">Бросить кубик</div>
             <div class="dice-settings__body">
-              <button @click="hostFunctional.rollTheDice($event,6)" class="hostButton btn grayGold border">
+              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,6)"
+                      :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"
+              >
                 <span class="text">С 6 гранями</span></button>
-              <button @click="hostFunctional.rollTheDice($event,20)" class="hostButton btn grayGold border">
+              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,20)"
+                      :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"
+              >
                 <span class="text">С 20 гранями</span>
               </button>
             </div>

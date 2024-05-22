@@ -136,10 +136,10 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       selectedGameGameplay.stopTimer()
     })
     userSocket.on('rollTheDice:6',(num) => {
-      globalPopup.activate('6',num)
+      selectedGameGameplay.rollDice(6,num)
     })
     userSocket.on('rollTheDice:20',(num) => {
-      globalPopup.activate('20',num)
+      selectedGameGameplay.rollDice(20,num)
     })
     
     userSocket.on('refresh:professionByHour:good',() => {

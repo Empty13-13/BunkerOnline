@@ -259,6 +259,27 @@ defineProps([
         background: $whiteGrayColor;
       }
     }
+
+    &.grayGold {
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.2);
+      transition: box-shadow 0.2s ease;
+      box-shadow: 0 5px 30px 0 rgba(217, 102, 19, 0.6);
+
+      &::before {
+        opacity: 0;
+      }
+
+      &:hover,&._active {
+        &::before {
+          opacity: 0;
+        }
+      }
+
+      &.border {
+        box-shadow: none;
+      }
+    }
   }
 }
 
