@@ -12,6 +12,7 @@ import Pagination from "@/views/Pagination.vue";
 import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { getId, getLinkParams } from "@/plugins/functions.js";
+import NotFound from "@/views/NotFound.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +61,11 @@ const router = createRouter({
       path: '/contacts',
       name: 'contacts',
       component: Contacts
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('../views/NotFound.vue')
     },
     // {
     //   path: '/about',

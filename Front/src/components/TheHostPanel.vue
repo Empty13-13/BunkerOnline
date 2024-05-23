@@ -21,6 +21,7 @@ for (let data of props.playerItems) {
 
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
+const confirmStore = useConfirmBlockStore()
 
 const charPerson = ref(null)
 const charItem = ref(null)
@@ -70,10 +71,16 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { hostSocket } from "@/socket/sockets.js";
 import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
+import { RouterView } from "vue-router";
+import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 </script>
 
 <template>
-  <div class="hostPanel" :class="isOpen?'_active':''">
+  <div class="hostPanel" :class="isOpen?'_active':''"
+       tabindex="0"
+       @keyup.esc.exact="confirmStore.deactivate"
+       @keyup.enter.exact="confirmStore._enterHandler"
+  >
     <span @click.left="isOpen=false"></span>
     <div class="hostPanel__block">
       <h3 class="hostPanel__title">Панель ведущего</h3>

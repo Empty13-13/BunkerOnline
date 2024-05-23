@@ -346,7 +346,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     votedData.allVoteNum = allVoteNum
     votedData.abstainedList = abstainedList
     
-    console.log("VOTED DATA", votedData)
     return votedData
   }
   

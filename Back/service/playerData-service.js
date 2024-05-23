@@ -61,15 +61,15 @@ class playerDataService {
       attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerCreated', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'imageId'],
       where: {idRoom: idRoom}
     })
-    console.log('ONE', gameRoom.id)
+   // console.log('ONE', gameRoom.id)
     let host = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
-    console.log('2', gameRoom.id)
+   // console.log('2', gameRoom.id)
     let usePack = JSON.parse(host.usePack)
-    console.log('ONE')
+   // console.log('ONE')
     await this.collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName)
-    console.log('TWO')
+   // console.log('TWO')
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
-    console.log('Three')
+   // console.log('Three')
     if (chartName && chartName!=='catastrophe') {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
@@ -85,7 +85,7 @@ class playerDataService {
       data = {[chartName]: data.newChart.text, imageName: data.imageName}
       
     }
-    console.log(data)
+   // console.log(data)
     return data
     
     

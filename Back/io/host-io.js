@@ -342,18 +342,14 @@ module.exports = function(io) {
             await gameRoom.save()
             let logs = JSON.stringify(voitingData)
             await UserModel.Logi.create(
-            {
-              idRoom: idRoom, funcName
-            :
-              'voitingFinished', text
-            :
-              'Голосование закончилось', step
-            :
-              0, lastVar
-            :
-              logs
-            }
-          )
+              {
+                idRoom: idRoom, funcName:
+                  'voitingFinished', text:
+                  'Голосование закончилось', step:
+                  0, lastVar:
+                logs
+              }
+            )
             io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
               {voitingData: voitingData, logsData: [{type: 'voiting', value: voitingData}]})
             // io.in(`watchers:${idRoom}`).emit('setAllGameData', {voitingData: voitingData})
@@ -390,8 +386,61 @@ module.exports = function(io) {
         io.in(idRoom).emit('timer:stop')
       })
       socket.on('refresh:bunkerData', async (chartName = null) => {
-        let data = await playerDataService.refreshChartBunker(chartName, idRoom, userId)
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {bunkerData: data})
+        let gameRoom = await UserModel.GameRooms.findOne({
+          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted'],
+          where: {idRoom: idRoom},
+          raw: true
+        })
+        if (gameRoom.isStarted) {
+          let data = await playerDataService.refreshChartBunker(chartName, idRoom, userId)
+          
+          let textForLog = ''
+          if (chartName===null) {
+            let bunkerData = {}
+            bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
+            bunkerData.maxSurvivor = gameRoom.maxSurvivor
+            
+            
+            for (let key in gameRoom) {
+              if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
+                console.log('KEY', key)
+                bunkerData[key] = gameRoom[key]
+                
+              }
+              else if (key.toString()==='imageId') {
+                let image = await UserModel.CatastropheImage.findOne({where: {id: gameRoom[key]}})
+                bunkerData.imageName = image.id
+              }
+              
+              
+            }
+            
+            //  console.log(bunkerData)
+            let lastVar = JSON.stringify(bunkerData)
+            textForLog = `Ведущий изменил характеристики бункера на новые`
+            await UserModel.Logi.create({
+              idRoom: idRoom,
+              funcName: 'bunkerData',
+              text: `Ведущий изменил характеристики бункера на новые`,
+              step: await playerDataService.howStepLog(idRoom),
+              lastVar: lastVar
+            })
+          }
+          else if (gameRoom[chartName]) {
+            textForLog = `Ведущий изменил характеристику бункера на новую`
+            await UserModel.Logi.create({
+              idRoom: idRoom,
+              funcName: `bunkerData:${chartName}`,
+              text: `Ведущий изменил характеристику бункера на новую`,
+              step: await playerDataService.howStepLog(idRoom),
+              lastVar: JSON.stringify({chartName: chartName, lastVar: gameRoom[chartName]})
+            })
+            
+          }
+          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+            {bunkerData: data, logsData: {type: 'text', value: textForLog}})
+        }
+        
       })
       socket.on('refresh:maxSurvivor', async (value) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -403,11 +452,11 @@ module.exports = function(io) {
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: 'maxSurvivor',
-              text: `Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor+1}`,
-              step: await playerDataService.howStepLog(idRoom),
+              text: `Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor + 1}`,
+              step: 0,
               lastVar: gameRoom.maxSurvivor
             })
-            textForLog =`Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor+1}`
+            textForLog = `Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor + 1}`
             gameRoom.maxSurvivor += 1
             await gameRoom.save()
             console.log(gameRoom.maxSurvivor)
@@ -425,13 +474,13 @@ module.exports = function(io) {
         else {
           if ((gameRoom.maxSurvivor - 1)>=1) {
             await UserModel.Logi.create({
-                          idRoom: idRoom,
-                          funcName: 'maxSurvivor',
-                          text: `Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor-1}`,
-                          step: await playerDataService.howStepLog(idRoom),
-                          lastVar: gameRoom.maxSurvivor
-                        })
-             textForLog =`Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor-1}`
+              idRoom: idRoom,
+              funcName: 'maxSurvivor',
+              text: `Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor - 1}`,
+              step: 0,
+              lastVar: gameRoom.maxSurvivor
+            })
+            textForLog = `Ведущий уменьшил мест в бункере до ${gameRoom.maxSurvivor - 1}`
             gameRoom.maxSurvivor -= 1
             await gameRoom.save()
           }
@@ -446,27 +495,39 @@ module.exports = function(io) {
           }
           
         }
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {bunkerData: {maxSurvivor: gameRoom.maxSurvivor},logsData:[{type:'text',value:textForLog}]})
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+          {bunkerData: {maxSurvivor: gameRoom.maxSurvivor}, logsData: [{type: 'text', value: textForLog}]})
       })
       socket.on('refresh:professionExp', async (playersId, exp) => {
         console.log('id', playersId)
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = null
+        let textForLog = ''
+        let lastVar = {}
         if (playersId===0) {
+          textForLog = `Ведущий изменил стаж специальности всем на ${exp}`
           players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
         }
         else {
+          if (playersId>0) {
+            let user = await UserModel.User.findOne({where: {id: playersId}})
+            textForLog = `Ведущий изменил стаж специальности игроку ${user.nickname}`
+          }
+          else {
+            textForLog = `Ведущий изменил стаж специальности игроку Гость#${Math.abs(playersId)}`
+          }
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
           players = [players]
         }
         console.log(players)
-        let emitData = {players: {}}
+        let emitData = {players: {}, logsData: {}}
         console.log(players.length)
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.profession)
             console.log(data.text)
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
+            lastVar[player.userId] = ecsExp
             data.text = data.text.replace(ecsExp, exp)
             let isOpen = data.isOpen
             player.profession = JSON.stringify(data)
@@ -486,7 +547,17 @@ module.exports = function(io) {
             // добавляем в список недействительных пользователей
           }
         }
+        
+        await UserModel.Logi.create({
+          idRoom: idRoom,
+          funcName: `professionExp`,
+          text: textForLog,
+          step: await playerDataService.howStepLog(idRoom),
+          lastVar: JSON.stringify(lastVar)
+        })
         console.log(emitData)
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         
       })
@@ -508,17 +579,21 @@ module.exports = function(io) {
       socket.on('refresh:professionByHour', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
-        let count = players.length
-        let index = 0
         let dataForNextPlayer = {}
-        let emitData = {players: {}}
-        
+        let emitData = {players: {}, logsData: {}}
+        let vars = {}
+        let lastVar = {}
         let lastPlayer = players[players.length - 1]
         let playerProfessionData = JSON.parse(lastPlayer.profession)
         dataForNextPlayer = JSON.parse(players[0].profession)
         playerProfessionData.isOpen = dataForNextPlayer.isOpen
+        vars.id = dataForNextPlayer.id
+        vars.text = dataForNextPlayer.text
         
-        
+        lastVar[players[0].userId] = vars
+        vars.id = playerProfessionData.id
+        vars.text = playerProfessionData.text
+        lastVar[lastPlayer.userId] = vars
         if (playerProfessionData.isOpen) {
           console.log("isOpen", players[0].userId)
           emitData.players[players[0].userId] = {profession: playerProfessionData}
@@ -534,6 +609,9 @@ module.exports = function(io) {
           let player = players[i]
           let data = JSON.parse(player.profession)
           dataForNextPlayer.isOpen = data.isOpen
+          vars.id = data.id
+          vars.text = data.text
+          lastVar[player.userId] = vars
           
           if (data.isOpen) {
             console.log("isOpen", player.userId)
@@ -549,68 +627,31 @@ module.exports = function(io) {
           
           dataForNextPlayer = data
         }
-        
+        await UserModel.Logi.create({
+          idRoom: idRoom,
+          funcName: `professionByHour`,
+          text: 'Ведущий изменил специальности по часовой стрелке',
+          step: await playerDataService.howStepLog(idRoom),
+          lastVar: JSON.stringify(lastVar)
+        })
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = 'Ведущий изменил специальности по часовой стрелке'
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-        
-        
-        // for (let player of players) {
-        //   console.log(index)
-        //   if (index===0) {
-        //     index += 1
-        //     let data = JSON.parse(player.profession)
-        //     let dataLast = JSON.parse(players[count - 1].profession)
-        //     dataForNextPlayer = data
-        //     data.text = dataLast.text
-        //     data.id = dataLast.id
-        //     data.description = dataLast.description
-        //     player.profession = JSON.stringify(data)
-        //     let isOpen = data.isOpen
-        //     //console.log(data)
-        //     data = {profession: data}
-        //     if (isOpen) {
-        //       console.log("player.userId", player.userId)
-        //       emitData.players[player.userId] = data
-        //     }
-        //     else {
-        //       io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data)
-        //     }
-        //
-        //   }
-        //   else if (index!==count - 1 && index!==0) {
-        //
-        //     let data = JSON.parse(player.profession)
-        //     console.log(data)
-        //     console.log(dataForNextPlayer)
-        //     let newData = dataForNextPlayer
-        //     dataForNextPlayer = data
-        //     data.text = newData.text
-        //     data.id = newData.id
-        //     data.description = newData.description
-        //     player.profession = JSON.stringify(data)
-        //     let isOpen = data.isOpen
-        //     //console.log(data)
-        //     data = {profession: data}
-        //     if (isOpen) {
-        //       console.log("player.userId", player.userId)
-        //       emitData.players[player.userId] = data
-        //     }
-        //     else {
-        //       io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data)
-        //     }
-        //
-        //   }
-        //   io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-        //   //console.log(emitData)
-        //   //console.log(player.userId)
-        //   //  console.log(players[index].userId)
-        // }
       })
       socket.on('refresh:professionSetNull', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-        let emitData = {players: {}}
+        let lastVar = {}
+        
+        let emitData = {players: {}, logsData: {}}
         for (let player of players) {
+          let vars = {}
+          
           let data = JSON.parse(player.profession)
+          vars.id = data.id
+          vars.text = data.text
+          vars.description = data.description
+          lastVar[player.userId] = vars
           data.text = 'Без профессии'
           data.id = 0
           data.description = ''
@@ -626,6 +667,107 @@ module.exports = function(io) {
               {players: {[player.userId]: {profession: data}}})
           }
         }
+        await UserModel.Logi.create({
+          idRoom: idRoom,
+          funcName: `professionSetNull`,
+          text: 'Ведущий изменил специальности по часовой стрелке',
+          step: await playerDataService.howStepLog(idRoom),
+          lastVar: JSON.stringify(lastVar)
+        })
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = 'Ведущий анулировал всем специальности'
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+      })
+      socket.on('refresh:sexOpposite', async (playerId) => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        
+        
+        let players = null
+        let textForLog = ''
+        let lastVar = {}
+        if (playersId===0) {
+          textForLog = `Ведущий изменил всем пол на противоположный`
+          players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+        }
+        else {
+          if (playersId>0) {
+            let user = await UserModel.User.findOne({where: {id: playersId}})
+            textForLog = `Ведущий изменил пол игроку ${user.nickname} на противоположный`
+          }
+          else {
+            textForLog = `Ведущий изменил пол игроку Гость#${Math.abs(playersId)} на противоположный`
+          }
+          players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          players = [players]
+        }
+        console.log(players)
+        let emitData = {players: {}, logsData: {}}
+        console.log(players.length)
+        let isInvalid = {}
+        for (let player of players) {
+          if (player.isAlive && player.isPlayer) {
+            let data = JSON.parse(player.sex)
+            if (data.text.contains('Мужчина')) {
+              data.text = data.text.replace('Мужчина', 'Женщина')
+              lastVar[player.userId] = 'Мужчина'
+            }
+            else if (data.text.contains('Женщина')){
+              data.text = data.text.replace('Женщина', 'Мужчина')
+              lastVar[player.userId] = 'Женщина'
+            }else{
+              isInvalid[player.userId] =data.text 
+              break
+              socket.emit("setError",
+                            {
+                              message: "Нельзя изменить пол на противополжный",
+                              status: 701,
+                              functionName: 'refresh:sexOpposite'
+                            })
+                            return
+              
+            }
+            console.log(data.text)
+            
+            let isOpen = data.isOpen
+            player.profession = JSON.stringify(data)
+            await player.save()
+            data = {profession: data}
+            console.log(data)
+            
+            if (isOpen) {
+              console.log("player.userId", player.userId)
+              emitData.players[player.userId] = data
+            }
+            else {
+              io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {players: {[player.userId]: data}})
+            }
+          }
+          else {
+            // добавляем в список недействительных пользователей
+          }
+        }
+        if(!objIsEmpty(isInvalid)){
+          socket.emit("setError",
+                                      {
+                                        message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
+                                        status: 701,
+                                        functionName: 'refresh:sexOpposite',
+                                        wrongData:isInvalid
+                                      })
+                                      return
+        }
+        if (!objIsEmpty(lastVar)) {
+          await UserModel.Logi.create({
+            idRoom: idRoom,
+            funcName: `sexOpposite`,
+            text: textForLog,
+            step: await playerDataService.howStepLog(idRoom),
+            lastVar: JSON.stringify(lastVar)
+          })
+        }
+        console.log(emitData)
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
       })
     }

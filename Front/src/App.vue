@@ -2,11 +2,23 @@
 import { useAuthStore } from "@/stores/auth.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useMyProfileStore } from "@/stores/profile.js";
+import { RouterView } from 'vue-router'
+import TheHeader from "@/components/TheHeader.vue";
+import TheFooter from "@/components/TheFooter.vue";
+import AppUpButton from "@/components/AppUpButton.vue";
+import { onBeforeMount } from "vue";
+import AppPreloader from "@/components/AppPreloader.vue";
+import { getLinkParams, getLocalData } from "@/plugins/functions.js";
+import AppConfirm from "@/components/AppConfirm.vue";
+import AppPopup from "@/components/AppPopup.vue";
+import { useGlobalPopupStore } from "@/stores/popup.js";
+import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
+const confirmStore = useConfirmBlockStore()
 
 const checkUser = () => {
   const tokens = authStore.getLocalData('userTokens')
@@ -44,26 +56,16 @@ onBeforeMount(async () => {
   }
 })
 
-
-import { RouterLink, RouterView } from 'vue-router'
-import TheHeader from "@/components/TheHeader.vue";
-import TheFooter from "@/components/TheFooter.vue";
-import AppButton from "@/components/AppButton.vue";
-import AppUpButton from "@/components/AppUpButton.vue";
-import { computed, onBeforeMount, onMounted, onServerPrefetch, onUpdated, ref } from "vue";
-import AppPreloader from "@/components/AppPreloader.vue";
-import { getId, getLinkParams, getLocalData } from "@/plugins/functions.js";
-import router from "@/router/index.js";
-import AppConfirm from "@/components/AppConfirm.vue";
-import AppPopup from "@/components/AppPopup.vue";
-import TheResetPopup from "@/components/TheResetPopup.vue";
-import { useGlobalPopupStore } from "@/stores/popup.js";
 </script>
 
 <template>
-  <TheHeader></TheHeader>
+  <TheHeader tabindex="0"
+             @keyup.esc.exact="confirmStore.deactivate"
+             @keyup.enter.exact="confirmStore._enterHandler"></TheHeader>
   <AppPreloader :class="globalPreloader.showLoader?'':'_deactivate'"/>
-  <RouterView/>
+  <RouterView tabindex="0"
+              @keyup.esc.exact="confirmStore.deactivate"
+              @keyup.enter.exact="confirmStore._enterHandler"/>
   <TheFooter></TheFooter>
   <AppUpButton/>
   <AppConfirm/>
