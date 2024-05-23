@@ -504,7 +504,7 @@ function changeEmailHandler(e) {
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="about">О себе</label>
-              <textarea ref="aboutInput" name="about" id="about" placeholder="Текст о себе">{{data.about}}</textarea>
+              <textarea maxlength="254" ref="aboutInput" name="about" id="about" placeholder="Текст о себе">{{data.about}}</textarea>
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <AppLoader v-if="isSaveLoader" />
@@ -1039,7 +1039,9 @@ function changeEmailHandler(e) {
 
   textarea {
     max-height: 300px;
+    min-height: 70px;
     height: 70px;
+    resize: vertical;
 
     @media (max-width: $pc) {
       height: 130px;
