@@ -260,7 +260,7 @@ function createCustomGame() {
 }
 
 function getRandomNumToDice() {
-  diceNum.value = getRandomInt(1,6)
+  diceNum.value = getRandomInt(1, 6)
 }
 
 </script>
@@ -293,7 +293,7 @@ function getRandomNumToDice() {
           </ul>
         </div>
       </div>
-      <TheHostPanel v-if="hostFunctional.haveAccess" :player-items="itemsName.concat(specItems)"/>
+      <TheHostPanel v-if="hostFunctional.haveAccess" :player-items="itemsName.concat(specItems)" />
       <div class="watchersIcon"
            :class="selectedGame.watchersCount>0?'_active':''">
         <img src="/img/icons/watcher.svg" alt="">
@@ -482,8 +482,7 @@ function getRandomNumToDice() {
         </div>
       </div>
     </div>
-    <button @click="getRandomNumToDice">Крутить</button>
-    <AppDice6 v-model="diceNum"/>
+    <AppDice6 v-model="diceNum" />
     <TheGamerInfo v-if="!selectedGame.imWatcher"
                   :data="selectedGameData.getMyPlayerData"
                   :isReg="myProfile.isReg"
@@ -613,14 +612,19 @@ function getRandomNumToDice() {
                   </div>
                 </div>
                 <div class="progress-result__percentages">
-                  {{ getPercentForVote(vote,selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).allVoteNum) }} %
+                  {{
+                    getPercentForVote(vote,
+                        selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).allVoteNum)
+                  }} %
                 </div>
               </div>
             </div>
             <div v-if="selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.length"
                  class="results-voting__listAbstained">
               Игроки, которые не приняли участие в голосовании:
-              <span>{{ selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.join(', ') }}</span>
+              <span>{{
+                  selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.join(', ')
+                    }}</span>
             </div>
             <div v-else class="results-voting__listAbstained">
               Все игроки приняли участие в голосовании
@@ -677,12 +681,11 @@ function getRandomNumToDice() {
                 </div>
 
                 <!--Остальные характеристики-->
-                <div
-                    v-for="item in specItems"
-                    :key="item[1]"
-                    class="table-listGamer__column"
+                <div v-for="item in specItems"
+                     :key="item[1]"
+                     class="table-listGamer__column"
                 >
-                  {{ selectedGameData.getCharForPlayer(data.id, item[1]) }}
+                  <p v-html="selectedGameData.getCharForPlayer(data.id, item[1])"></p>
                   <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
                                 :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
@@ -1150,6 +1153,7 @@ function getRandomNumToDice() {
     &._main {
       .table-listGamer__column {
         padding-top: 13px;
+
         .smallInfo {
           position: absolute;
           right: 4px;
@@ -1352,7 +1356,7 @@ function getRandomNumToDice() {
 
   &__column {
     border-right: 1px solid #323232;
-    padding: 25px 3px 13px 15px;
+    padding: 25px 3px 20px 15px;
     font-size: 11px;
     font-weight: 600;
     position: relative;
@@ -1397,7 +1401,8 @@ function getRandomNumToDice() {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
     height: 34px;
     border: 2px solid #3B3B3B;
     margin-right: 10px;
