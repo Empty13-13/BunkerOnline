@@ -101,10 +101,10 @@ async function updateMyGames() {
     loadingAllGames.value = true
     roomData.value = []
     if(data.data) {
-      roomData.value = roomData.value.concat(data.data.userGame).sort((room1,room2) => {
+      roomData.value = data.data.userGame.sort((room1,room2) => {
         return new Date(room1.dataCreate) - new Date(room2.dataCreate)
       })
-      activeGames.value = activeGames.value.concat(data.data.allGames)
+      activeGames.value = data.data.allGames
     }
   } catch(e) {
     console.log(e)

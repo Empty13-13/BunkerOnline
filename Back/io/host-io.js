@@ -200,139 +200,133 @@ module.exports = function(io) {
       })
       
       socket.on('startGame', async (playersData) => {
-          let isCustomGame = false
-          try {
-            if (GameData.countPlayers<0) {
+        let isCustomGame = false
+        try {
+          if (GameData.countPlayers<0) {
+            socket.emit("setError",
+              {
+                message: `Для начала игры нужно минимум 6 игроков`,
+                status: 400,
+                functionName: 'startGame'
+              })
+            return
+          }
+          if (playersData) {
+            let userData = await UserModel.User.findOne({where: {id: userId}})
+            if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
+              const forbiddenWords = await UserModel.BlackListWords.findAll()
+              let wrongData = {}
+              
+              
+              for (let playerId in playersData) {
+                let wrongInput = []
+                for (let key in playersData[playerId]) {
+                  if (playersData[playerId][key]!==null) {
+                    //  console.log('PROVERKA',key,playersData[playerId])
+                    forbiddenWords.forEach(word => {
+                      if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
+                        word.word.toLowerCase())) {
+                        wrongInput.push(key)
+                        //  console.log('ERRRRRRRRRRRRRRORRRRRRR', wrongInput)
+                      }
+                    })
+                  }
+                }
+                
+                if (wrongInput.length>0) {
+                  wrongData[playerId] = wrongInput
+                }
+                
+                
+              }
+              //console.log(wrongData)
+              if (!systemFunction.objIsEmpty(wrongData)) {
+                socket.emit("setError",
+                  {
+                    message: `В полях используются запрещенные слова`,
+                    status: 514,
+                    functionName: 'startGame',
+                    wrongData: wrongData
+                  })
+                return
+              }
+              isCustomGame = true
+            }
+            else {
               socket.emit("setError",
                 {
-                  message: `Для начала игры нужно минимум 6 игроков`,
-                  status: 400,
+                  message: `Access Denied`,
+                  status: 513,
                   functionName: 'startGame'
                 })
               return
             }
-            if (playersData) {
-              let userData = await UserModel.User.findOne({where: {id: userId}})
-              if (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin") {
-                const forbiddenWords = await UserModel.BlackListWords.findAll()
-                let wrongData = {}
-                
-                
-                for (let playerId in playersData) {
-                  let wrongInput = []
-                  for (let key in playersData[playerId]) {
-                    if (playersData[playerId][key]!==null) {
-                      //  console.log('PROVERKA',key,playersData[playerId])
-                      forbiddenWords.forEach(word => {
-                        if (playersData[playerId][key] && playersData[playerId][key].toLowerCase().includes(
-                          word.word.toLowerCase())) {
-                          wrongInput.push(key)
-                          //  console.log('ERRRRRRRRRRRRRRORRRRRRR', wrongInput)
-                        }
-                      })
-                    }
-                  }
-                  
-                  if (wrongInput.length>0) {
-                    wrongData[playerId] = wrongInput
-                  }
-                  
-                  
-                }
-                //console.log(wrongData)
-                if (!systemFunction.objIsEmpty(wrongData)) {
-                  socket.emit("setError",
-                    {
-                      message: `В полях используются запрещенные слова`,
-                      status: 514,
-                      functionName: 'startGame',
-                      wrongData: wrongData
-                    })
-                  return
-                }
-                isCustomGame = true
-              }
-              else {
-                socket.emit("setError",
-                  {
-                    message: `Access Denied`,
-                    status: 513,
-                    functionName: 'startGame'
-                  })
-                return
-              }
-            }
-            //Проверка на MVP если playersData не пустой
-            
-            //  console.log('Проверка на ХУЙ пройдена успешно')
-            io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
-            if (await ioUserService.isAgeRestriction(userId) || isCustomGame) {
-              let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-              game.isHidden = 1
-              await game.save()
-            }
-            
-            const data = await playerDataService.createDataGame(idRoom, playersData)
-            console.log(data)
-            
-            let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-            room.isStarted = 1
-            await room.save()
-            let sendData = {}
-            sendData.logsData = data.logsData
-            sendData.userData = data.userData
-            sendData.bunkerData = data.bunkerData
+          }
+          io.in(idRoom).emit('startedGame', {message: 'Начинаем игру', status: 200})
+          if (await ioUserService.isAgeRestriction(userId) || isCustomGame) {
+            let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+            game.isHidden = 1
+            await game.save()
+          }
+          
+          const data = await playerDataService.createDataGame(idRoom, playersData)
+          console.log(data)
+          
+          let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+          room.isStarted = 1
+          await room.save()
+          let sendData = {}
+          sendData.logsData = data.logsData
+          sendData.userData = data.userData
+          sendData.bunkerData = data.bunkerData
+          sendData.players = {}
+          for (let playerId in data.userData) {
             sendData.players = {}
-            for (let playerId in data.players) {
-              sendData.players = {}
+            if(data.userData.isPlayer) {
               sendData.players[playerId] = data.players[playerId]
-              
-              io.to(`user:${playerId}:${idRoom}`).emit('setAllGameData', sendData)
-              // console.log(sendData)
             }
-            io.in(`watchers:${idRoom}`).emit('setAllGameData', {userData: sendData.userData, bunkerData: data.bunkerData})
-            // io.in(idRoom).emit('setAllGameData', data)
-          } catch(e) {
-            io.in(idRoom).emit("setError",
-              {
-                message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
-                status: 512,
-                functionName: 'startGame'
-              })
-            // console.log(e)
+            io.to(`user:${playerId}:${idRoom}`).emit('setAllGameData', sendData)
           }
-        }
-      )
-      socket.on('voiting:start', async () => {
-          let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-          //console.log(gameRoom)
-          console.log(io.sockets.adapter.rooms)
-          if (gameRoom && gameRoom.isStarted) {
-            gameRoom.voitingStatus = 0
-            let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-            for (let player of players) {
-              player.votedFor = null
-              await player.save()
-              
-            }
-            await gameRoom.save()
-            await UserModel.Logi.create({idRoom: idRoom, funcName: 'voitingStart', text: 'Голосование началось', step: 0})
-            io.in(idRoom).emit('setAllGameData', {
-              voitingData: {status: gameRoom.voitingStatus, userChoise: null},
-              logsData: [{type: 'text', value: 'Голосование началось'}]
+          io.in(`watchers:${idRoom}`).emit('setAllGameData', {userData: sendData.userData, bunkerData: data.bunkerData})
+        } catch(e) {
+          io.in(idRoom).emit("setError",
+            {
+              message: `При создании игры произошла ошибка. Пожалуйста, попробуйте ещё раз создать игру, или обратитесь к администратору сервера`,
+              status: 512,
+              functionName: 'startGame'
             })
-            io.in(idRoom).emit('voiting:start')
-          }
-          else {
-            socket.emit("setError",
-              {
-                message: "Игра не началась, либо комнаты не существует",
-                status: 603,
-                functionName: 'voitingStart'
-              })
-          }
+          // console.log(e)
         }
-      )
+      })
+      socket.on('voiting:start', async () => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        //console.log(gameRoom)
+        console.log(io.sockets.adapter.rooms)
+        if (gameRoom && gameRoom.isStarted) {
+          gameRoom.voitingStatus = 0
+          let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+          for (let player of players) {
+            player.votedFor = null
+            await player.save()
+            
+          }
+          await gameRoom.save()
+          await UserModel.Logi.create({idRoom: idRoom, funcName: 'voitingStart', text: 'Голосование началось', step: 0})
+          io.in(idRoom).emit('setAllGameData', {
+            voitingData: {status: gameRoom.voitingStatus, userChoise: null},
+            logsData: [{type: 'text', value: 'Голосование началось'}]
+          })
+          io.in(idRoom).emit('voiting:start')
+        }
+        else {
+          socket.emit("setError",
+            {
+              message: "Игра не началась, либо комнаты не существует",
+              status: 603,
+              functionName: 'voitingStart'
+            })
+        }
+      })
       socket.on('voiting:finished', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         if (gameRoom && gameRoom.isStarted) {
@@ -711,19 +705,20 @@ module.exports = function(io) {
               data.text = data.text.replace('Мужчина', 'Женщина')
               lastVar[player.userId] = 'Мужчина'
             }
-            else if (data.text.contains('Женщина')){
+            else if (data.text.contains('Женщина')) {
               data.text = data.text.replace('Женщина', 'Мужчина')
               lastVar[player.userId] = 'Женщина'
-            }else{
-              isInvalid[player.userId] =data.text 
+            }
+            else {
+              isInvalid[player.userId] = data.text
               break
               socket.emit("setError",
-                            {
-                              message: "Нельзя изменить пол на противополжный",
-                              status: 701,
-                              functionName: 'refresh:sexOpposite'
-                            })
-                            return
+                {
+                  message: "Нельзя изменить пол на противополжный",
+                  status: 701,
+                  functionName: 'refresh:sexOpposite'
+                })
+              return
               
             }
             console.log(data.text)
@@ -746,15 +741,15 @@ module.exports = function(io) {
             // добавляем в список недействительных пользователей
           }
         }
-        if(!objIsEmpty(isInvalid)){
+        if (!objIsEmpty(isInvalid)) {
           socket.emit("setError",
-                                      {
-                                        message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
-                                        status: 701,
-                                        functionName: 'refresh:sexOpposite',
-                                        wrongData:isInvalid
-                                      })
-                                      return
+            {
+              message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
+              status: 701,
+              functionName: 'refresh:sexOpposite',
+              wrongData: isInvalid
+            })
+          return
         }
         if (!objIsEmpty(lastVar)) {
           await UserModel.Logi.create({

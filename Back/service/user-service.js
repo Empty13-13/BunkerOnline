@@ -243,6 +243,7 @@ class UserService {
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
+    console.log(candidateUser.userId)
     if (!candidate) {
       let userDto = null
       if (!candidateUser) {

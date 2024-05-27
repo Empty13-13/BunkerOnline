@@ -26,6 +26,7 @@ import { useActionsProfileStore } from "@/stores/profile.js";
 import { focusInInput, setErrorForInput } from "@/plugins/inputActions.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
+import AppSelect from "@/components/Forms/AppSelect.vue";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -46,7 +47,7 @@ const data = reactive({
   access: {title: 'Загружаем...', date: new Date()},
   dateRegistration: new Date(),
   birthday: {date: new Date(), isHidden: false},
-  isMale: 0,
+  isMale: {text: 'Не выбран', value: -1},
   about: '',
   gameNum: 0,
   survivalRate: 0,
@@ -81,13 +82,13 @@ const getBlockButtonImg = computed(() => {
   }
 })
 const getSex = computed(() => {
-  if (data.isMale=== -1) {
+  if (data.isMale.value=== -1) {
     return 'Не указан'
   }
-  else if (data.isMale===0) {
+  else if (data.isMale.value===0) {
     return 'Женский'
   }
-  else if (data.isMale===1) {
+  else if (data.isMale.value===1) {
     return 'Мужской'
   }
 })
@@ -100,6 +101,12 @@ let saveBtnText = ref('Сохранить')
 
 let isChangingName = ref(false)
 let oldNickname = null
+
+const sexOptions = [
+  {text: 'Не выбран', value: -1},
+  {text: 'Женский', value: 0},
+  {text: 'Мужской', value: 1},
+]
 
 function changeBlocked() {
   data.isBlocked = !data.isBlocked
@@ -130,26 +137,33 @@ function banUser(e) {
   })
 }
 
-async function changeName() {
+async function changeName(e) {
   if (!isChangingName.value) {
     isChangingName.value = true
     oldNickname = data.name
   }
   else {
-    console.log(data.name)
-    if (oldNickname===data.name) {
-      isChangingName.value = false
-      return
-    }
+    if (!(myProfile.isMVP || myProfile.isAdmin)) {
+      showConfirmBlock(e.target, () => {
 
-    try {
-      let response = await actionsProfile.updateNickname(data.id, {nickname: data.name})
-      data.isChange = false
-      isChangingName.value = false
-      console.log("Смогли поменять ник!", response)
-    } catch(e) {
-      console.log(e.message)
-      setErrorForInput('nickname', e.response.data.message)
+      }, 'С уровнем подписки "Пользователь" и VIP изменить никнейм можно только один раз. Вы подтверждаете действие?')
+    }
+    else {
+      console.log(data.name)
+      if (oldNickname===data.name) {
+        isChangingName.value = false
+        return
+      }
+
+      try {
+        let response = await actionsProfile.updateNickname(data.id, {nickname: data.name})
+        data.isChange = false
+        isChangingName.value = false
+        console.log("Смогли поменять ник!", response)
+      } catch(e) {
+        console.log(e.message)
+        setErrorForInput('nickname', e.response.data.message)
+      }
     }
   }
 }
@@ -223,12 +237,12 @@ async function saveProfileInfoHandler(e) {
   if (isHiddenBirthdayInput.value.checked!==data.hiddenBirthday) {
     body.hiddenBirthday = isHiddenBirthdayInput.value.checked
   }
-  if (+isMaleSelect.value!==data.sex) {
-    if (+isMaleSelect.value.value=== -1) {
+  if (+data.isMale.value!==data.sex) {
+    if (+data.isMale.value=== -1) {
       body.sex = null
     }
     else {
-      body.sex = +isMaleSelect.value.value
+      body.sex = +data.isMale.value
     }
   }
   if (aboutInput.value!==data.text) {
@@ -284,15 +298,12 @@ async function updateProfileInfo() {
   if (isHiddenBirthdayInput.value) {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
-  console.log(userInfo.data.sex)
-  if (userInfo.data.sex===null || userInfo.data.sex===undefined) {
-    data.isMale = -1
-  }
-  else {
-    data.isMale = +userInfo.data.sex
+  console.log('userInfo.data.sex', userInfo.data.sex)
+  if (!(userInfo.data.sex===null || userInfo.data.sex===undefined)) {
+    data.isMale = {text: +userInfo.data.sex? 'Мужской':'Женский', value: +userInfo.data.sex}
   }
 
-  console.log(data.isMale)
+  console.log('data.isMale', data.isMale)
   if (isMaleSelect.value) {
     isMaleSelect.value.value = data.isMale
   }
@@ -496,11 +507,12 @@ function changeEmailHandler(e) {
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
-              <select ref="isMaleSelect" class="profile" name="sex" id="sex">
-                <option value="-1" :selected="data.isMale===-1">Не выбран</option>
-                <option value="0" :selected="data.isMale===0">Женский</option>
-                <option value="1" :selected="data.isMale===1">Мужской</option>
-              </select>
+              <AppSelect v-model="data.isMale" :options="sexOptions" class="selectBlock profile" />
+              <!--              <select ref="isMaleSelect" class="profile" name="sex" id="sex">-->
+              <!--                <option value="-1" :selected="data.isMale===-1">Не выбран</option>-->
+              <!--                <option value="0" :selected="data.isMale===0">Женский</option>-->
+              <!--                <option value="1" :selected="data.isMale===1">Мужской</option>-->
+              <!--              </select>-->
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="about">О себе</label>

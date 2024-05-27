@@ -559,7 +559,8 @@ function getRandomNumToDice() {
         </div>
       </div>
     </div>
-    <div v-if="(!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)"
+    <div v-if="(hostFunctional.haveAccess && hostFunctional.isPlayerToo) ||
+    (!hostFunctional.haveAccess && ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
          class="voting">
       <div class="voting__container">
         <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
@@ -710,7 +711,7 @@ function getRandomNumToDice() {
         </div>
       </div>
     </div>
-    <TheLogs v-if="!selectedGame.imWatcher" />
+    <TheLogs v-if="!selectedGame.imWatcher || hostFunctional.haveAccess" />
     <div v-if="selectedGame.imWatcher" class="spaceDown"></div>
   </main>
   <main v-else>
@@ -1403,6 +1404,9 @@ function getRandomNumToDice() {
     align-items: center;
     min-width: 34px;
     max-width: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    width: 34px;
     height: 34px;
     border: 2px solid #3B3B3B;
     margin-right: 10px;

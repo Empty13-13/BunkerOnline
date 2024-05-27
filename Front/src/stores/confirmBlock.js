@@ -53,6 +53,15 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
     }
   }
   
+  function activateTimer() {
+    timeout.value = setTimeout(() => {
+      deactivate()
+    },5000)
+  }
+  function deactivateTimer() {
+    clearInterval(timeout.value)
+  }
+  
   return {
     top,
     left,
@@ -65,6 +74,8 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
     activate,
     deactivate,
     _yesHandler,
-    _enterHandler
+    _enterHandler,
+    activateTimer,
+    deactivateTimer,
   }
 })

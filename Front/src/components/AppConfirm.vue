@@ -13,26 +13,14 @@ const confirmBlock = ref(null)
 onMounted(() => {
   confirmStore.width = confirmBlock.value.clientWidth
 })
-
-// async function yesHandler() {
-//   confirmStore.showLoader = true
-//   if (isAsync(confirmStore.action)) {
-//     await confirmStore.action()
-//   }
-//   else {
-//     confirmStore.action()
-//   }
-//   confirmStore.deactivate()
-//   confirmStore.showLoader = false
-// }
-
-
 </script>
 
 <template>
   <div ref="confirmBlock" :class="{'_active':confirmStore.showBlock}"
        :style="`left:${confirmStore.left}px; top:${confirmStore.top}px; width:${confirmStore.currentWidth?confirmStore.currentWidth:confirmStore.width?confirmStore.width:NaN}px;`"
        class="confirmPopup"
+       @mouseover="confirmStore.deactivateTimer"
+       @mouseleave="confirmStore.activateTimer"
   >
     <div class="confirmPopup__block linear-border white">
       <div class="confirmPopup__body">
@@ -77,6 +65,7 @@ onMounted(() => {
 
   .confirmPopup__text {
     font-size: 12px;
+    line-height: 1.2;
     font-weight: 700;
     margin-right: 30px;
   }

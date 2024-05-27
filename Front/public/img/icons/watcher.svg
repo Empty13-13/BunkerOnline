@@ -1,8 +1,14 @@
-<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg height="122px" style="enable-background:new 0 0 150 122;" version="1.1" viewBox="0 0 150 122" width="150px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><style type="text/css">
-<![CDATA[
-	.st0{fill:#EF3E42;}
-	.st1{fill:#FFFFFF;}
-	.st2{fill:none;}
-	.st3{fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF;}
-]]>
-</style><defs/><path fill="white" d="M65.7,97.3C36.5,97.3,13.2,80,2.1,53.9c11.2-26.1,34.5-43.4,63.6-43.4c29.1,0,52.5,17.3,63.7,43.4  C118.2,80,94.8,97.3,65.7,97.3L65.7,97.3L65.7,97.3z M65.7,86.9c23.1,0,43-13.5,52.3-33c-9.3-19.5-29.2-33-52.3-33  c-23,0-42.9,13.5-52.2,33C22.7,73.4,42.6,86.9,65.7,86.9L65.7,86.9L65.7,86.9z M41.5,53.9c0-13.4,10.8-24.2,24.1-24.2  c13.4,0,24.2,10.9,24.2,24.2c0,13.4-10.9,24.2-24.2,24.2C52.3,78.1,41.5,67.2,41.5,53.9L41.5,53.9L41.5,53.9z M67.1,47.8  c0,4.2,3.3,7.6,7.6,7.6c4.1,0,7.5-3.4,7.5-7.6c0-4.1-3.3-7.5-7.5-7.5C70.5,40.3,67.1,43.6,67.1,47.8L67.1,47.8L67.1,47.8z"/><rect class="st2" height="122" id="_x3C_Slice_x3E__100_" width="150"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg height="86.800003" version="1.1" viewBox="0 0 128 86.800003" width="128" xml:space="preserve" id="svg1"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg">
+    <sodipodi:namedview id="namedview1" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25"
+                        inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="true"
+                        inkscape:deskcolor="#d1d1d1" showguides="true" inkscape:lockguides="false" labelstyle="default"
+                        inkscape:clip-to-page="false" inkscape:zoom="4.9149717" inkscape:cx="61.343181"
+                        inkscape:cy="39.471234" inkscape:window-width="1920" inkscape:window-height="1052"
+                        inkscape:window-x="1680" inkscape:window-y="0" inkscape:window-maximized="1"
+                        inkscape:current-layer="svg1"/>
+    <path fill="#ffffff"
+          d="M 63.94972,86.8 C 34.589157,86.8 11.161036,69.5 0,43.4 11.261586,17.3 34.689707,0 63.94972,0 93.209733,0 116.73841,17.3 128,43.4 116.73841,69.5 93.209733,86.8 63.94972,86.8 Z m 0,-10.4 c 23.227021,0 43.23646,-13.5 52.58759,-33 -9.35113,-19.5 -29.360569,-33 -52.58759,-33 -23.126471,0 -43.135896,13.5 -52.487034,33 9.250588,19.5 29.260013,33 52.487034,33 z m -24.33307,-33 c 0,-13.4 10.859387,-24.2 24.23252,-24.2 13.473683,0 24.33307,10.9 24.33307,24.2 0,13.4 -10.959937,24.2 -24.33307,24.2 -13.373133,0 -24.23252,-10.9 -24.23252,-24.2 z m 25.740768,-6.1 c 0,4.2 3.318146,7.6 7.641791,7.6 4.122545,0 7.54124,-3.4 7.54124,-7.6 0,-4.1 -3.318146,-7.5 -7.54124,-7.5 -4.223095,0 -7.641791,3.3 -7.641791,7.5 z"/>
+</svg>

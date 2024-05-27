@@ -337,7 +337,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     
     for (let dataKey in userData.value) {
-      if (!votedPlayerIds.includes(+dataKey)) {
+      if (userData.value[dataKey].isPlayer && !votedPlayerIds.includes(+dataKey)) {
         abstainedList.push(userData.value[dataKey].nickname)
       }
     }

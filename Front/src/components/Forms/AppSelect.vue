@@ -1,7 +1,7 @@
 <script setup="">
 import { onMounted, ref } from "vue";
 
-const props = defineProps({
+let props = defineProps({
   options: Array,
   placeholder: {
     type: String,
@@ -23,8 +23,11 @@ const showDropdown = ref(false)
 
 
 onMounted(() => {
-  if(!props.placeholder && props.options.length) {
+  if(!props.placeholder && props.options.length && !model.value) {
     model.value = {value: props.options[0].value,text: props.options[0].text}
+  } else if(model.value) {
+    props.placeholder = props.options.find(prop => prop.value === model.value.value).text
+    console.log(props.options.find(prop => prop.value === model.value.value).text)
   }
 })
 //========================================================================================================================================================
@@ -70,11 +73,11 @@ function selectItem(value, text) {
     &__input {
       padding: 10px;
       transition: background 0.3s ease;
-      border-radius: 8px 0;
+      border-radius: 8px;
     }
 
     &__dropdown {
-      border-radius: 0 8px;
+      border-radius: 0 0 8px 8px;
       height: 0;
       transition: height 0.2s ease;
       display: block;
@@ -83,6 +86,7 @@ function selectItem(value, text) {
     &._open {
       .select__input{
         background: black;
+        border-radius: 8px 8px 0 0;
       }
 
       .select__dropdown {
@@ -90,6 +94,4 @@ function selectItem(value, text) {
       }
     }
   }
-
-
 </style>
