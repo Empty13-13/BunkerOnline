@@ -306,10 +306,11 @@ module.exports = function(io) {
           {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: choiseId, isAlive: 1}})
         if (isPlayer) {
           let player = await UserModel.RoomSession.findOne(
-            {where:
+            {
+              where:
                 {gameRoomId: gameRoom.id, isPlayer: 1, userId: isValidateId}
             })
-          console.log('usersIO:isValidateId',isValidateId)
+          console.log('usersIO:isValidateId', isValidateId)
           if (player) {
             if (player.isAlive) {
               if (choiseId!==isValidateId) {

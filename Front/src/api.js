@@ -26,8 +26,7 @@ axiosInstance.interceptors.response.use((response) => {
   return response
 }, async function(error) {
   const globalPopup = useGlobalPopupStore()
-  
-  console.log(error, error.response, !error.response)
+  const myProfile = useMyProfileStore()
   
   if (!error.response) {
     error.response = {message: 'Сервер не отвечает'}
@@ -42,12 +41,16 @@ axiosInstance.interceptors.response.use((response) => {
     console.log('Слишком много попыток')
     const globalPopup = useGlobalPopupStore()
     globalPopup.activate('Слишком много запросов',
-      'Вы использовали слишком много запросов. Пожалуйста, попробуйте ещё раз через 15 минут','red')
+      'Вы использовали слишком много запросов. Пожалуйста, попробуйте ещё раз через 15 минут', 'red')
     
     error.response.data = {
       message: 'Вы превысили количество запросов, попробуйте позже',
       errors: [{input: '', type: 'To many requests'}]
     }
+  } else if(error.response.status === 469) {
+    myProfile.clearUserInfo()
+    await router.push({name:'home'})
+    globalPopup.activate('Сообщение от сервера','Ваш аккаунт был забанен за нарушение правил. Для уточнения вопроса обратитесь к администрации сайта','red')
   }
   
   return Promise.reject(error);

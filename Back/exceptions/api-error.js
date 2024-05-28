@@ -13,6 +13,11 @@ module.exports = class ApiError extends Error {
     return new ApiError(401, 'Users not autorization')
 
   }
+  
+  static BlockedUser() {
+      return new ApiError(469, 'User is blocked')
+  
+    }
 
   static BadRerquest(message, errors = []) {
     

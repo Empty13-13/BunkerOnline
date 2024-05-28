@@ -280,9 +280,10 @@ module.exports = function(io) {
           sendData.userData = data.userData
           sendData.bunkerData = data.bunkerData
           sendData.players = {}
+          console.log('KAKA DATA', data)
           for (let playerId in data.userData) {
             sendData.players = {}
-            if(data.userData.isPlayer) {
+            if (data.userData[playerId].isPlayer) {
               sendData.players[playerId] = data.players[playerId]
             }
             io.to(`user:${playerId}:${idRoom}`).emit('setAllGameData', sendData)
@@ -679,19 +680,19 @@ module.exports = function(io) {
         let players = null
         let textForLog = ''
         let lastVar = {}
-        if (playersId===0) {
+        if (playerId===0) {
           textForLog = `Ведущий изменил всем пол на противоположный`
           players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
         }
         else {
-          if (playersId>0) {
-            let user = await UserModel.User.findOne({where: {id: playersId}})
+          if (playerId>0) {
+            let user = await UserModel.User.findOne({where: {id: playerId}})
             textForLog = `Ведущий изменил пол игроку ${user.nickname} на противоположный`
           }
           else {
-            textForLog = `Ведущий изменил пол игроку Гость#${Math.abs(playersId)} на противоположный`
+            textForLog = `Ведущий изменил пол игроку Гость#${Math.abs(playerId)} на противоположный`
           }
-          players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playerId}})
           players = [players]
         }
         console.log(players)
@@ -764,6 +765,9 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+      })
+      socket.on('refresh:playerChart', async () => {
+        
       })
     }
   )

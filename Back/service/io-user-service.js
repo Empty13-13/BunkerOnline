@@ -73,6 +73,15 @@ class ioUserService {
           return null
         }
         isValidateId = userData.id
+        const isBlock = await UserModel.BlackListUsers.findOne({where:{userId:isValidateId}})
+        if(isBlock){
+           socket.emit("setError",
+                      {
+                        message: `Вы забанены`,
+                        status: 469,
+                        functionName: 'connection'
+                      })
+        }
         console.log('Have a UserData')
         let gameRoomId = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         if (gameRoomId) {

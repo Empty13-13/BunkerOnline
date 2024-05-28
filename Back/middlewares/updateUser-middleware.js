@@ -28,12 +28,12 @@ module.exports = function(accsessLevel) {
       
       const userData = tokenService.validateAccessToken(accessToken)
       if (!userData) {
-        console.log(
-          'ERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERROR')
+      //  console.log(
+      //    'ERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERRORERROR')
         return next(ApiError.UnauthorizedError())
       }
       
-      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ID: ', user)
+    //  console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ID: ', user)
       if (userId.toString()!==id.dataValues.userId.toString()) {
         if (user.dataValues.accsessLevel!==accsessLevel) {
           return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))

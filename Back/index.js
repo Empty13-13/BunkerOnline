@@ -25,6 +25,7 @@ const io = new Server(http, {
   },
   path: '/socket/'
 });
+require('./io/admin-io')(io)
 require('./io/host-io')(io)
 require('./io/users-io')(io)
 

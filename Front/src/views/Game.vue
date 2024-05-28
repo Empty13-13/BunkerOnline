@@ -135,6 +135,9 @@ onUnmounted(() => {
 })
 
 function getAccessStr(access) {
+  if (access==='admin') {
+    return 'Админ';
+  }
   if (access==='default') {
     return 'Пользователь'
   }
@@ -559,8 +562,8 @@ function getRandomNumToDice() {
         </div>
       </div>
     </div>
-    <div v-if="(hostFunctional.haveAccess && hostFunctional.isPlayerToo) ||
-    (!hostFunctional.haveAccess && ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
+    <div v-if="(((hostFunctional.haveAccess && hostFunctional.isPlayerToo) || !hostFunctional.haveAccess) &&
+    ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
          class="voting">
       <div class="voting__container">
         <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
@@ -1200,8 +1203,8 @@ function getRandomNumToDice() {
       .profile-column__img {
         border: none;
         position: relative;
-        width: 29px;
-        height: 29px;
+        //width: 29px;
+        //height: 29px;
         margin-right: 16px;
 
         img {
@@ -1254,9 +1257,9 @@ function getRandomNumToDice() {
       .profile-column__img {
         border: none;
         position: relative;
-        min-width: 29px;
-        width: 29px;
-        height: 29px;
+        //min-width: 29px;
+        //width: 29px;
+        //height: 29px;
         margin-right: 16px;
 
         img {
@@ -1394,7 +1397,7 @@ function getRandomNumToDice() {
   z-index: 3;
 
   &__num {
-    margin-right: 20px;
+    margin-right: 15px;
   }
 
   &__img {
@@ -1699,12 +1702,13 @@ function getRandomNumToDice() {
 //========================================================================================================================================================
 .watchersIcon {
   position: fixed;
-  right: 65px;
-  bottom: 16px;
-  width: 50px;
+  right: 75px;
+  bottom: 27px;
+  width: 40px;
   z-index: 5;
   opacity: 0;
   transition: opacity 0.5s ease;
+  pointer-events: none;
 
   img {
     max-width: 100%;

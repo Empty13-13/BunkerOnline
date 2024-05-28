@@ -75,6 +75,12 @@ export async function switchError(data, socket) {
       selectedGame.clearData()
       break;
     }
+    case 469: {
+      myProfile.clearUserInfo()
+      await router.push({name:'home'})
+      globalPopup.activate('Сообщение от сервера','Ваш аккаунт был забанен за нарушение правил. Для уточнения вопроса обратитесь к администрации сайта','red')
+      break;
+    }
     case 512: {
       selectedGame.isStarted = false
       globalPopup.activate('Ошибка создания данных', message, 'red')

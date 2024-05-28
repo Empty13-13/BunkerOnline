@@ -186,19 +186,10 @@ import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить пол на противоположный">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.body.id" />
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostSocket.emit('refresh:sexOpposite',funcData.body.id)"
+            >
               <span class="text">Изменить пол</span>
             </button>
           </AppSpoiler>

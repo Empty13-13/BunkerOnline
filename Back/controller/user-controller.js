@@ -31,7 +31,7 @@ class UserController {
     try {
       
       const errors = validationResult(req)
-     // console.log(req)
+      // console.log(req)
       if (!errors.isEmpty()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'nickname', type: 'Error validate'}]))
       }
@@ -51,11 +51,11 @@ class UserController {
   
   async logout(req, res, next) {
     try {
-    //  console.log(req)
+      //  console.log(req)
       const {refreshToken} = req.cookies
       const token = await userService.logout(refreshToken)
       res.clearCookie('refreshToken', {httpOnly: true, sameSite: 'Lax'})
-  //    console.log(token)
+      //    console.log(token)
       return res.json(token)
     } catch(e) {
       next(e)
@@ -70,7 +70,7 @@ class UserController {
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
-    //  console.log(userData)
+      //  console.log(userData)
       res.redirect(redirect_url)
       
     } catch(e) {
@@ -81,7 +81,7 @@ class UserController {
   async test(req, res, next) {
     // let chartPlayerIdBase = await playerDataService.getDataPackData(1, 'playerData')
     await playerDataService.setStatisticGame('NDNU3')
-   // const hostPack = await playerDataService.hostUsePack(1)
+    // const hostPack = await playerDataService.hostUsePack(1)
 //     const {
 //       hostBaseDataPacksData,
 //       hostAdvanceDataPacksData,
@@ -105,7 +105,7 @@ class UserController {
   async refresh(req, res, next) {
     try {
       const {refreshToken} = req.cookies
-    //  console.log(req.cookies)
+      //  console.log(req.cookies)
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken,
         {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
@@ -168,11 +168,11 @@ class UserController {
   }
   
   async callback(req, res, next) {
-    console.log(req.query)
+    //  console.log(req.query)
     
     const code = req.query['code']
     const userData = await userService.connectionDiscord(code)
-    console.log(userData)
+    // console.log(userData)
     if (userData==='banned') {
       res.redirect(423, `${process.env.FRONT_API}/login`)
       return
@@ -208,11 +208,10 @@ class UserController {
       const userId = req.params.id
       // const id = req.headers
       let token = null
-       const accessToken = req.headers.authorization
-            
-            if (accessToken && accessToken.toString().includes('Bearer ')) {
-              token = accessToken.split('Bearer ')[1]
-            }
+      const accessToken = req.headers.authorization
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
+      }
       const user = await userService.getUser(userId, token)
       
       return res.json(user)
@@ -223,7 +222,11 @@ class UserController {
   
   async uploadAvatar(req, res, next) {
     try {
-      
+      let token = null
+      const accessToken = req.headers.authorization
+            if (accessToken && accessToken.toString().includes('Bearer ')) {
+              token = accessToken.split('Bearer ')[1]
+            }
       
       const errors = validationResult(req)
       
@@ -236,8 +239,8 @@ class UserController {
       
       // console.log(file)
       const userId = req.params.id
-    //  console.log(userId)
-      const user = await userService.uploadAvatar(file, userId)
+      //  console.log(userId)
+      const user = await userService.uploadAvatar(file, token)
       return res.json({link: user})
       
       
@@ -334,7 +337,7 @@ class UserController {
       if (result.type.toString()!=="password") {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
-    //  console.log(userId, result.userId)
+      //  console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
@@ -364,7 +367,7 @@ class UserController {
       if (result.type.toString()!=="email") {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
-     // console.log(userId, result.userId)
+      // console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
         return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
       }
@@ -391,7 +394,7 @@ class UserController {
       
       const result = await userService.reset(user.email, type)
       
-   //   console.log(result)
+      //   console.log(result)
       const status = {status: 200, statusText: 'OK'}
       res.json(status)
     } catch(e) {
@@ -405,7 +408,7 @@ class UserController {
     
     try {
       const roomLink = await userService.gen_roomLink()
-     // console.log(roomLink)
+      // console.log(roomLink)
       return res.json({link: roomLink})
     } catch(e) {
       next(e)
@@ -452,7 +455,7 @@ class UserController {
     try {
       let token = null
       const accessToken = req.headers.authorization
-    //  console.log(accessToken)
+      //  console.log(accessToken)
       if (accessToken && accessToken.toString().includes('Bearer ')) {
         token = accessToken.split('Bearer ')[1]
       }
@@ -473,7 +476,7 @@ class UserController {
       let {id, isUse} = req.body
       let token = null
       const accessToken = req.headers.authorization
-  //    console.log(accessToken)
+      //    console.log(accessToken)
       if (accessToken && accessToken.toString().includes('Bearer ')) {
         token = accessToken.split('Bearer ')[1]
       }

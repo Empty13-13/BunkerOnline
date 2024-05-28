@@ -39,7 +39,8 @@ class UserService {
         }
       })
     }
-    const candidateNickName = await UserModel.User.findOne({where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)})
+    const candidateNickName = await UserModel.User.findOne(
+      {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)})
     if (candidateNickName) {
       throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
         [{input: 'nickname', type: 'Already exist'}])
@@ -94,7 +95,8 @@ class UserService {
       }
     }
     else {
-      user = await UserModel.User.findOne({where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), login)})
+      user = await UserModel.User.findOne(
+        {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), login)})
       if (!user) {
         throw ApiError.BadRerquest(`Пользователь с таким ником не существует`,
           [{input: 'nickname', type: 'Missing data'}])
@@ -154,10 +156,10 @@ class UserService {
     let isAdmin = false
     let isUser = false
     if (token) {
-       const tokenData = tokenService.validateAccessToken(token)
-            if (!tokenData) {
-              throw ApiError.UnauthorizedError()
-            }
+      const tokenData = tokenService.validateAccessToken(token)
+      if (!tokenData) {
+        throw ApiError.UnauthorizedError()
+      }
       const thisUser = await UserModel.User.findOne({where: {id: tokenData.id}})
       //   console.log(thisUser.id, userId)
       if (thisUser.id.toString()===userId.toString()) {
@@ -192,10 +194,11 @@ class UserService {
     users.dataValues.isBanned = isBan
     //   console.log(isBdayHidden, isAdmin, isUser)
     // let birthday = users.dataValues.birthday
-    console.log('isBdayHidden',isBdayHidden)
+    //console.log('isBdayHidden',isBdayHidden)
     if (isBdayHidden && !isAdmin && !isUser) {
-      users.dataValues.birthday = `${users.dataValues.birthday.getDate().toString().padStart(2,'0')}.${(users.dataValues.birthday.getMonth()+1).toString().padStart(2,'0')}`
-      console.log(users.dataValues.birthday)
+      users.dataValues.birthday.setFullYear(0)
+      // users.dataValues.birthday = `${users.dataValues.birthday.getDate().toString().padStart(2,'0')}.${(users.dataValues.birthday.getMonth()+1).toString().padStart(2,'0')}`
+      //  console.log(users.dataValues.birthday)
     }
     delete users.dataValues.activationLink
     delete users.dataValues.password
@@ -243,7 +246,7 @@ class UserService {
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
-    console.log(candidateUser.userId)
+    //console.log(candidateUser.userId)
     if (!candidate) {
       let userDto = null
       if (!candidateUser) {
@@ -389,11 +392,26 @@ class UserService {
 //   }
 //
   
-  async uploadAvatar(file, userId) {
+  async uploadAvatar(file, token) {
+    if (token===null) {
+      throw ApiError.UnauthorizedError()
+    }
+    const userData = tokenService.validateAccessToken(token)
+    if (!userData) {
+      throw ApiError.UnauthorizedError()
+    }
+    let userId = userData.id
     const extension = (path.extname(file['name'])).toLowerCase()
     //const type = file['name'].replace('image/','')
     //  console.log(extension)
+    
     const user = await UserModel.User.findOne({where: {id: userId}})
+    if (extension==='gif'){
+      if(user.accsessLevel.toString()!=='mvp'||user.accsessLevel.toString()!=='admin'){
+        console.log('ZAPRET EPTAAA')
+      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Acsess Denied'}])
+      }
+    }
     const avatarName = uuid.v4() + `${extension}`
     
     if (!user) {
@@ -502,9 +520,9 @@ class UserService {
       if ('nickname'===key.toString()) {
         const candidateNickName = await UserModel.User.findOne(
           {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), data[key])})
-        console.log('NICKNAME::', data[key])
-        console.log('candidateNickName::', candidateNickName)
-
+        //  console.log('NICKNAME::', data[key])
+        //  console.log('candidateNickName::', candidateNickName)
+        
         if (candidateNickName) {
           throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
             [{input: 'nickname', type: 'Already exist'}])
@@ -677,7 +695,7 @@ class UserService {
   
   async userGames(token, noRegToken) {
     
-    console.log('Game Uploaded')
+    //  console.log('Game Uploaded')
     let tokenId = null
     let noRegId = null
     if (token) {
@@ -773,7 +791,7 @@ class UserService {
       if (isSystemPack && thisPack.status===1) {
         user.isUsedSystemAdvancePack = 1
         //await user.save()
-        console.log('LOOOL')
+        // console.log('LOOOL')
       }
       else if (isSystemPack && thisPack.status===0) {
         user.isUsedSystemBasePack = 1

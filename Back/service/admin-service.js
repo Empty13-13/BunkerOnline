@@ -10,11 +10,9 @@ const ApiError = require('../exceptions/api-error')
 const axios = require('axios')
 require('dotenv').config()
 
-
 class AdminService {
   
   async blockUser(id) {
-    
     const isBlocked = await UserModel.BlackListUsers.findOne({where: {userId: id}})
     if (!isBlocked) {
       await UserModel.BlackListUsers.create({userId: id})

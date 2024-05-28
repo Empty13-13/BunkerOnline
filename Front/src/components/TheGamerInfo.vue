@@ -4,7 +4,7 @@ import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { useSelectedGameGameplay } from "@/stores/game.js";
 import AppLoader from "@/components/AppLoader.vue";
 
-let props = defineProps(['data', 'isReg', 'isCreate','nickname','id'])
+defineProps(['data', 'isReg', 'isCreate','nickname','id'])
 const selectedGameGameplay = useSelectedGameGameplay()
 
 const itemsName = [

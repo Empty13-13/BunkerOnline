@@ -361,6 +361,7 @@ import AppButton from "@/components/AppButton.vue";
 
 <style scoped lang="scss">
 .updates {
+  position: relative;
 
   &__container {
   }

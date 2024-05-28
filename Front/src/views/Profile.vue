@@ -27,12 +27,14 @@ import { focusInInput, setErrorForInput } from "@/plugins/inputActions.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
+import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const globalPreloader = usePreloaderStore()
 const actionsProfile = useActionsProfileStore()
 const globalPopup = useGlobalPopupStore()
+const adminSocket = useAdminSocketStore()
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
@@ -120,11 +122,12 @@ function banUser(e) {
       await axiosInstance.post(`/blockUser=${data.id}`, {}, {
         withCredentials: true
       })
-
       await updateProfileInfo()
-
       if (data.isBlocked) {
         globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
+        adminSocket.setConnect()
+        adminSocket.emit('banUser',data.id)
+        // adminSocket.close()
       }
       else {
         globalPopup.activate('Успешно!', 'Пользователь успешно разблокирован', 'green')
@@ -281,20 +284,21 @@ async function updateProfileInfo() {
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
   data.avatar = userInfo.data.avatar
+  console.log('typeof data.birthday:: ',typeof  userInfo.data.birthday, userInfo.data.birthday)
   data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
-  if (data.birthday.date) {
-    if (data.birthday.date.toString()==='Invalid Date' && userInfo.data.birthday.split('.')) {
-      data.birthday.date = userInfo.data.birthday
-    }
-    else if (data.birthday.date) {
-      if (birthdayInput.value && typeof data.birthday.date!=='string') {
-        birthdayInput.value.valueAsDate = data.birthday.date
-      }
-      data.birthday.date = data.birthday.date.toLocaleDateString()
-    }
-
-  }
   data.birthday.isHidden = userInfo.data.hiddenBirthday || false
+  if (data.birthday.date) {
+    if (birthdayInput.value) {
+      birthdayInput.value.valueAsDate = data.birthday.date
+    }
+    let date = ''
+    date = `${data.birthday.date.getDate().toString().padStart(2,'0')}.${(data.birthday.date.getMonth()+1).toString().padStart(2,'0')}`
+
+    if(!data.birthday.isHidden) {
+      date += `.${data.birthday.date.getFullYear()}`
+    }
+    data.birthday.date = date
+  }
   if (isHiddenBirthdayInput.value) {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }

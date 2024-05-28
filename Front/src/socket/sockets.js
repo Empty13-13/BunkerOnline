@@ -10,3 +10,8 @@ export const hostSocket = io(URL + 'host', {
   path: '/socket/',
   autoConnect: false
 });
+
+export const adminSocket = io(URL + 'admin', {
+  path: '/socket/',
+  autoConnect: false
+});

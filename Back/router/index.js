@@ -7,6 +7,7 @@ const bodys = require('express-validator')
 const authMiddleware = require('../middlewares/auth-meddleware')
 const adminMiddleware = require('../middlewares/admin-middleware')
 const vipMvpAdminMiddleware = require('../middlewares/vipMvpAdmin-middleware')
+const blockedUserCheck = require('../middlewares/isUserBlocked-middleware')
 const priorityUserMiddleware = require('../middlewares/priorityUser-middleware')
 const updateUserMiddleware = require('../middlewares/updateUser-middleware')
 const path = require('path')
@@ -75,19 +76,19 @@ router.post('/login', limiter,
   userController.login);
 router.post('/logout', userController.logout);
 router.post('/blockUser=:id', adminMiddleware('admin'), adminController.banUser);
-router.get('/activate/:link', userController.activate);
-router.post('/refresh', userController.refresh);
-router.post('/updateUser=:id', updateUserMiddleware('admin'), userController.updateUser);
-router.post('/updateNickname=:id', vipMvpAdminMiddleware('admin'), userController.updateNickname);
+router.get('/activate/:link',blockedUserCheck, userController.activate);
+router.post('/refresh',blockedUserCheck, userController.refresh);
+router.post('/updateUser=:id',blockedUserCheck, updateUserMiddleware('admin'), userController.updateUser);
+router.post('/updateNickname=:id',blockedUserCheck, vipMvpAdminMiddleware('admin'), userController.updateNickname);
 router.get('/users', authMiddleware, userController.getUsers);
-router.get('/user=:id', userController.getUser);
+router.get('/user=:id',blockedUserCheck, userController.getUser);
 router.get('/loginDiscord', userController.loginDiscord);
 router.get('/callback', userController.callback);
-router.post('/resetPasswordProfile', authMiddleware, userController.resetPasswordProfile);                                         //Только через профиль. Принимает refreshToken
-router.post('/resetPassword', body('email').isEmail(), userController.resetPassword);                                                       //Забыл пароль. Body - Email
-router.post('/newPassword', body('password').isLength({min: 5, max: 16}), userController.newPassword);  //Принимает данные от перехода по ссылке. Query paramerters
-router.get('/resetUser/:link', userController.resetUser);                                                          //Ссылка которая будет приходить на почту. Редирект
-router.post('/uploadAvatar=:id', updateUserMiddleware('admin'), body('files').custom((value, req) => {
+router.post('/resetPasswordProfile',blockedUserCheck, authMiddleware, userController.resetPasswordProfile);                                         //Только через профиль. Принимает refreshToken
+router.post('/resetPassword',blockedUserCheck, body('email').isEmail(), userController.resetPassword);                                                       //Забыл пароль. Body - Email
+router.post('/newPassword',blockedUserCheck, body('password').isLength({min: 5, max: 16}), userController.newPassword);  //Принимает данные от перехода по ссылке. Query paramerters
+router.get('/resetUser/:link',blockedUserCheck, userController.resetUser);                                                          //Ссылка которая будет приходить на почту. Редирект
+router.post('/uploadAvatar=:id',blockedUserCheck, updateUserMiddleware('admin'), body('files').custom((value, req) => {
   console.log(req)
   
   let extension = (path.extname(req.req.files.file.name)).toLowerCase();
@@ -95,15 +96,15 @@ router.post('/uploadAvatar=:id', updateUserMiddleware('admin'), body('files').cu
   
   return correctExtensions.toString().includes(extension);
 }), userController.uploadAvatar);
-router.post('/deleteAvatar=:id', updateUserMiddleware('admin'), userController.deleteAvatar);
-router.post('/resetEmail', authMiddleware, userController.resetEmail); // cookie
-router.post('/newEmail', body('email').isEmail(), userController.newEmail);  //body parameters and email
+router.post('/deleteAvatar=:id',blockedUserCheck, updateUserMiddleware('admin'), userController.deleteAvatar);
+router.post('/resetEmail',blockedUserCheck, authMiddleware, userController.resetEmail); // cookie
+router.post('/newEmail',blockedUserCheck, body('email').isEmail(), userController.newEmail);  //body parameters and email
 
-router.post('/generateRoomId', userController.generateRoomId);
-router.post('/userGames', userController.userGames);
+router.post('/generateRoomId',blockedUserCheck, userController.generateRoomId);
+router.post('/userGames',blockedUserCheck, userController.userGames);
 //router.post('/allGames', userController.allUsersGames);
-router.post('/allPacks', userController.allPacks);
-router.post('/changePack',priorityUserMiddleware('default'),limiterPack, userController.changePack);
+router.post('/allPacks',blockedUserCheck, userController.allPacks);
+router.post('/changePack',blockedUserCheck,priorityUserMiddleware('default'),limiterPack, userController.changePack);
 router.get('/test', userController.test);
 
 
