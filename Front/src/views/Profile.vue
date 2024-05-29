@@ -191,6 +191,7 @@ onBeforeMount(async () => {
       localStorage.setItem('userId', myProfile.id.toString())
     }
     await myProfile.setMyProfileInfo()
+    await updateProfileInfo()
   }
   else if (isMyProfile) {
     await myProfile.setMyProfileInfo()
