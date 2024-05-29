@@ -304,7 +304,7 @@ async function updateProfileInfo() {
   }
   console.log('userInfo.data.sex', userInfo.data.sex)
   if (!(userInfo.data.sex===null || userInfo.data.sex===undefined)) {
-    data.isMale = {text: +userInfo.data.sex? 'Мужской':'Женский', value: +userInfo.data.sex}
+    data.isMale = {text: !!userInfo.data.sex? 'Мужской':'Женский', value: +userInfo.data.sex}
   }
 
   console.log('data.isMale', data.isMale)
