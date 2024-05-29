@@ -144,7 +144,7 @@ const features = {
                   <button v-else-if="!data[itemsName[index-1][1]].isOpen" @click="selectedGameGameplay.openChart($event,itemsName[index - 1][1])" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
-                  <button v-else class="item-gamerInfo__open">
+                  <button v-else class="item-gamerInfo__open" @click="selectedGameGameplay.openChart($event,itemsName[index - 1][1])">
                     <img src="/img/icons/lock-open.png" alt="">
                   </button>
                 </div>
@@ -174,7 +174,7 @@ const features = {
                   <button v-else-if="!data[itemsName[index+4][1]].isOpen" @click="selectedGameGameplay.openChart($event,itemsName[index+4][1])" class="item-gamerInfo__open">
                     <img src="/img/icons/lock-closed.png" alt="">
                   </button>
-                  <button v-else class="item-gamerInfo__open">
+                  <button v-else class="item-gamerInfo__open" @click="selectedGameGameplay.openChart($event,itemsName[index+4][1])">
                     <img src="/img/icons/lock-open.png" alt="">
                   </button>
                 </div>
@@ -212,13 +212,13 @@ const features = {
               <div class="item-gamerInfo__description">
                 <p class="item-gamerInfo__text">{{ data[specItems[item - 1][1]].text }}</p>
                 <button v-if="data.isMVPRefresh===false" @click="selectedGameGameplay.mvpReload($event,specItems[item - 1][1])" class="item-gamerInfo__reload">
-                  <img src="/img/icons/reload.png" alt="">
+                  <img v-if="!data[`spec${item}`].isOpen" src="/img/icons/reload.png" alt="">
                 </button>
                 <AppLoader style="max-width: 20px; min-width: 20px;  margin: 0 !important;" v-if="data[specItems[item - 1][1]].isLoading"/>
                 <button v-else-if="!data[specItems[item - 1][1]].isOpen" @click="selectedGameGameplay.openChart($event,specItems[item - 1][1])" class="item-gamerInfo__open">
                   <img src="/img/icons/lock-closed.png" alt="">
                 </button>
-                <button v-else class="item-gamerInfo__open">
+                <button v-else class="item-gamerInfo__open" @click="selectedGameGameplay.openChart($event,specItems[item - 1][1])">
                   <img src="/img/icons/lock-open.png" alt="">
                 </button>
               </div>

@@ -280,7 +280,7 @@ module.exports = function(io) {
           sendData.userData = data.userData
           sendData.bunkerData = data.bunkerData
           sendData.players = {}
-          console.log('KAKA DATA', data)
+          console.log('DATA SOZDANA')
           for (let playerId in data.userData) {
             sendData.players = {}
             if (data.userData[playerId].isPlayer) {
@@ -676,7 +676,7 @@ module.exports = function(io) {
       socket.on('refresh:sexOpposite', async (playerId) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         
-        
+        console.log('PROVERKA ID', playerId)
         let players = null
         let textForLog = ''
         let lastVar = {}
@@ -702,32 +702,24 @@ module.exports = function(io) {
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.sex)
-            if (data.text.contains('Мужчина')) {
+            console.log(data.text)
+            if (data.text.includes('Мужчина')) {
               data.text = data.text.replace('Мужчина', 'Женщина')
               lastVar[player.userId] = 'Мужчина'
             }
-            else if (data.text.contains('Женщина')) {
+            else if (data.text.includes('Женщина')) {
               data.text = data.text.replace('Женщина', 'Мужчина')
               lastVar[player.userId] = 'Женщина'
             }
             else {
               isInvalid[player.userId] = data.text
-              break
-              socket.emit("setError",
-                {
-                  message: "Нельзя изменить пол на противополжный",
-                  status: 701,
-                  functionName: 'refresh:sexOpposite'
-                })
-              return
-              
+              continue
             }
             console.log(data.text)
-            
             let isOpen = data.isOpen
-            player.profession = JSON.stringify(data)
+            player.sex = JSON.stringify(data)
             await player.save()
-            data = {profession: data}
+            data = {sex: data}
             console.log(data)
             
             if (isOpen) {
@@ -742,7 +734,7 @@ module.exports = function(io) {
             // добавляем в список недействительных пользователей
           }
         }
-        if (!objIsEmpty(isInvalid)) {
+        if (!systemFunction.objIsEmpty(isInvalid)) {
           socket.emit("setError",
             {
               message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
@@ -752,7 +744,7 @@ module.exports = function(io) {
             })
           return
         }
-        if (!objIsEmpty(lastVar)) {
+        if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
             idRoom: idRoom,
             funcName: `sexOpposite`,
@@ -766,8 +758,94 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
       })
-      socket.on('refresh:playerChart', async () => {
-        
+      socket.on('banishOrReturn', async (userId) => {
+          // console.log(userId)
+          let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+          let textForLog = ''
+          let nickname = ''
+          let emitStatus = false
+          if (gameRoom.isStarted) {
+            let player = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
+            if (player && player.isPlayer) {
+              if (userId>0) {
+                let user = await UserModel.User.findOne({where: {id: userId}})
+                nickname = user.nickname
+              }
+              else {
+                nickname = `Гость#${Math.abs(userId)}`
+              }
+              //  console.log(player.isAlive)
+              if (player.isAlive) {
+                player.isAlive = 0
+                textForLog = `Ведущий изгнал игрока ${nickname}`
+              }
+              else {
+                player.isAlive = 1
+                textForLog = `Ведущий вернул игрока ${nickname}`
+                emitStatus = true
+              }
+              // console.log(emitStatus)
+              await player.save()
+              await UserModel.Logi.create({
+                idRoom: idRoom,
+                funcName: `banishOrReturn`,
+                text: textForLog,
+                step: 0,
+              })
+              //  console.log(emitStatus)
+              io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+                {userData: {[userId]: {isAlive: emitStatus}}, logsData: {type: 'text', value: textForLog}})
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: "Данного игрока нет в игре",
+                  status: 400,
+                  functionName: 'banishOrReturn'
+                })
+              return
+            }
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: "Игра еще не началась",
+                status: 400,
+                functionName: 'banishOrReturn'
+              })
+            return
+            // ошибка, что игра не началась
+          }
+          
+        }
+      )
+      socket.on('clearData', async () => {
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom}})
+        let sendData = {players: {}}
+        if (gameRoom.isStarted) {
+          let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+
+          let data = {}
+          data.sex = {isOpen: false}
+          data.body = {isOpen: false}
+          data.trait = {isOpen: false}
+          data.profession = {isOpen: false}
+          data.health = {isOpen: false}
+          data.hobbies = {isOpen: false}
+          data.phobia = {isOpen: false}
+          data.backpack = {isOpen: false}
+          data.inventory = {isOpen: false}
+          data.addInfo = {isOpen: false}
+          data.spec1 = {isOpen: false}
+          data.spec2 = {isOpen: false}
+          for (let player of players) {
+            sendData.players[player.userId] = data
+          }
+
+        }
+
+        io.in(idRoom).emit('setAllGameData', sendData)
+        io.in(idRoom).emit('restartGame')
       })
     }
   )

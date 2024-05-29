@@ -60,6 +60,15 @@ function closeRoom(e) {
   }, 'Вы уверены, что хотите закрыть комнату?')
 }
 
+function restartGame(e) {
+  showConfirmBlock(e.target, () => {
+    hostSocket.emit('clearData');
+    userSocket.on('restartGame',() => {
+      hostSocket.emit('startGame');
+    })
+  }, 'Вы уверены что хотите создать новую игру? Весь прогресс текущей игры будет утрачен')
+}
+
 function clickTest() {
   console.log(funcData);
 }
@@ -69,7 +78,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { hostSocket } from "@/socket/sockets.js";
+import { hostSocket, userSocket } from "@/socket/sockets.js";
 import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 import { RouterView } from "vue-router";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
@@ -188,7 +197,7 @@ import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
           <AppSpoiler title="Изменить пол на противоположный">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.body.id" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostSocket.emit('refresh:sexOpposite',funcData.body.id)"
+                    @click.prevent="hostSocket.emit('refresh:sexOpposite',funcData.body.id.value)"
             >
               <span class="text">Изменить пол</span>
             </button>
@@ -347,7 +356,7 @@ import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
           </AppSpoiler>
         </div>
         <div class="hostPanel__mainButton mainButton-hostPanel">
-          <AppButton color="green">Начать игру заново</AppButton>
+          <AppButton color="green" @click="restartGame">Начать игру заново</AppButton>
           <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
         </div>
       </div>

@@ -541,8 +541,10 @@ function getRandomNumToDice() {
                     </div>
                     <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
                     <div v-if="!selectedGame.imWatcher && hostFunctional.haveAccess"
+                         :class="{dead:!data.data.isAlive}"
                          class="texts-profile-column__banish"
-                         :class="{dead:!data.data.isAlive}">
+                         @click.prevent="hostSocket.emit('banishOrReturn',data.id)"
+                    >
                       {{ !data.data.isAlive? 'вернуть':'изгнать' }}
                     </div>
                   </div>

@@ -49,10 +49,11 @@ class playerDataService {
     this.systemSettings = systemData
     return systemData
   }
-
-  async howStepLog(idRoom){
-    let log = await UserModel.Logi.findAll({attributes:[sequelize.fn('MAX', sequelize.col('step'))],where:{idRoom:idRoom},raw:true})
-    return (+log[0]['MAX(`step`)'])+1
+  
+  async howStepLog(idRoom) {
+    let log = await UserModel.Logi.findAll(
+      {attributes: [sequelize.fn('MAX', sequelize.col('step'))], where: {idRoom: idRoom}, raw: true})
+    return (+log[0]['MAX(`step`)']) + 1
   }
   
   async refreshChartBunker(chartName = null, idRoom, userId) {
@@ -61,15 +62,15 @@ class playerDataService {
       attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerCreated', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'imageId'],
       where: {idRoom: idRoom}
     })
-   // console.log('ONE', gameRoom.id)
+    // console.log('ONE', gameRoom.id)
     let host = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
-   // console.log('2', gameRoom.id)
+    // console.log('2', gameRoom.id)
     let usePack = JSON.parse(host.usePack)
-   // console.log('ONE')
+    // console.log('ONE')
     await this.collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName)
-   // console.log('TWO')
+    // console.log('TWO')
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
-   // console.log('Three')
+    // console.log('Three')
     if (chartName && chartName!=='catastrophe') {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
@@ -85,7 +86,7 @@ class playerDataService {
       data = {[chartName]: data.newChart.text, imageName: data.imageName}
       
     }
-   // console.log(data)
+    // console.log(data)
     return data
     
     
@@ -95,20 +96,40 @@ class playerDataService {
     this.systemSettings = await this.getSystemSettingsData()
     console.log(this.systemSettings)
     let data = JSON.parse(player[chartName])
-    let usePack = JSON.parse(player.usePack)
-    let dataPack = null
+    console.log(chartName)
     
-    await this.collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName)
-    data = await this.refreshDataPlayer(usePack, chartName, data, gameRoomId, player)
+    if (!data.isOpen || (data.isOpen && (chartName.toString()!=='spec1' && chartName.toString()!=='spec2'))) {
+      console.log('data', data.isOpen)
+      let usePack = JSON.parse(player.usePack)
+      let dataPack = null
+      
+      await this.collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName)
+      data = await this.refreshDataPlayer(usePack, chartName, data, gameRoomId, player)
+    }
+    else {
+      console.log('data2', data.isOpen)
+      data = null
+    }
     return data
   }
   
   async createDataGame(idRoom, playersData) {
     this.systemSettings = await this.getSystemSettingsData()
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
     // console.log('hostPackIds!!!!!!!!!!', hostPackIds)
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id, isPlayer: 1}})
+    if (gameRoomData.isStarted) {
+    //  console.log('Igra yze bila nachata')
+      for (let player of players) {
+       // console.log('IGROK DO','id',player.userId,player.isAlive)
+        if (!player.isAlive) {
+          player.isAlive = 1
+          await player.save()
+        }
+      }
+    }
     const data = {
       players: {},
       userData: {},
@@ -138,8 +159,18 @@ class playerDataService {
     const bunkerData = await this.createDataBunker(idRoom, null, false, players)
     data.userData = Object.assign(data.userData, userData)
     data.bunkerData = Object.assign(data.bunkerData, bunkerData)
-    await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: 'Игра началась', step: 0})
-    data.logsData = {type:'text',value: 'Игра началась'}
+    
+    let textForLog = ''
+    if (gameRoomData.isStarted) {
+      //  await UserModel.Logi.destroy({where: {idRoom: idRoom}})
+      textForLog = 'Ведущий начал игру заново'
+      
+    }
+    else {
+      textForLog = 'Игра началась'
+    }
+    data.logsData = {type: 'text', value: textForLog}
+    await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: textForLog, step: 0})
     // console.log(data)
     return data
   }
@@ -189,7 +220,7 @@ class playerDataService {
       }
     }
     //console.log('catastrophe', catastrophe)
-
+    
     
     let thisGame = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     if (players!==null) {
@@ -294,22 +325,24 @@ class playerDataService {
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
     
     if (!objIsEmpty(logs)) {
-
+      
       for (let log of logs) {
         let obLog = {}
-
-        if(log.funcName==='rollTheDice'){
-          obLog.type='rollDice'
-          obLog.value = log.text
-        }else if(log.funcName==='voitingFinished'){
-          let data = JSON.parse(log.lastVar)
-          obLog.value = data
-          obLog.type='voiting'
-        }else{
-          obLog.type='text'
+        
+        if (log.funcName==='rollTheDice') {
+          obLog.type = 'rollDice'
           obLog.value = log.text
         }
-        console.log(obLog)
+        else if (log.funcName==='voitingFinished') {
+          let data = JSON.parse(log.lastVar)
+          obLog.value = data
+          obLog.type = 'voiting'
+        }
+        else {
+          obLog.type = 'text'
+          obLog.value = log.text
+        }
+        //  console.log(obLog)
         logsData.push(obLog)
       }
     }
@@ -416,6 +449,8 @@ class playerDataService {
         
         
       }
+      //console.log(player.isAlive, player.userId)
+     // console.log('IGROK POSLE','id',player.userId,player.isAlive)
       if (player.isAlive) {
         userData.isAlive = true
       }
@@ -472,7 +507,7 @@ class playerDataService {
     let isUsedSystemAdvancePack = false
     if (usePack.includes(this.systemSettings.advancePack)) {
       isUsedSystemAdvancePack = true
-    } 
+    }
     
     let players = await UserModel.RoomSession.findAll(
       {attributes: [chartName], where: {gameRoomId: gameRoomId, isPlayer: 1}})

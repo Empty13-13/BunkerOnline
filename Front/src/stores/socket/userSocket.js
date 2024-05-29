@@ -145,6 +145,10 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.on('refresh:professionByHour:good',() => {
       globalPopup.activate('Сообщение от ведущего','Смена специальности по часовой стрелке','green')
     })
+    
+    userSocket.on('restartGame',() => {
+      globalPopup.activate('Сообщение от ведущего','Игра началась заново','green')
+    })
   }
   
   function connect() {

@@ -11,7 +11,7 @@ const selectedGameData = useSelectedGameData()
   <div class="logs">
     <div class="logs__container">
       <div class="logs__wrapper">
-        <h2 v-slide class="logs__title titleH2">Логи</h2>
+        <h2 v-slide class="logs__title titleH2">Логи ({{selectedGameData.logs.length}})</h2>
         <div slideBody class="logs__body" hidden="">
           <ul class="list-logs">
             <li class="list-logs__item"

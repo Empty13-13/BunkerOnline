@@ -470,7 +470,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
         selectedGameData.getMyPlayerData[chartName].isLoading = false;
         userSocket.removeListener('openChart:good')
       })
-    }, 'Открыть характеристику для всех игроков?')
+    }, 'Открыть/Закрыть характеристику для всех игроков?')
   }
   
   function mvpReload(event, charName) {

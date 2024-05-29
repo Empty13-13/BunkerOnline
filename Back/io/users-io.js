@@ -170,16 +170,24 @@ module.exports = function(io) {
         if (game && game.isStarted===1) {
           let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
           if (player[chartName]) {
-            
+            let emitData = {}
             let data = JSON.parse(player[chartName])
             let usePack = JSON.parse(player.usePack)
             console.log(usePack, usePack[0], usePack.includes(1))
-            data.isOpen = true
+            if (!data.isOpen) {
+              data.isOpen = true
+              emitData = data
+            }
+            else {
+              data.isOpen = false
+              emitData.isOpen = false
+              
+            }
             player[chartName] = JSON.stringify(data)
-            
             await player.save()
             socket.emit('openChart:good', chartName)
-            io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
+            io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
+            
           }
           else {
             socket.emit("setError",
@@ -225,6 +233,16 @@ module.exports = function(io) {
               let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
               if (player[chartName] && player.isMVPRefresh!==1) {
                 let data = await playerDataService.refreshChartMvp(player, chartName, game.id)
+                if (data===null) {
+                  socket.emit("setError",
+                    {
+                      message: "Вы не можете сменить спец.возможность, тк уже открыли ее",
+                      status: 602,
+                      functionName: 'refreshChartMVP',
+                      wrongData: {playerId: isValidateId, chartName: chartName}
+                    })
+                  return
+                }
                 let lastVar = JSON.stringify({chartName: chartName, lastVar: JSON.parse(player[chartName]).text})
                 player[chartName] = JSON.stringify(data)
                 player.isMVPRefresh = 1
@@ -240,6 +258,7 @@ module.exports = function(io) {
                 })
                 
                 if (data.isOpen) {
+                  console.log(chartName)
                   io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                 }
                 else {
