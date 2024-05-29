@@ -468,7 +468,7 @@ function changeEmailHandler(e) {
                                  @change="myProfile.changePacks(pack)"
                           >
                           <label :for="'advanced'+pack.id" class="checkbox__label"
-                                 :class="pack.systemPack?'_system':''">
+                                 >
                             <span class="checkbox__text">{{ pack.namePack }}</span>
                           </label>
                         </div>

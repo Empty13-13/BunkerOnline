@@ -240,7 +240,7 @@ class UserController {
       // console.log(file)
       const userId = req.params.id
       //  console.log(userId)
-      const user = await userService.uploadAvatar(file, token)
+      const user = await userService.uploadAvatar(file,userId, token)
       return res.json({link: user})
       
       

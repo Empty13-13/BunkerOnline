@@ -392,7 +392,7 @@ class UserService {
 //   }
 //
   
-  async uploadAvatar(file, token) {
+  async uploadAvatar(file, userId, token) {
     if (token===null) {
       throw ApiError.UnauthorizedError()
     }
@@ -400,16 +400,18 @@ class UserService {
     if (!userData) {
       throw ApiError.UnauthorizedError()
     }
-    let userId = userData.id
+    let tokenId = userData.id
     const extension = (path.extname(file['name'])).toLowerCase()
     //const type = file['name'].replace('image/','')
     //  console.log(extension)
-    
+
     const user = await UserModel.User.findOne({where: {id: userId}})
-    if (extension==='gif'){
-      if(user.accsessLevel.toString()!=='mvp'||user.accsessLevel.toString()!=='admin'){
-        console.log('ZAPRET EPTAAA')
-      throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Acsess Denied'}])
+    if (tokenId===userId) {
+      if (extension==='gif') {
+        if (user.accsessLevel.toString()!=='mvp' || user.accsessLevel.toString()!=='admin') {
+          console.log('ZAPRET EPTAAA')
+          throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Acsess Denied'}])
+        }
       }
     }
     const avatarName = uuid.v4() + `${extension}`
