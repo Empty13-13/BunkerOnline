@@ -1,9 +1,13 @@
 import { emailTest, slideUp } from "@/plugins/functions.js";
 
+// const forbiddenCharacters = [
+//   '&', '=', '+', '<', '>', ',', "'", '"', '`', '..', '--', ':',
+//   '{', '}', '$', '#', '@', '!', '%', '^', '*', '(', ')', '?', '/',
+//   '\\', '[', ']', ';', '~', '  '
+// ]
+
 const forbiddenCharacters = [
-  '&', '=', '+', '<', '>', ',', "'", '"', '`', '..', '--', ':',
-  '{', '}', '$', '#', '@', '!', '%', '^', '*', '(', ')', '?', '/',
-  '\\','[',']',';','~', '  '
+  '#', '@', '=', '+', '<', '>', ',', "'", '"', '`', '..', '--', ';', ',', '  '
 ]
 
 export function validationRegistration({email, nickname, password, passwordRepeat}) {
@@ -24,16 +28,23 @@ export function validationRegistration({email, nickname, password, passwordRepea
     if (!nickname.length>15) {
       errors['nickname'] = 'Длина ника должна быть меньше 15 символов'
     }
-    let forbiddenNotChecked = forbiddenInputNickname(nickname)
-    if (forbiddenNotChecked) {
+    let errorsInput = forbiddenInputNickname(nickname)
+    if (errorsInput.forbiddenCharArray.length) {
       errors['nickname'] = `В поле содержатся недопустимые символы`
-      console.log(forbiddenNotChecked.toString()!=='true')
-      if (forbiddenNotChecked.toString()!=='true') {
-        if(forbiddenNotChecked==='  '){
-          forbiddenNotChecked = 'Двойной пробел'
-        }
-        errors['nickname'] += ' ( '+ forbiddenNotChecked + ' )'
+      errors['nickname'] += ' ( ' + errorsInput.forbiddenCharArray.join(' ') + ' )'
+    }
+    
+    if(errorsInput.lettersLength) {
+      if(!(errors['nickname'] && errors['nickname'].length)) {
+        errors['nickname'] = ''
       }
+      errors['nickname'] += `\r\nВ нике должно содержаться как минимум 3 буквы`
+    }
+    if(errorsInput.specCharsLength) {
+      if(!(errors['nickname'] && errors['nickname'].length)) {
+        errors['nickname'] = ''
+      }
+      errors['nickname'] += `\r\nВ нике не может быть больше 3 спец символов`
     }
   }
   
@@ -60,31 +71,41 @@ export function validationRegistration({email, nickname, password, passwordRepea
 }
 
 export function testNicknameKey(key) {
-  return /[a-zA-Z]/.test(key) ||
-    /[а-яА-Я]/.test(key) ||
-    /[0-9]/.test(key) ||
-    key==="Backspace" ||
-    key==="_" ||
-    key==="." ||
-    key===" "
+  // let testResult = /[a-zA-Z]/.test(key) ||
+  //   /[а-яА-Я]/.test(key) ||
+  //   /[0-9]/.test(key) ||
+  //   key==="Backspace" ||
+  //   key==="_" ||
+  //   key==="." ||
+  //   key===" "
+  let testResult = forbiddenCharacters.find(char => char===key)
+  if (testResult==='  ') {
+    testResult = 'Двойной пробел'
+  }
+  return testResult
 }
 
 export function forbiddenInputNickname(value) {
-  for (let i = 0; i<value.length; i++) {
-    if (!testNicknameKey(value[i])) {
-      return true
-    }
-  }
-  for (let i = 0; i<forbiddenCharacters.length; i++) {
-    console.log(forbiddenCharacters[i], value.toString().includes(forbiddenCharacters[i]))
-    if (value.toString().includes(forbiddenCharacters[i])) {
-      return forbiddenCharacters[i]
-    }
-  }
-  for (let char in forbiddenCharacters) {
+  let specCharsLength = false
+  let lettersLength = false
   
+  let forbiddenCharArray = forbiddenCharacters.reduce((total, char) => {
+    if (value.includes(char)) {
+      total.push(char)
+    }
+    
+    return total
+  }, [])
+  
+  const letters = value.match(/[a-zA-Z]|[а-яА-Я]/g)
+  
+  if (letters.length<3) {
+    lettersLength = true
   }
-  return false
+  if (value.length - letters.length>3) {
+    specCharsLength = true
+  }
+  return {forbiddenCharArray,specCharsLength,lettersLength}
 }
 
 export function clearError(el) {
@@ -93,6 +114,7 @@ export function clearError(el) {
   
   small.style.opacity = "0"
 }
+
 export function clearFormElementsError(form) {
   let inputs = form.querySelectorAll('input')
   inputs.forEach(input => {

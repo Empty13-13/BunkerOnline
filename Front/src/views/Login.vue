@@ -38,7 +38,6 @@ async function registrationHandler(e) {
   }
   let errors = validationRegistration(data)
 
-  console.log(rulesChecked.value)
   if(!rulesChecked.value) {
     useAuthStore().errors.input = 'rules'
     useAuthStore().errors.message = "Ознакомьтесь с правилами"
@@ -123,7 +122,7 @@ async function loginHandler(e) {
 }
 
 function keyDownNickname(e) {
-  if (!testNicknameKey(e.key) && myProfile.isAdmin) {
+  if (testNicknameKey(e.key)) {
     e.preventDefault()
   }
 }
@@ -152,7 +151,7 @@ function setErrorForInput(inputName, textSmall) {
   let small = input.parentNode.querySelector('small')
 
   input.classList.add('_error')
-  small.textContent = textSmall
+  small.innerText = textSmall
   small.style.opacity = "1"
   slideDown(small, 200)
 }
@@ -375,6 +374,7 @@ function clickRulesHandler(e) {
       opacity: 0;
       transition: opacity 0.1s ease, height 0.1s ease;
       font-size: 12px;
+      line-height: 1.2;
     }
   }
 

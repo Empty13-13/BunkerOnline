@@ -305,7 +305,11 @@ async function updateProfileInfo() {
   }
   console.log('userInfo.data.sex', userInfo.data.sex)
   if (!(userInfo.data.sex===null || userInfo.data.sex===undefined)) {
-    data.isMale = {text: !!userInfo.data.sex? 'Мужской':'Женский', value: +userInfo.data.sex}
+    if(+userInfo.data.sex===0) {
+      data.isMale = {text: 'Женский', value: +userInfo.data.sex}
+    } else {
+      data.isMale = {text: 'Мужской', value: +userInfo.data.sex}
+    }
   } else {
     data.isMale = {text: 'Не выбран', value: -1}
   }
@@ -682,7 +686,7 @@ function changeEmailHandler(e) {
     padding: 100px 0;
   }
   @media (max-width: $mobile) {
-    padding: 80px 0;
+    padding: 20px 0;
   }
 
   &__container {

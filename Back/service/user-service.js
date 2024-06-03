@@ -104,7 +104,7 @@ class UserService {
     }
     const isBlock = await UserModel.BlackListUsers.findOne({where: {userId: user.id}})
     if (isBlock) {
-      throw ApiError.BadRerquest('Пользователь заблокирован', [{input: 'nickname', type: 'user Blocked'}])
+      throw ApiError.BlockedUser('Пользователь заблокирован', [{input: 'nickname', type: 'user Blocked'}])
     }
     // console.log(user)
     const isPassEquals = await bcrypt.compare(password, user.password)
