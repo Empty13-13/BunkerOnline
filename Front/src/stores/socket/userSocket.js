@@ -118,10 +118,6 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       }
     });
     
-    userSocket.on('voiting:start',() => {
-      globalPopup.activate('Сообщение от ведущего','Голосование началось','green')
-      router.push('#voting')
-    })
     
     userSocket.on('timer:start',(second) => {
       selectedGameGameplay.startTimer(+second)
@@ -143,11 +139,16 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     })
     
     userSocket.on('refresh:professionByHour:good',() => {
-      globalPopup.activate('Сообщение от ведущего','Смена специальности по часовой стрелке','green')
+      globalPopup.activate('Сообщение от ведущего','Смена специальности по часовой стрелке','green',true)
+    })
+    userSocket.on('voiting:start',async () => {
+      globalPopup.activate('Сообщение от ведущего','Голосование началось','green',true)
+      await router.push('#voting')
     })
     
+    
     userSocket.on('restartGame',() => {
-      globalPopup.activate('Сообщение от ведущего','Игра началась заново','green')
+      globalPopup.activate('Сообщение от ведущего','Игра началась заново','green',true)
     })
   }
   

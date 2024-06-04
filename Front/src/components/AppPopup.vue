@@ -1,7 +1,7 @@
 <script setup="">
 defineProps({
   color: String,
-  timer: Number,
+  timer: Boolean,
 })
 const model = defineModel()
 
@@ -12,13 +12,13 @@ function closePopup(e) {
 </script>
 
 <template>
-  <div class="popup" :class="model?'_active':''">
-    <div @click="closePopup" class="popup__wrapper"></div>
+  <div class="popup" :class="model?'_active':''" :style="timer?'pointer-events: none;':''">
+    <div v-if="!timer" @click="closePopup" class="popup__wrapper"></div>
     <div class="popup__content">
       <div class="popup__block linear-border"
            :class="color || 'white'"
       >
-        <div v-if="!timer " @click="closePopup" class="popup__closeBtn"></div>
+        <div v-if="!timer" @click="closePopup" class="popup__closeBtn"></div>
         <div class="popup__title">
           <slot name="title" />
         </div>

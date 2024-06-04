@@ -62,8 +62,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         await setMyPacks()
       } catch(e) {
         clearUserInfo()
-        preloader.deactivate()
         console.log(e.message)
+      } finally {
+        preloader.deactivate()
       }
     }
     else {

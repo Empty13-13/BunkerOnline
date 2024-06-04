@@ -978,6 +978,8 @@ function getRandomNumToDice() {
     margin-bottom: 30px;
     max-width: 560px;
     margin-right: 100px;
+    font-weight: 700;
+    font-size: 13px;
 
     @media (max-width: 1200px) {
       margin-right: 0;
@@ -985,6 +987,9 @@ function getRandomNumToDice() {
     @media (max-width: $tablet) {
       margin: 0;
       margin-bottom: 15px;
+    }
+    @media (max-width: $mobileSmall) {
+      font-size: 12px;
     }
   }
 

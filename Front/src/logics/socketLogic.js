@@ -91,6 +91,11 @@ export async function switchError(data, socket) {
       selectedGameData.getMyPlayerData[wrongData.chartName].isLoading = false;
       break;
     }
+    case 701: {
+      globalPopup.activate('Ошибка', message + "<br>" + wrongData.join('<br>'), color || 'red')
+      break;
+    }
+    
     default: {
       globalPopup.activate('Ошибка', message, color || 'red')
     }

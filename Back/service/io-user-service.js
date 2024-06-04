@@ -24,16 +24,67 @@ class ioUserService {
   async isAgeRestriction(hostId) {
     await playerDataService.getSystemSettingsData()
     let hostPack = await playerDataService.hostUsePack(hostId)
-    let packs = await UserModel.ChartPack.findAll({where:{id:hostPack,ageRestriction:1}})
+    let packs = await UserModel.ChartPack.findAll({where: {id: hostPack, ageRestriction: 1}})
     let result = false
-    if(packs.length>0){
+    if (packs.length>0) {
       result = true
     }
     return result
     
   }
   
-  
+  async getNickname(userId) {
+    let nickname = ''
+    if (userId>0) {
+      let user = await UserModel.User.findOne({where: {id: userId}})
+      nickname = user.nickname
+    }
+    else {
+      nickname = `Гость#${Math.abs(userId)}`
+    }
+    return nickname
+  }
+
+  howThisChartNameBunker(chartName) {
+    let name = ''
+    switch(chartName) {
+      case 'catastrophe':
+        name = 'Катаклизм'
+        break
+
+      case 'bunkerTime':
+        name = 'Время в бункере'
+        break
+      case 'bunkerLocation':
+        name = 'Локация бункера'
+        break
+      case 'bunkerCreated':
+        name = 'Создание бункера'
+        break
+      case 'bunkerBedroom':
+        name = 'Состояние о комнатах в бункере'
+        break
+      case 'bunkerFood':
+        name = 'Состояние о еде в бункере'
+        break
+      case 'bunkerItems1' || 'bunkerItems2' || 'bunkerItems3':
+        name = 'Состояние о предметах в бункере'
+        break
+      case 'catastrophe':
+        name = 'Катоклизм'
+        break
+      case 'catastrophe':
+        name = 'Катоклизм'
+        break
+      case 'catastrophe':
+        name = 'Катоклизм'
+        break
+
+
+    }
+    return name
+  }
+
   async validateToken(socket) {
     try {
       let token = socket.handshake.auth.token
@@ -50,14 +101,14 @@ class ioUserService {
       if (!socket.handshake.auth.noregToken) {
         console.log('Havent noregToken')
         //Создавай новый токен и клади его в БД
-        
+
         noRegToken = uuid.v4()
         socket.handshake.auth.noregToken = noRegToken.toString()
         socket.emit('setNoregToken', noRegToken)
         await UserModel.NoRegUsers.create({noRegToken: noRegToken})
       }
-      
-    //  console.log("TOKEN:::::", token)
+
+      //  console.log("TOKEN:::::", token)
       if (token) {
         console.log('Join to Token trigger')
         const userData = tokenService.validateAccessToken(token)
@@ -73,14 +124,14 @@ class ioUserService {
           return null
         }
         isValidateId = userData.id
-        const isBlock = await UserModel.BlackListUsers.findOne({where:{userId:isValidateId}})
-        if(isBlock){
-           socket.emit("setError",
-                      {
-                        message: `Вы забанены`,
-                        status: 469,
-                        functionName: 'connection'
-                      })
+        const isBlock = await UserModel.BlackListUsers.findOne({where: {userId: isValidateId}})
+        if (isBlock) {
+          socket.emit("setError",
+            {
+              message: `Вы забанены`,
+              status: 469,
+              functionName: 'connection'
+            })
         }
         console.log('Have a UserData')
         let gameRoomId = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -119,34 +170,34 @@ class ioUserService {
               else {
                 console.log('SOCKED RECOVERED.DONT SEND MESSAGE')
               }
-              
+
               isValidateId = noregUserId
             }
             else {
               console.log('Havent inGameNoregUser',)
             }
-            
-            
+
+
           }
         }
-        
+
         console.log('Connected with AccessToken', isValidateId)
         return {idRoom, isValidateId}
       }
-      
-     // console.log('LET SEE noregToken userID')
-      
+
+      // console.log('LET SEE noregToken userID')
+
       let noregUserId = await getNoregUserId(noRegToken, socket)
       if (!noregUserId) {
         console.log('Havent noregToken 2')
         //Создавай новый токен и клади его в БД
-        
+
         noRegToken = uuid.v4()
         socket.handshake.auth.noregToken = noRegToken.toString()
         socket.emit('setNoregToken', noRegToken)
         await UserModel.NoRegUsers.create({noRegToken: noRegToken})
         noregUserId = await getNoregUserId(noRegToken, socket)
-        
+
         // socket.emit("setError",
         //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
         // return null
@@ -159,13 +210,13 @@ class ioUserService {
       return null
     }
   }
-  
+
   async getValidateGameData(idRoom, socket, io, isValidateId) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     if (!gameRoom) {
       socket.emit("setError",
         {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-     // console.log('inValid idRoom')
+      // console.log('inValid idRoom')
       return null
     }
     let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
@@ -186,10 +237,10 @@ class ioUserService {
       userId: isValidateId,
       isHidden: !!gameRoom.isHidden,
       isHostPlayer: isHostPlayer,
-      isAgeRestriction:isAgeRestriction
+      isAgeRestriction: isAgeRestriction
     }
   }
-  
+
   async getPlayingUsers(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
@@ -200,10 +251,10 @@ class ioUserService {
         data.push(userData)
       }
     }
-   // console.log(data)
+    // console.log(data)
     return data
   }
-  
+
   async getIdAndNicknameFromUser(userId) {
     let data = null
     if (userId>0) {
@@ -214,7 +265,7 @@ class ioUserService {
     data = {id: `${userId}`, nickname: `Гость#${Math.abs(userId)}`}
     return data
   }
-  
+
   getWatchersCount(io, idRoom) {
     let count = 0
     for (const room of io.sockets.adapter.rooms) {
@@ -226,7 +277,7 @@ class ioUserService {
     }
     return count
   }
-  
+
   joinRoomAndWatchTimer(socket, idRoom) {
     if (timerList[idRoom]) {
       clearTimeout(timerList[idRoom])
@@ -234,7 +285,7 @@ class ioUserService {
     }
     console.log('TIMER LIST JOIN', timerList)
   }
-  
+
   disconnectAndSetTimer(io, socket, idRoom) {
     if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
       console.log('Комната пустая, удалим через 3 часа')
@@ -245,30 +296,33 @@ class ioUserService {
       console.log('TIMER LISt DISCONNECT ', timerList)
     }
   }
-  
+
   async deleteRoomFromDB(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    
+
     if (gameRoom.isStarted) {
       await playerDataService.setStatisticGame(idRoom)
     }
     await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
     await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
-    
+
   }
-  
+
 }
 
 /////////////////////////////////////////////
 
-async function getNoregUserId(noRegToken, socket) {
+async function
+
+getNoregUserId(noRegToken, socket) {
   const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
   if (!isValidNoRegToken) {
-    
+
     return null
   }
   return -Math.abs(isValidNoRegToken.id)
 }
 
 
-module.exports = new ioUserService()
+module
+  .exports = new ioUserService()

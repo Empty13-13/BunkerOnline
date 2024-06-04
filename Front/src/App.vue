@@ -69,7 +69,7 @@ onBeforeMount(async () => {
   <TheFooter></TheFooter>
   <AppUpButton/>
   <AppConfirm/>
-  <AppPopup v-model="globalPopup.show" :color="globalPopup.color">
+  <AppPopup v-model="globalPopup.show" :color="globalPopup.color" :timer="globalPopup.isTimer">
     <template v-slot:title>
       {{globalPopup.title}}
     </template>

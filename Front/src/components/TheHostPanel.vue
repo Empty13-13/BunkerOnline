@@ -1,19 +1,20 @@
 <script setup="">
 import AppSpoiler from "@/components/Forms/AppSpoiler.vue";
+import AppButton from "@/components/AppButton.vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import AppSelect from "@/components/Forms/AppSelect.vue";
+import { destroyAll, fieldsInit } from "@/plugins/select.js";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { hostSocket, userSocket } from "@/socket/sockets.js";
+import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
+import { RouterView } from "vue-router";
+import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 
 let props = defineProps({
   playerItems: Array
 })
 
 let editPlayerItems = []
-const professionItems = [
-  {text: 'Дилетант', value: 'Дилетант'},
-  {text: 'Стажер', value: 'Стажер'},
-  {text: 'Любитель', value: 'Любитель'},
-  {text: 'Опытный', value: 'Опытный'},
-  {text: 'Эксперт', value: 'Эксперт'},
-  {text: 'Профессионал', value: 'Профессионал'},
-]
 
 for (let data of props.playerItems) {
   editPlayerItems.push({text: data[0], value: data[1]})
@@ -29,8 +30,8 @@ const charInput = ref(null)
 const isOpen = ref(false)
 const funcData = ref({
   chart: {id: 0, chart: ''},
-  profession: {id: 0, chart: ''},
-  health: {id: 0, chart: ''},
+  profession: {id: 0, chart: 0},
+  health: {id: 0, chart: 0},
   body: {id: 0},
   rotate: {chart: '', deg: ''},
   bunker: {chart: ''},
@@ -41,6 +42,20 @@ const funcData = ref({
   deleteInventory: {id: 0, value: ''},
 })
 
+const professionItems = [
+  {text: 'Дилетант', value: 0},
+  {text: 'Стажер', value: 1},
+  {text: 'Любитель', value: 2},
+  {text: 'Опытный', value: 3},
+  {text: 'Эксперт', value: 4},
+  {text: 'Профессионал', value: 5},
+]
+const healthLevel = [
+  {text: 'Легкая', value: 0},
+  {text: 'Средняя', value: 1},
+  {text: 'Тяжелая', value: 2},
+  {text: 'Критическая', value: 3},
+]
 
 onMounted(() => {
   fieldsInit()
@@ -63,25 +78,12 @@ function closeRoom(e) {
 function restartGame(e) {
   showConfirmBlock(e.target, () => {
     hostSocket.emit('clearData');
-    userSocket.on('restartGame',() => {
+    userSocket.on('restartGame', () => {
       hostSocket.emit('startGame');
     })
   }, 'Вы уверены что хотите создать новую игру? Весь прогресс текущей игры будет утрачен')
 }
 
-function clickTest() {
-  console.log(funcData);
-}
-
-import AppButton from "@/components/AppButton.vue";
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import AppSelect from "@/components/Forms/AppSelect.vue";
-import { destroyAll, fieldsInit } from "@/plugins/select.js";
-import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
-import { hostSocket, userSocket } from "@/socket/sockets.js";
-import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
-import { RouterView } from "vue-router";
-import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 </script>
 
 <template>
@@ -178,19 +180,10 @@ import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить степень болезни">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.health.id" />
+            <AppSelect :options="healthLevel" v-model="funcData.health.chart" />
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostSocket.emit('refresh:degreeOfSick',funcData.health.id.value,funcData.health.chart.value)">
               <span class="text">Изменить степень болезни</span>
             </button>
           </AppSpoiler>
