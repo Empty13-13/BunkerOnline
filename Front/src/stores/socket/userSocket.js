@@ -25,43 +25,37 @@ export const useUserSocketStore = defineStore('userSocket', () => {
   
   function bindEvents() {
     userSocket.on('setError', async data => {
-      await switchError(data,userSocket)
+      await switchError(data, userSocket)
       
       globalPreloader.deactivate()
     })
-    
     userSocket.on("connect_error", (err) => {
       globalPreloader.deactivate()
       // globalPopup.activate('Ошибка','Сервер перестал отвечать на запросы. Пожалуйста обновите страницу.')
     });
-    
     userSocket.on('updateInitialInfo', () => {
       globalPreloader.activate()
       userSocket.emit('getAwaitRoomData')
     })
-    
     userSocket.on('kickOut', async data => {
       globalPopup.activate('Сообщение от комнаты', 'Вас исключили из комнаты')
       await router.push({name: 'home'})
     })
-    
     userSocket.on('setNoregToken', noRegToken => {
       console.log('setNoregToken', noRegToken)
       myProfile.setNoregToken(noRegToken)
     })
-    
     userSocket.on('joinedRoom', data => {
       globalPreloader.activate()
       console.log('Делаем getAwaitRoomData')
       userSocket.emit('getAwaitRoomData')
     })
-    
     userSocket.on('setAwaitRoomData', data => {
       if (!data) {
         selectedGame.gameLoadText.value = `Комната "${router.currentRoute.value.params.id}" не найдена`
       }
       else {
-        if(data.hostId && data.userId) {
+        if (data.hostId && data.userId) {
           globalPreloader.activate()
           console.log('Включаем прелоадер, т.к. обновляем глобальные данные')
         }
@@ -74,34 +68,29 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       
       globalPreloader.deactivate()
     })
-    
     userSocket.on('roomClosed', async (data) => {
       globalPopup.activate('Комната закрыта', '', 'gold')
       await router.push({name: 'home'})
     })
-    
     userSocket.on('sendMessage', data => {
       const title = data.title
       const message = data.message
       const color = data.color
       globalPopup.activate(title || 'Сообщение от сервера', message || '', color)
     })
-    
     userSocket.on('startedGame', data => {
       console.log('Игра началась')
       globalPreloader.activate()
       userSocket.emit('loadAllGameData')
     })
-    
     userSocket.on('setAllGameData', data => {
       console.log('Приняли все данные по игре', data)
       selectedGameData.setData(data)
       selectedGame.isStarted = true
       globalPreloader.deactivate()
     })
-    
-    userSocket.on("connect", () => {
-      console.log("userSocket",userSocket)
+    userSocket.on("connection:good", () => {
+      console.log("userSocket", userSocket)
       console.log('Подключились по Socket.io')
       globalPreloader.activate()
       
@@ -116,39 +105,43 @@ export const useUserSocketStore = defineStore('userSocket', () => {
           userSocket.emit('joinRoom')
         }
       }
+      else {
+        console.log('joinRoom Присоединяемся к комнате, т.к. она уже создана')
+        userSocket.emit('joinRoom')
+      }
     });
     
     
-    userSocket.on('timer:start',(second) => {
+    userSocket.on('timer:start', (second) => {
       selectedGameGameplay.startTimer(+second)
     })
-    userSocket.on('timer:pause',() => {
+    userSocket.on('timer:pause', () => {
       selectedGameGameplay.pauseTimer()
     })
-    userSocket.on('timer:resume',() => {
+    userSocket.on('timer:resume', () => {
       selectedGameGameplay.resumeTimer()
     })
-    userSocket.on('timer:stop',() => {
+    userSocket.on('timer:stop', () => {
       selectedGameGameplay.stopTimer()
     })
-    userSocket.on('rollTheDice:6',(num) => {
-      selectedGameGameplay.rollDice(6,num)
+    userSocket.on('rollTheDice:6', (num) => {
+      selectedGameGameplay.rollDice(6, num)
     })
-    userSocket.on('rollTheDice:20',(num) => {
-      selectedGameGameplay.rollDice(20,num)
+    userSocket.on('rollTheDice:20', (num) => {
+      selectedGameGameplay.rollDice(20, num)
     })
     
-    userSocket.on('refresh:professionByHour:good',() => {
-      globalPopup.activate('Сообщение от ведущего','Смена специальности по часовой стрелке','green',true)
+    userSocket.on('refresh:professionByHour:good', () => {
+      globalPopup.activate('Сообщение от ведущего', 'Смена специальности по часовой стрелке', 'green', true)
     })
-    userSocket.on('voiting:start',async () => {
-      globalPopup.activate('Сообщение от ведущего','Голосование началось','green',true)
+    userSocket.on('voiting:start', async () => {
+      globalPopup.activate('Сообщение от ведущего', 'Голосование началось', 'green', true)
       await router.push('#voting')
     })
     
     
-    userSocket.on('restartGame',() => {
-      globalPopup.activate('Сообщение от ведущего','Игра началась заново','green',true)
+    userSocket.on('restartGame', () => {
+      globalPopup.activate('Сообщение от ведущего', 'Игра началась заново', 'green', true)
     })
   }
   
@@ -175,15 +168,15 @@ export const useUserSocketStore = defineStore('userSocket', () => {
    * @param {string} funcName
    * @param [args]
    */
-  function emit(funcName,...args) {
-    userSocket.emit(funcName,...args)
+  function emit(funcName, ...args) {
+    userSocket.emit(funcName, ...args)
   }
   
-  function on(funcName,functionStr) {
-    userSocket.on(funcName,functionStr)
+  function on(funcName, functionStr) {
+    userSocket.on(funcName, functionStr)
   }
   
-  function removeListener(funcName){
+  function removeListener(funcName) {
     userSocket.removeListener(funcName)
   }
   

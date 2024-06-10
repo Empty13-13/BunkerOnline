@@ -571,7 +571,7 @@ function getRandomNumToDice() {
         <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
           <h2 id="voting" v-slide class="now-voting__title titleH2">Голосование</h2>
           <div v-if="!selectedGameData.userVoitingChoice" slidebody>
-            <form @submit.prevent="selectedGameGameplay.voteHandler(isActive)" class="now-voting__body">
+            <form @submit.prevent="selectedGameGameplay.voteHandler(selectedGameData.votedPlayerID)" class="now-voting__body">
               <div class="now-voting__voteList">
                 <TheVoteBlock
                     v-for="(gamer,index) in selectedGameData.getAlivePlayers"
@@ -579,10 +579,10 @@ function getRandomNumToDice() {
                     :index="index"
                     :nickname="gamer.data.nickname"
                     :value="gamer.id"
-                    v-model:isActive="isActive"
+                    v-model:isActive="selectedGameData.votedPlayerID"
                 />
               </div>
-              <AppButton v-if="isActive && !selectedGameData.voitingData.isLoading" class="now-voting__submit"
+              <AppButton v-if="selectedGameData.votedPlayerID && !selectedGameData.voitingData.isLoading" class="now-voting__submit"
                          color="gold">Проголосовать
               </AppButton>
               <AppLoader v-if="selectedGameData.voitingData.isLoading" />

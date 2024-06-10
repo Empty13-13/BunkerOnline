@@ -22,8 +22,8 @@ function toggleSpoiler() {
 
 <template>
   <div class="spoiler">
-    <div @click="toggleSpoiler" class="spoiler__title" :class="isActive?'_active':''">{{ title }}</div>
-    <form hidden ref="body">
+    <div :class="isActive?'_active':''" class="spoiler__title" @click="toggleSpoiler">{{ title }}</div>
+    <form ref="body" hidden>
       <div class="spoiler__body">
         <slot />
       </div>
@@ -39,13 +39,13 @@ function toggleSpoiler() {
     padding: 10px 0;
     position: relative;
 
-    &:hover{
+    &:hover {
       background: linear-gradient(90deg, rgb(249, 211, 91), rgb(217, 102, 19) 100%);
       background-clip: border-box;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
 
-      &::before,&::after {
+      &::before, &::after {
         background: linear-gradient(90deg, rgb(249, 211, 91), rgb(217, 102, 19) 100%);
       }
     }
@@ -84,7 +84,6 @@ function toggleSpoiler() {
   &__body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
   }
 }
 </style>

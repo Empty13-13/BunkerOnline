@@ -20,12 +20,16 @@ module.exports = function(io) {
       idRoom = data.idRoom
     }
     if (!isValidateId || !idRoom) {
-      socket.emit("setError",
-        {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
+      // socket.emit("setError",
+      //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
       return
     }
     
+    socket.emit('connection:good')
+    
     socket.join(`user:${isValidateId}:${idRoom}`)
+    
+    // console.log('DICKPICK',socket)
     
     
     console.log(`${socket.id} user connected with userId ${isValidateId}`)

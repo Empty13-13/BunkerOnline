@@ -56,6 +56,80 @@ class playerDataService {
     return (+log[0]['MAX(`step`)']) + 1
   }
   
+  cureMake(player, makeId) {
+    let isOpen = false
+    let data = {}
+    let lastVar = {}
+    switch(makeId) {
+      case 0:
+        let health = JSON.parse(player.health)
+        lastVar = {health: {}}
+        lastVar.health.text = health.text
+        lastVar.health.id = health.id
+        health.id = 0
+        health.text = 'Идеально здоров'
+        isOpen = health.isOpen
+        player.health = JSON.stringify(health)
+        data = {health: {}}
+        data.health.text = health.text
+        break
+      case 1:
+        let sex = JSON.parse(player.sex)
+        lastVar = {sex: {}}
+        lastVar.sex.text = sex.text
+        lastVar.sex.id = sex.id
+        if (!sex.text.includes('чайлдфри')) {
+          sex.text += ' | чайлдфри'
+          player.sex = JSON.stringify(sex)
+        }
+        isOpen = sex.isOpen
+        data = {sex: {}}
+        data.sex.text = sex.text
+        break
+      case 2:
+        let sex2 = JSON.parse(player.sex)
+        lastVar = {sex: {}}
+        lastVar.sex.text = sex2.text
+        lastVar.sex.id = sex2.id
+        if (sex2.text.includes('чайлдфри')) {
+          sex2.text = sex2.text.replaceAll('| чайлдфри', '')
+          player.sex = JSON.stringify(sex2)
+        }
+        isOpen = sex2.isOpen
+        
+        data = {sex: {}}
+        data.sex.text = sex2.text
+        break
+      case 3:
+        let phobia = JSON.parse(player.phobia)
+        lastVar = {phobia: {}}
+        lastVar.phobia.text = phobia.text
+        lastVar.phobia.id = phobia.id
+        phobia.id = 0
+        phobia.text = 'Нет фобии'
+        isOpen = phobia.isOpen
+        player.phobia = JSON.stringify(phobia)
+        data = {phobia: {}}
+        data.phobia.text = phobia.text
+        break
+    }
+    return {player: player, isOpen: isOpen, data: data, lastVar: lastVar}
+  }
+  
+  async refreshChartPlayers(chartName, idRoom, players, gameRoom) {
+    this.systemSettings = await this.getSystemSettingsData()
+    
+    if (chartName==='allChart') {
+      for (let player of players) {
+      
+      }
+    }
+    else {
+    
+    }
+    
+  }
+  
   async refreshChartBunker(chartName = null, idRoom, userId) {
     this.systemSettings = await this.getSystemSettingsData()
     let gameRoom = await UserModel.GameRooms.findOne({
@@ -116,14 +190,14 @@ class playerDataService {
   async createDataGame(idRoom, playersData) {
     this.systemSettings = await this.getSystemSettingsData()
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-
+    
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
     // console.log('hostPackIds!!!!!!!!!!', hostPackIds)
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id, isPlayer: 1}})
     if (gameRoomData.isStarted) {
-    //  console.log('Igra yze bila nachata')
+      //  console.log('Igra yze bila nachata')
       for (let player of players) {
-       // console.log('IGROK DO','id',player.userId,player.isAlive)
+        // console.log('IGROK DO','id',player.userId,player.isAlive)
         if (!player.isAlive) {
           player.isAlive = 1
           await player.save()
@@ -450,7 +524,7 @@ class playerDataService {
         
       }
       //console.log(player.isAlive, player.userId)
-     // console.log('IGROK POSLE','id',player.userId,player.isAlive)
+      // console.log('IGROK POSLE','id',player.userId,player.isAlive)
       if (player.isAlive) {
         userData.isAlive = true
       }

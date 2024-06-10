@@ -75,6 +75,8 @@ defineProps(['data','title'])
 
   &__link {
     color: #696969;
+    display: flex;
+    align-items: center;
 
     &:hover{
       color: white;

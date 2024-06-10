@@ -150,24 +150,24 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     hostSocket.emit('timer:start', second)
   }
   
-  function refreshBunkerData(e,chartName=null) {
-    showConfirmBlock(e.target,() => {
-      hostSocket.emit('refresh:bunkerData',chartName)
+  function refreshBunkerData(e, chartName = null) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:bunkerData', chartName)
     })
   }
   
   function professionRotate(e) {
-    showConfirmBlock(e.target,() => {
+    showConfirmBlock(e.target, () => {
       hostSocket.emit('refresh:professionByHour')
-      hostSocket.on('refresh:professionByHour:bad',() => {
-        globalPopup.activate('Ошибка','Не удалось поменять профессии по часовой стрелке','red')
+      hostSocket.on('refresh:professionByHour:bad', () => {
+        globalPopup.activate('Ошибка', 'Не удалось поменять профессии по часовой стрелке', 'red')
         hostSocket.removeListener('refresh:professionByHour:bad')
       })
     })
   }
   
   function setAllProfessionToNull(e) {
-    showConfirmBlock(e.target,() => {
+    showConfirmBlock(e.target, () => {
       hostSocket.emit('refresh:professionSetNull')
     })
   }
@@ -180,9 +180,9 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     }, `Вы уверены, что хотите ${isPlus? 'увеличить':'уменьшить'} количество мест?`)
   }
   
-  function rollTheDice(e,num) {
-    showConfirmBlock(e.target,() => {
-      hostSocket.emit('rollTheDice',num)
+  function rollTheDice(e, num) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('rollTheDice', num)
     })
   }
   
@@ -203,7 +203,6 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
 
 export const useSelectedGameData = defineStore('selectedGameData', () => {
   const selectedGame = useSelectedGame()
-  
   
   const bunkerData = ref({
     bunkerBedroom: "",
@@ -230,7 +229,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const diceNum = ref(0)
   const showDice6 = ref(false)
   const showDice20 = ref(false)
-  
+  const votedPlayerID = ref(0)
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -260,11 +259,18 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     })
   })
   const getPlayerForSelectAndAll = computed(() => {
-    let players = [{value:0,text:'Для всех'}]
+    let players = [{value: 0, text: 'Для всех'}]
     players = players.concat(getAlivePlayers.value.map(item => {
       return {value: item.id, text: item.data.nickname}
     }))
     return players
+  })
+  const getAllPlayersSelect = computed(() => {
+    let resultArr = []
+    for (let id in userData.value) {
+      resultArr.push({value:id, text: userData.value[id].nickname})
+    }
+    return resultArr
   })
   
   function setData(data) {
@@ -317,7 +323,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   }
   
   
-  function getNonVoitingUsersNicknames(voitingData){
+  function getNonVoitingUsersNicknames(voitingData) {
     let votedData = {}
     let votedList = []
     let abstainedList = []
@@ -357,9 +363,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let textArray = playersData.value[id][item].text.split(' ')
       let resultArray = []
       textArray.forEach(word => {
-        if(word.length>9) {
-          resultArray.push(word.replace(/...../g,"$&&shy;").replace(/\/$/g,""));
-        } else {
+        if (word.length>9) {
+          resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
+        }
+        else {
           resultArray.push(word)
         }
       })
@@ -383,13 +390,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   }
   
   function getLogHtml(logData) {
-    switch (logData.type) {
-      case 'voiting':{
+    switch(logData.type) {
+      case 'voiting': {
         
         break;
       }
       case 'rollDice': {
-        logData.value = logData.value.trim().replace(/(\[(.|..)g\])/,'').replace(/\/$/g,"");
+        logData.value = logData.value.trim().replace(/(\[(.|..)g\])/, '').replace(/\/$/g, "");
         break;
       }
     }
@@ -423,12 +430,14 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   }
   
   return {
+    votedPlayerID,
     bunkerData,
     playersData,
     userData,
     voitingData,
     isVoiting,
     userVoitingChoice,
+    getAllPlayersSelect,
     getAlivePlayers,
     getMyPlayerData,
     getMyUserData,
@@ -489,6 +498,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     userSocket.on('voiting:choiseUser:good', () => {
       selectedGameData.userVoitingChoice = selectedGameData.userData[userId].nickname
       selectedGameData.voitingData.isLoading = false
+      selectedGameData.votedPlayerID = 0
     })
     selectedGameData.voitingData.isLoading = true
     userSocket.emit('voiting:choiseUser', +userId)
@@ -538,29 +548,30 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
   
-  function rollDice(type,num) {
-    if(type===6) {
+  function rollDice(type, num) {
+    if (type===6) {
       selectedGameData.showDice6 = true
       selectedGameData.diceNum = 0
       setTimeout(() => {
         selectedGameData.diceNum = num
-      },300)
+      }, 300)
       setTimeout(() => {
         // globalPopup.activate(`Бросили кубик с ${type} гранями`,`Выпало значение ${num}`)
         selectedGameData.showDice6 = false
-      },3000)
-    } else {
+      }, 3000)
+    }
+    else {
       selectedGameData.showDice20 = true
       selectedGameData.diceNum = 0
       setTimeout(() => {
         selectedGameData.diceNum = num
-      },100)
+      }, 100)
       setTimeout(() => {
         // globalPopup.activate(`Бросили кубик с ${type} гранями`,`Выпало значение ${num}`)
         selectedGameData.showDice20 = false
-      },2700)
+      }, 2700)
     }
-
+    
   }
   
   return {

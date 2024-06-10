@@ -79,7 +79,7 @@ function showWindow(e) {
          ref="block"
          :class="{isDown}"
     >
-      <p v-if="html" v-html="html"></p>
+      <p v-if="html" v-html="html" class=_html></p>
       <p v-else>{{text}}</p>
     </div>
   </div>
@@ -136,6 +136,10 @@ function showWindow(e) {
       width: 100%;
       display: flex;
       padding: 13px 16px;
+      
+      //&._html {
+      //  display: inline;
+      //}
     }
 
     &._active {

@@ -1,7 +1,7 @@
 <script setup="">
 import AppSpoiler from "@/components/Forms/AppSpoiler.vue";
 import AppButton from "@/components/AppButton.vue";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
@@ -9,6 +9,7 @@ import { hostSocket, userSocket } from "@/socket/sockets.js";
 import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 import { RouterView } from "vue-router";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
+import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
 let props = defineProps({
   playerItems: Array
@@ -29,18 +30,24 @@ const charItem = ref(null)
 const charInput = ref(null)
 const isOpen = ref(false)
 const funcData = ref({
-  chart: {id: 0, chart: ''},
+  characteristics: {id: 0, chart: 0, inputValue: ''},
   profession: {id: 0, chart: 0},
   health: {id: 0, chart: 0},
   body: {id: 0},
-  rotate: {chart: '', deg: ''},
-  bunker: {chart: ''},
-  swap: {id1: 0, id2: 0, chart: ''},
-  steal: {id1: 0, id2: 0, chart: ''},
-  change: {id: 0, chart: '', text: ''},
-  add: {id: 0, chart: ''},
-  deleteInventory: {id: 0, value: ''},
+  swap: {id1: 0, id2: 0, chart: 0},
+  steal: {id1: 0, id2: 0, chart: 0},
+  heal: {id: 0, chart: 0},
+  addCharacteristic: {id: 0, chart: 0, inputValue: ''},
+  deleteInventory: {id: 0},
+  rotateChangeDelete: {chart: 0},
+  bunkerCharacteristics: {chart: 0},
+  changeHost: {id: 0},
 })
+
+function selectPlayer2WithoutSelectedFirst(value) {
+  return selectedGameData.getPlayerForSelect.filter(item => item.value!==value)
+}
+
 
 const professionItems = [
   {text: 'Дилетант', value: 0},
@@ -55,6 +62,66 @@ const healthLevel = [
   {text: 'Средняя', value: 1},
   {text: 'Тяжелая', value: 2},
   {text: 'Критическая', value: 3},
+]
+const playerCharacteristics = [
+  {text: 'Пол', value: 0},
+  {text: 'Телосложение', value: 1},
+  {text: 'Человеческая черта', value: 2},
+  {text: 'Профессия', value: 3},
+  {text: 'Здоровье', value: 4},
+  {text: 'Хобби / Увлечения', value: 5},
+  {text: 'Фобия/Страх', value: 6},
+  {text: 'Крупный инвентарь', value: 7},
+  {text: 'Рюкзак', value: 8},
+  {text: 'Дополнительные сведения', value: 9},
+]
+const playerCharacteristicsWithAll = [
+  {text: 'Все характеристики', value: -1},
+  ...playerCharacteristics
+]
+const healItems = [
+  {text: "Сделать идеально здоровым", value: 0},
+  {text: "Сделать чайлдфри", value: 1},
+  {text: "Вылечить чайлдфри", value: 2},
+  {text: "Вылечить фобию", value: 3},
+]
+const addCharacteristicItems = [
+  {text: 'Человеческая черта', value: 2},
+  {text: 'Здоровье', value: 4},
+  {text: 'Хобби / Увлечения', value: 5},
+  {text: 'Фобия/Страх', value: 6},
+  {text: 'Крупный инвентарь', value: 7},
+  {text: 'Рюкзак', value: 8},
+  {text: 'Дополнительные сведения', value: 9},]
+const rotateChangeDeleteItems = [
+  {text: 'Пол по часовой стрелке', value: 2},
+  {text: 'Пол против часовой стрелки', value: 2},
+  {text: 'Телосложение по часовой стрелке', value: 2},
+  {text: 'Телосложение против часовой стрелки', value: 2},
+  {text: 'Человеческая черта по часовой стрелке', value: 2},
+  {text: 'Человеческая черта против часовой стрелки', value: 2},
+  {text: 'Профессия по часовой стрелке', value: 2},
+  {text: 'Профессия против часовой стрелки', value: 2},
+  {text: 'Здоровье по часовой стрелке', value: 2},
+  {text: 'Здоровье против часовой стрелки', value: 2},
+  {text: 'Хобби по часовой стрелке', value: 2},
+  {text: 'Хобби против часовой стрелки', value: 2},
+  {text: 'Фобия по часовой стрелке', value: 2},
+  {text: 'Фобия против часовой стрелки', value: 2},
+  {text: 'Инвентарь по часовой стрелке', value: 2},
+  {text: 'Инвентарь против часовой стрелки', value: 2},
+  {text: 'Рюкзак по часовой стрелке', value: 2},
+  {text: 'Рюкзак против часовой стрелки', value: 2},
+  {text: 'Доп. Сведения по часовой стрелке', value: 2},
+  {text: 'Доп. Сведения против часовой стрелки', value: 2},
+  {text: 'Аннулировать всем профессию', value: 2},
+  {text: 'Аннулировать всем Хобби', value: 2},
+]
+const bunkerCharacteristicsItems = [
+  {text: 'Когда был построен', value: 0},
+  {text: 'Размер', value: 1},
+  {text: 'Время нахождения', value: 2},
+  {text: 'Количество еды', value: 3},
 ]
 
 onMounted(() => {
@@ -121,21 +188,21 @@ function restartGame(e) {
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
                      @click="hostFunctional.refreshBunkerData($event,'catastrophe')">Изменить катаклизм
           </AppButton>
-          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"
-                     @click="hostFunctional.refreshBunkerData($event)">Изменить бункер
-          </AppButton>
+          <!--          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"-->
+          <!--                     @click="hostFunctional.refreshBunkerData($event)">Изменить бункер-->
+          <!--          </AppButton>-->
           <AppButton :class="selectedGameData.isVoiting?'_active':''" border="true" class="buttons-hostPanel__btn"
                      color="grayGold"
                      @click="selectedGameData.isVoiting?hostFunctional.endVoiting($event):hostFunctional.startVoiting($event)"
           >
             {{ selectedGameData.isVoiting? "Завершить голосование":"Начать голосование" }}
           </AppButton>
-          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
-                     @click="hostFunctional.setAllProfessionToNull($event)">Аннулировать всем специальность
-          </AppButton>
-          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"
-                     @click="hostFunctional.professionRotate($event)">Специальности по часовой стрелке
-          </AppButton>
+          <!--          <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"-->
+          <!--                     @click="hostFunctional.setAllProfessionToNull($event)">Аннулировать всем специальность-->
+          <!--          </AppButton>-->
+          <!--          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"-->
+          <!--                     @click="hostFunctional.professionRotate($event)">Специальности по часовой стрелке-->
+          <!--          </AppButton>-->
         </div>
         <div class="hostPanel__space space-hostPanel">
           <div class="space-hostPanel__title">Мест в бункере</div>
@@ -154,24 +221,19 @@ function restartGame(e) {
         </div>
         <div class="hostPanel__settings settings-hostPanel">
           <AppSpoiler title="Изменить характеристику">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <input type="text" v-model="charInput" placeholder="Ваша характеристика">
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.characteristics.id" />
+            <AppSelect :options="playerCharacteristicsWithAll" v-model="funcData.characteristics.chart" />
+            <div :class="![7,8,9].includes(funcData.characteristics.chart.value)?'_hide':''"
+                 class="characteristicsInput">
+              <input v-model="funcData.characteristics.inputValue"
+                     placeholder="Ваша характеристика"
+                     type="text">
+            </div>
             <button class="hostButton btn grayGold border" @click.prevent="charClick">
               <span class="text">Изменить характеристику</span>
             </button>
           </AppSpoiler>
-          <AppSpoiler title="Изменить стаж специальности">
+          <AppSpoiler title="Изменить стаж профессии">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.profession.id" />
             <AppSelect :options="professionItems" v-model="funcData.profession.chart" />
             <button class="hostButton btn grayGold border"
@@ -195,154 +257,119 @@ function restartGame(e) {
               <span class="text">Изменить пол</span>
             </button>
           </AppSpoiler>
-          <AppSpoiler title="Изменить по/против/аннулировать">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
-              <span class="text">Применить</span>
-            </button>
-          </AppSpoiler>
-          <AppSpoiler title="Изменить бункер">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
-              <span class="text">Применить</span>
-            </button>
-          </AppSpoiler>
           <AppSpoiler title="Обменять характеристики">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.swap.id1" />
+            <AppSelect v-if="funcData.swap.id1.value!==0"
+                       :options="selectPlayer2WithoutSelectedFirst(funcData.swap.id1.value)"
+                       v-model="funcData.swap.id2" />
+            <AppSelect :options="playerCharacteristics" v-model="funcData.swap.chart" />
             <button class="hostButton btn grayGold border" @click.prevent="charClick">
               <span class="text">Обменять</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Украсть характеристику">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
-              <span class="text">Украсть</span>
-            </button>
+            <AppSelect v-model="funcData.steal.id1" :options="selectedGameData.getPlayerForSelect" />
+            <AppSelect v-model="funcData.steal.id2"
+                       :options="selectPlayer2WithoutSelectedFirst(funcData.steal.id1.value)" />
+            <AppSelect v-model="funcData.steal.chart" :options="playerCharacteristics" />
+            <div class="hostButtonBlock">
+              <button class="hostButton btn grayGold border" @click.prevent="charClick">
+                <span class="text">Украсть</span>
+              </button>
+              <div class="hostButtonBlock__smallInfo smallInfo-hostButtonBlock">
+                <div class="smallInfo-hostButtonBlock__img smallInfo__img">i</div>
+                <div class="smallInfo-hostButtonBlock__block">
+                  <p>
+                    <b>Пол, телосложение, Человеческая черта, Профессия, Здоровье, Фобия</b> – тот, у кого украли одну
+                                                                                             из
+                                                                                             данных характеристик,
+                                                                                             получает (автоматически)
+                                                                                             новую
+                  </p>
+                  <br>
+                  <br>
+                  <p>
+                    <b>Хобби, крупный инвентарь, рюкзак, доп.сведение</b> – тот, у кого украли характеристику, получает
+                                                                          значение <b>Пусто</b>
+                  </p>
+                </div>
+              </div>
+            </div>
           </AppSpoiler>
           <AppSpoiler title="Вылечить/Сделать">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <AppSelect v-model="funcData.heal.id" :options="selectedGameData.getPlayerForSelectAndAll" />
+            <AppSelect v-model="funcData.heal.chart" :options="healItems" />
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostSocket.emit('refresh:cureMake',funcData.heal.id.value,funcData.heal.chart.value)">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Добавить доп. характеристику">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.addCharacteristic.id" />
+            <AppSelect :options="addCharacteristicItems" v-model="funcData.addCharacteristic.chart" />
+            <div :class="![7,8,9].includes(funcData.addCharacteristic.chart.value)?'_hide':''"
+                 class="characteristicsInput">
+              <input v-model="funcData.addCharacteristic.inputValue"
+                     placeholder="Ваша характеристика"
+                     type="text">
+            </div>
             <button class="hostButton btn grayGold border" @click.prevent="charClick">
               <span class="text">Добавить</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Удалить/перенести инвентарь">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
+            <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.deleteInventory.id" />
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Удалить инвентарь</span>
+            </button>
+            <button v-if="funcData.deleteInventory.id.value !== 0" class="hostButton btn grayGold border"
+                    @click.prevent="charClick">
+              <span class="text">Перенести инвентарь</span>
+            </button>
+          </AppSpoiler>
+          <AppSpoiler title="Изменить по/против/аннулировать">
+            <AppSelect :options="rotateChangeDeleteItems" v-model="funcData.rotateChangeDelete.chart" />
+            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <span class="text">Применить</span>
+            </button>
+          </AppSpoiler>
+          <AppSpoiler title="Изменить бункер">
+            <AppSelect :options="bunkerCharacteristicsItems" v-model="funcData.bunkerCharacteristics.chart" />
             <button class="hostButton btn grayGold border" @click.prevent="charClick">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
 
-          <div class="settings-hostPanel__dice dice-settings">
-            <div class="dice-settings__title">Бросить кубик</div>
+          <!--          <div class="settings-hostPanel__dice dice-settings">-->
+          <!--            <div class="dice-settings__title">Бросить кубик</div>-->
+          <!--            <div class="dice-settings__body">-->
+          <!--              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,6)"-->
+          <!--                      :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"-->
+          <!--              >-->
+          <!--                <span class="text">С 6 гранями</span></button>-->
+          <!--              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,20)"-->
+          <!--                      :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"-->
+          <!--              >-->
+          <!--                <span class="text">С 20 гранями</span>-->
+          <!--              </button>-->
+          <!--            </div>-->
+          <!--          </div>-->
+
+          <AppSpoiler title="Бросить кубик">
             <div class="dice-settings__body">
-              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,6)"
+              <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.rollTheDice($event,6)"
                       :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"
               >
                 <span class="text">С 6 гранями</span></button>
-              <button class="hostButton btn grayGold border" @click="hostFunctional.rollTheDice($event,20)"
+              <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.rollTheDice($event,20)"
                       :disabled="selectedGameData.showDice20 || selectedGameData.showDice6"
               >
                 <span class="text">С 20 гранями</span>
               </button>
             </div>
-          </div>
-
+          </AppSpoiler>
           <AppSpoiler title="Сменить ведущего">
-            <select id="city" v-model="charPerson">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
-            <select id="city" v-model="charItem">
-              <option value="all">Для всех</option>
-              <option value="321">Empty</option>
-              <option value="11">NoName</option>
-              <option selected value="33">Nick233</option>
-            </select>
+            <AppSelect :options="selectedGameData.getAllPlayersSelect" v-model="funcData.changeHost.id" />
             <button class="hostButton btn grayGold border" @click.prevent="charClick">
               <span class="text">Сменить ведущего</span>
             </button>
@@ -659,6 +686,7 @@ function restartGame(e) {
 
   &__body {
     display: flex;
+    padding-top: 10px;
     gap: 20px;
     justify-content: space-between;
   }
@@ -675,20 +703,67 @@ function restartGame(e) {
 }
 
 .hostButton {
-  //background: transparent;
   width: 100%;
   display: flex;
   justify-content: center;
-  //align-items: center;
-  //border: 1px solid rgba(255, 255, 255, 0.2);
-  //border-radius: 6px;
   color: #FFFFFF;
   padding: 12px 20px;
   position: relative;
-  //transition: border-color 0.2s ease;
-  //
-  //&:hover {
-  //  border-color: white;
-  //}
+  margin-top: 15px;
+}
+
+.characteristicsInput {
+  width: 100%;
+  display: flex;
+  transition: height 0.3s ease, padding-top 0.3s ease;
+  height: 48px;
+  padding-top: 5px;
+
+  &._hide {
+    height: 0;
+    padding-top: 0;
+    overflow: hidden;
+  }
+
+  input {
+    width: 100%;
+    margin-bottom: 0;
+  }
+}
+
+.hostButtonBlock {
+  position: relative;
+}
+
+.smallInfo-hostButtonBlock {
+  z-index: 999;
+  position: absolute;
+  right: 10px;
+  top: calc(50% + 7px);
+  transform: translate(0, -50%);
+
+  &__img {
+    cursor: pointer;
+    position: relative;
+    z-index: 99;
+    pointer-events: auto;
+  }
+
+  &__img:hover + .smallInfo-hostButtonBlock__block {
+    opacity: 1;
+  }
+
+  &__block {
+    position: absolute;
+    width: 300px;
+    left: -280px;
+    bottom: calc(100% + 10px);
+    background: #333333;
+    padding: 10px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
 }
 </style>

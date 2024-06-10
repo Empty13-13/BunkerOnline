@@ -1,5 +1,5 @@
 <script setup="">
-import { onMounted, ref } from "vue";
+import { onMounted, onUpdated, ref } from "vue";
 
 let props = defineProps({
   options: Array,
@@ -14,6 +14,10 @@ let props = defineProps({
     type: String,
     default: '',
   },
+  selectItemHandler: {
+    type: Function,
+    required: false,
+  }
 })
 
 let model = defineModel()
@@ -23,13 +27,34 @@ const showDropdown = ref(false)
 
 
 onMounted(() => {
-  if(!props.placeholder && props.options.length && !model.value) {
-    model.value = {value: props.options[0].value,text: props.options[0].text}
-  } else if(model.value) {
-    props.placeholder = props.options.find(prop => prop.value === model.value.value).text
-    console.log(props.options.find(prop => prop.value === model.value.value).text)
-  }
+  updatePropsAndPlaceholder()
 })
+onUpdated(() => {
+  updatePropsAndPlaceholder()
+})
+
+
+function updatePropsAndPlaceholder() {
+  if (!props.placeholder && props.options.length && !model.value) {
+    model.value = {value: props.options[0].value, text: props.options[0].text}
+  }
+  else if (model.value) {
+    const activeProps = props.options.find(prop => prop.value===model.value.value)
+    if (activeProps && activeProps.text) {
+      props.placeholder = activeProps.text
+    }
+    else {
+      if (props.options[0]) {
+        model.value = {value: props.options[0].value, text: props.options[0].text}
+      }
+      else {
+        props.placeholder = "Выберите элемент"
+      }
+    }
+  }
+} 
+
+
 //========================================================================================================================================================
 function toggleDropdown() {
   showDropdown.value = !showDropdown.value
@@ -38,6 +63,7 @@ function toggleDropdown() {
 function selectItem(value, text) {
   model.value = {value, text}
   toggleDropdown()
+  props.selectItemHandler? props.selectItemHandler():null
 }
 
 </script>
@@ -49,7 +75,7 @@ function selectItem(value, text) {
        :class="showDropdown?'_open':''"
   >
     <div ref="input" class="select__input" @click="toggleDropdown">
-      {{model?model.text:options[0].text}}
+      {{ model? model.text:options[0]? options[0].text:"Выберите элемент" }}
     </div>
     <div ref="dropdownSel" :style="showDropdown?`height:${29*options.length}px`:''"
          class="select__dropdown"
@@ -68,30 +94,30 @@ function selectItem(value, text) {
 </template>
 
 <style scoped lang="scss">
-  .select {
+.select {
 
-    &__input {
-      padding: 10px;
-      transition: background 0.3s ease;
-      border-radius: 8px;
+  &__input {
+    padding: 10px;
+    transition: background 0.3s ease;
+    border-radius: 8px;
+  }
+
+  &__dropdown {
+    border-radius: 0 0 8px 8px;
+    height: 0;
+    transition: height 0.2s ease;
+    display: block;
+  }
+
+  &._open {
+    .select__input {
+      background: black;
+      border-radius: 8px 8px 0 0;
     }
 
-    &__dropdown {
-      border-radius: 0 0 8px 8px;
-      height: 0;
-      transition: height 0.2s ease;
-      display: block;
-    }
-
-    &._open {
-      .select__input{
-        background: black;
-        border-radius: 8px 8px 0 0;
-      }
-
-      .select__dropdown {
-        max-height: 150px;
-      }
+    .select__dropdown {
+      max-height: 150px;
     }
   }
+}
 </style>

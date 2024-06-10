@@ -773,11 +773,11 @@ module.exports = function(io) {
         console.log('invalidPlayersNickname.length', invalidPlayersNickname.length, invalidPlayersNickname)
         if (invalidPlayersNickname.length) {
           socket.emit("setError", {
-              message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
-              status: 701,
-              functionName: 'refresh:sexOpposite',
-              wrongData: invalidPlayersNickname
-            })
+            message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
+            status: 701,
+            functionName: 'refresh:sexOpposite',
+            wrongData: invalidPlayersNickname
+          })
         }
         if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
@@ -926,16 +926,18 @@ module.exports = function(io) {
             let data = JSON.parse(player.health)
             console.log(data.text)
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
-            if (ecsExp!=='') {
-              console.log('ecsExp', ecsExp)
-              lastVar[player.userId] = ecsExp
-              data.text = data.text.replace(ecsExp, degree)
+            if (ecsExp!=='' || data.text==='Идеально здоров') {
+              // console.log('ecsExp', ecsExp)
               let isOpen = data.isOpen
-              player.health = JSON.stringify(data)
-              await player.save()
-              data = {health: data}
-              console.log(data)
-              
+              if (data.text!=='Идеально здоров') {
+                lastVar[player.userId] = ecsExp
+                data.text = data.text.replace(ecsExp, degree)
+                
+                player.health = JSON.stringify(data)
+                await player.save()
+                data = {health: data}
+                console.log(data)
+              }
               if (isOpen) {
                 console.log("player.userId", player.userId)
                 emitData.players[player.userId] = data
@@ -978,6 +980,113 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         // io.in(idRoom).emit()
+      })
+      socket.on('refresh:cureMake', async (playersId, makeId) => {
+        let makeArray = ['Сделать идеально здоровым', 'Сделать чайлдфри', 'Вылечить чайлдфри', 'Вылечить фобию']
+        let make = makeArray[makeId]
+        if (makeId>3 || makeId<0) {
+          socket.emit("setError",
+            {
+              message: "Такой степени не существуетет",
+              status: 400,
+              functionName: 'refresh:cureMake'
+            })
+          return
+        }
+        
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let players = null
+        let textForLog = ''
+        let lastVar = {}
+        if (playersId===0) {
+          textForLog = `Ведущий применил функцию ${make} ко всем игрокам`
+          players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+        }
+        else {
+          if (playersId>0) {
+            let user = await UserModel.User.findOne({where: {id: playersId}})
+            if (!user) {
+              return
+            }
+            textForLog = `Ведущий применил функцию ${make} к игроку ${user.nickname}`
+          }
+          else {
+            textForLog = `Ведущий применил функцию ${make} к игроку Гость#${Math.abs(playersId)}`
+          }
+          players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          players = [players]
+        }
+        // console.log(players)
+        let emitData = {players: {}, logsData: {}}
+        for (let player of players) {
+          if (player && player.isPlayer && player.isAlive) {
+            let refreshData = playerDataService.cureMake(player, makeId)
+            player = refreshData.player
+            console.log(player.userId)
+            lastVar[player.userId] = refreshData.lastVar
+            await player.save()
+            if (refreshData.isOpen) {
+              console.log("player.userId", player.userId)
+              emitData.players[player.userId] = refreshData.data
+            }
+            else {
+              io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
+                {players: {[player.userId]: refreshData.data}})
+            }
+          }
+        }
+        if (!systemFunction.objIsEmpty(lastVar)) {
+          await UserModel.Logi.create({
+            idRoom: idRoom,
+            funcName: `cureMake`,
+            text: textForLog,
+            step: await playerDataService.howStepLog(idRoom),
+            lastVar: JSON.stringify(lastVar)
+          })
+        }
+        console.log(emitData)
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = textForLog
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+      })
+      socket.on('refresh:chartName', async (playersId, chartId, chartText) => {
+        let chartArray = ['allChart', 'sex', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
+        if (chartId>12 || chartId<0) {
+          socket.emit("setError",
+            {
+              message: "Такой степени не существуетет",
+              status: 400,
+              functionName: 'refresh:cureMake'
+            })
+          return
+        }
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let chartName = chartArray[chartId]
+        let players = null
+        let textForLog = ''
+        let lastVar = {}
+        if (playersId===0) {
+          textForLog = `Ведущий изменил ${chartName} у всех игроков`
+          players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+        }
+        else {
+          if (playersId>0) {
+            let user = await UserModel.User.findOne({where: {id: playersId}})
+            if (!user) {
+              return
+            }
+            textForLog = `Ведущий изменил ${chartName} у игрока ${user.nickname}`
+          }
+          else {
+            textForLog = `Ведущий применил функцию ${make} к игроку Гость#${Math.abs(playersId)}`
+          }
+          players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId, isPlayer: 1, isAlive: 1}})
+          if(!players){
+            return
+          }
+          players = [players]
+        }
+        
       })
     }
   )
