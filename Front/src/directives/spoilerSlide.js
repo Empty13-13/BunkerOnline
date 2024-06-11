@@ -8,6 +8,7 @@ function slide(el) {
 
 let sliderFunc = (el) => f => {
   slideToggle(el.parentNode.querySelector('[slideBody]'))
+  el.classList.toggle('_slide-active-title')
 }
 
 export default {

@@ -43,6 +43,7 @@ import router from "@/router/index.js";
 import { goToBlock, openNavigation, showInfoHandler } from "@/plugins/navigationPlugin.js";
 import AppLoader from "@/components/AppLoader.vue";
 import AppDice6 from "@/components/dices/AppDice6.vue";
+import TheAdminPanel from "@/components/TheAdminPanel.vue";
 
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
@@ -302,12 +303,13 @@ function getRandomNumToDice() {
         <img src="/img/icons/watcher.svg" alt="">
       </div>
       <div class="timerBlock"
-           :class="hostFunctional.haveAccess?'_host':''"
+           :class="hostFunctional.haveAccess?myProfile.isAdmin?'_hostAndAdmin':'_host':''"
       >
         <div class="timerBlock__body btn gold border">
           <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
         </div>
       </div>
+      <TheAdminPanel v-if="myProfile.isAdmin"/>
     </Teleport>
     <div id="welcome" class="welcome">
       <AppBackground img-name="cataclysm.jpg" />
@@ -2088,6 +2090,12 @@ function getRandomNumToDice() {
   &._host {
     @media (max-width: $mobile) {
       bottom: 70px;
+    }
+  }
+
+  &._hostAndAdmin {
+    @media (max-width: $mobile) {
+      bottom: 120px;
     }
   }
 
