@@ -34,7 +34,8 @@ function sendMessage(e) {
   <AppButton @click="toggleShow" border="true" class="activateButton"
              color="gold">Админ панель
   </AppButton>
-  <div @click="toggleShow" class="adminPanel" :class="showPanel?'_active':''">
+  <div class="adminPanel" :class="showPanel?'_active':''">
+    <div @click="toggleShow" class="adminPanel__wrapper"></div>
     <div class="adminPanel__body">
       <div class="adminPanel__title">Панель администратора</div>
       <div class="adminPanel__block block-adminPanel">
@@ -73,10 +74,9 @@ function sendMessage(e) {
   height: 100%;
   width: 100%;
   z-index: 21;
-  pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
-  background: rgba(0, 0, 0, 0.65);
+  pointer-events: none;
 
   &__title {
     font-size: 20px;
@@ -85,6 +85,15 @@ function sendMessage(e) {
     margin-bottom: 20px;
   }
 
+  &__wrapper {
+    background: rgba(0, 0, 0, 0.65);
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
 
   &__body {
     background: #00000080;
@@ -113,7 +122,10 @@ function sendMessage(e) {
 
   &._active {
     opacity: 1;
-    pointer-events: auto;
+
+    .adminPanel__wrapper {
+      pointer-events: auto;
+    }
 
     .adminPanel__body {
       right: 0;
