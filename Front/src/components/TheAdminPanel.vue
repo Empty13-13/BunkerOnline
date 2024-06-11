@@ -82,7 +82,7 @@ function sendMessage(e) {
     font-size: 20px;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
   }
 
   &__wrapper {

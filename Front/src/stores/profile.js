@@ -7,6 +7,9 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 
 export const useMyProfileStore = defineStore('myProfile', () => {
+  const actionsProfile = useActionsProfileStore()
+  const globalPopup = useGlobalPopupStore()
+  
   const token = ref(null)
   const id = ref(0)
   const nickname = ref("Загрузка...")
@@ -37,8 +40,9 @@ export const useMyProfileStore = defineStore('myProfile', () => {
   const isHigherThanDefault = computed(() => {
     return access.value==='vip' || access.value==='mvp' || access.value==='admin'
   })
-  const actionsProfile = useActionsProfileStore()
-  const globalPopup = useGlobalPopupStore()
+  const isStreamer = computed(() => {
+    return false
+  })
   
   async function setMyProfileInfo() {
     const preloader = usePreloaderStore()
@@ -184,7 +188,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     isReg,
     noregToken,
     isNoReg,
-    isHigherThanDefault
+    isHigherThanDefault,
+    isStreamer,
   }
 })
 
