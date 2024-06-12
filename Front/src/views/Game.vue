@@ -309,7 +309,7 @@ function getRandomNumToDice() {
           <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
         </div>
       </div>
-      <TheAdminPanel v-if="myProfile.isAdmin"/>
+      <TheAdminPanel v-if="myProfile.isAdmin" />
     </Teleport>
     <div id="welcome" class="welcome">
       <AppBackground img-name="cataclysm.jpg" />
@@ -318,9 +318,24 @@ function getRandomNumToDice() {
           <h1 v-slide class="welcome__titleH2 titleH2">
             Катаклизм
           </h1>
-          <p slideBody class="welcome__subtitle">
-            {{ selectedGameData.bunkerData.catastrophe }}
-          </p>
+          <div slideBody class="welcome__block">
+            <p class="welcome__subtitle">
+              {{ selectedGameData.bunkerData.catastrophe }}
+            </p>
+            <button v-if="selectedGameData.showPlayVoiceButton" class="welcome__playVoice" type="button">
+              Озвучить текст
+              <span>
+              <svg id="Layer_1" viewBox="0 0 512 512"
+                   xmlns="http://www.w3.org/2000/svg"
+                   data-name="Layer 1">
+                <path
+                    d="m256 0c141.385 0 256 114.587 256 256.035 0 141.376-114.615 255.965-256 255.965s-256-114.589-256-255.965c0-141.448 114.615-256.035 256-256.035zm83.227 246.105-111.79-64.541a11.426 11.426 0 0 0 -17.139 9.891v129.089a11.4 11.4 0 0 0 17.138 9.892l111.791-64.542a11.425 11.425 0 0 0 0-19.789zm-83.227 162.237c84 0 152.345-68.342 152.345-152.342s-68.345-152.343-152.345-152.343-152.342 68.343-152.342 152.343 68.342 152.342 152.342 152.342zm0-314.842c-89.6 0-162.5 72.9-162.5 162.5s72.9 162.5 162.5 162.5 162.5-72.9 162.5-162.5-72.895-162.5-162.5-162.5z"
+                    fill="#fffffff" fill-rule="evenodd" style="fill: rgb(255,255,255);">
+                </path>
+              </svg>
+            </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -573,7 +588,8 @@ function getRandomNumToDice() {
         <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
           <h2 id="voting" v-slide class="now-voting__title titleH2">Голосование</h2>
           <div v-if="!selectedGameData.userVoitingChoice" slidebody>
-            <form @submit.prevent="selectedGameGameplay.voteHandler(selectedGameData.votedPlayerID)" class="now-voting__body">
+            <form @submit.prevent="selectedGameGameplay.voteHandler(selectedGameData.votedPlayerID)"
+                  class="now-voting__body">
               <div class="now-voting__voteList">
                 <TheVoteBlock
                     v-for="(gamer,index) in selectedGameData.getAlivePlayers"
@@ -584,7 +600,8 @@ function getRandomNumToDice() {
                     v-model:isActive="selectedGameData.votedPlayerID"
                 />
               </div>
-              <AppButton v-if="selectedGameData.votedPlayerID && !selectedGameData.voitingData.isLoading" class="now-voting__submit"
+              <AppButton v-if="selectedGameData.votedPlayerID && !selectedGameData.voitingData.isLoading"
+                         class="now-voting__submit"
                          color="gold">Проголосовать
               </AppButton>
               <AppLoader v-if="selectedGameData.voitingData.isLoading" />

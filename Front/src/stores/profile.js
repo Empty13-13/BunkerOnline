@@ -133,7 +133,6 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     
     
     try {
-      showLoaderForPacks.value=true
       await axiosInstance.post('/changePack',{id:pack.id,isUse:pack.isUse})
       if(pack.isUse && pack.ageRestriction) {
         globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете что вы достигли совершеннолетнего возраста','red')
@@ -143,8 +142,6 @@ export const useMyProfileStore = defineStore('myProfile', () => {
       await setMyPacks()
       console.log(e)
       globalPopup.activate('Ошибка изменения паков',e.response.data.message)
-    } finally {
-      showLoaderForPacks.value=false
     }
   }
   

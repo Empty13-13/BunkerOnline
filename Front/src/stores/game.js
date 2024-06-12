@@ -230,6 +230,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const showDice6 = ref(false)
   const showDice20 = ref(false)
   const votedPlayerID = ref(0)
+  const showPlayVoiceButton = ref(false)
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -430,6 +431,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   }
   
   return {
+    showPlayVoiceButton,
     votedPlayerID,
     bunkerData,
     playersData,
