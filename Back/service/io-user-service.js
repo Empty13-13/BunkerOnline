@@ -76,8 +76,8 @@ class ioUserService {
       case 'bunkerItems1' || 'bunkerItems2' || 'bunkerItems3':
         name = 'Состояние о предметах в бункере'
         break
-      case 'catastrophe':
-        name = 'Катоклизм'
+      case 'bunkerSize':
+        name = 'Размер бункера'
         break
       case 'catastrophe':
         name = 'Катоклизм'

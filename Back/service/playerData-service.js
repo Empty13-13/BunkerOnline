@@ -143,7 +143,7 @@ class playerDataService {
       data.id = null
     }
     
-    if (chartText) {
+    if (chartText && (chartName==='inventory' || chartName==='backpack' || chartName==='addInfo')) {
       data.text = `${data.text}, ${chartText}`
     }
     else {
@@ -157,7 +157,7 @@ class playerDataService {
       let newText = `${data.text}, ${newData.text}`
       data.text = newText
       newId = newData.id
-      
+
       
     }
     if ((typeof data.id)!=='number' && data.id!==null) {
@@ -294,7 +294,7 @@ class playerDataService {
   
   indexForRandom(length) {
     let array = []
-    for (let i = 1; i<length; i++) {
+    for (let i = 0; i<length; i++) {
       array.push(i)
     }
     for (let i = array.length - 1; i>0; i--) {
@@ -308,31 +308,37 @@ class playerDataService {
     let arrayData = []
     let lastVar = {}
     let dataPlayers = {}
-    let emitData = {players: {}}
+    let emitData = {}
     lastVar.chartName = chartName
     let arrayList = this.indexForRandom(players.length)
     for (let player of players) {
       arrayData.push(JSON.parse(player[chartName]))
     }
     let i = 0
+    console.log('PLAYERS',players)
     for (let player of players) {
+      console.log('!!!!!!!!!!!!!!!!',player[chartName])
       let data = JSON.parse(player[chartName])
       lastVar[player.userId] = data
+      console.log('RANDOM LIST',arrayList, arrayData[i])
       data.text = arrayData[arrayList[i]].text
       data.id = arrayData[arrayList[i]].id
       if (chartName==='profession') {
         data.description = arrayData[arrayList[i]].description
       }
+      console.log('DATA',data)
       player[chartName] = JSON.stringify(data)
       await player.save()
       if (data.isOpen) {
-        emitData.players[player.userId] = {[chartName]: data}
+        emitData[player.userId] = {[chartName]: data}
       }
       else {
         dataPlayers[player.userId] = {[chartName]: data}
       }
       i += 1
     }
+    console.log(dataPlayers)
+    console.log(emitData)
     return {
       lastVar: lastVar,
       emitData: emitData,
@@ -355,7 +361,8 @@ class playerDataService {
     // console.log('TWO')
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
     // console.log('Three')
-    if (chartName && chartName!=='catastrophe') {
+    //console.log(chartName==='bunkerSize',chartName)
+    if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize') {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
       
@@ -363,6 +370,7 @@ class playerDataService {
     else if (chartName==='bunkerSize') {
       gameRoom[chartName] = data.bunkerSize
       data.bunkerSize = `${data.bunkerSize} кв.м`
+      console.log(data)
     }
     else if (chartName==='catastrophe') {
       gameRoom[chartName] = data.newChart.id
@@ -759,6 +767,11 @@ class playerDataService {
     else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
       return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
     }
+    else if (chartName==='bunkerSize') {
+            let bunkerSize = this.getRandomInt(20, 200)
+            console.log('bunkerSize',bunkerSize)
+            return {bunkerSize: bunkerSize}
+          }
     else if (chartName==='catastrophe') {
       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
@@ -769,10 +782,7 @@ class playerDataService {
         imageId = allImageId[0].id
         imageName = allImageId[0].imageName
       }
-      else if (chartName==='bunkerSize') {
-        let bunkerSize = this.getRandomInt(20, 200)
-        return {bunkerSize: bunkerSize}
-      }
+
       else {
         let index = this.getRandomInt(0, allImageId.length - 1)
         let image = allImageId[index]
@@ -783,6 +793,7 @@ class playerDataService {
       
     }
     else {
+      console.log(chartName)
       return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
     }
   }
@@ -1076,6 +1087,7 @@ class playerDataService {
         throw ('Loop error')
       }
       this.getRandomPack(false, name)
+      console.log(this.usedPack)
       let nameArray = this.usedPack.chartBunkerData.filter(item => item.name===name)
       
       if (nameArray.length) {

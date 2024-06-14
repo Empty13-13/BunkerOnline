@@ -150,9 +150,9 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     hostSocket.emit('timer:start', second)
   }
   
-  function refreshBunkerData(e, chartName = null) {
+  function refreshBunkerData(e) {
     showConfirmBlock(e.target, () => {
-      hostSocket.emit('refresh:bunkerData', chartName)
+      hostSocket.emit('refresh:bunkerData', 5)
     })
   }
   
@@ -172,7 +172,7 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     })
   }
   
-  function rotateChangeDelete(array,obj) {
+  function rotateChangeDelete(array, obj) {
     if (obj.value===10) {
       hostSocket.emit('refresh:SetNull', 0)
     }
@@ -180,22 +180,34 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
       hostSocket.emit('refresh:SetNull', 1)
     }
     else {
-      console.log(array.find(item => item.text === obj.text).rotate)
-      hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text ===obj.text).rotate)
+      console.log(array.find(item => item.text===obj.text).rotate)
+      hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text===obj.text).rotate)
     }
   }
   
   function transferHost(id) {
     console.log(id)
-    hostSocket.emit('transferHost',id)
+    hostSocket.emit('transferHost', id)
   }
   
-  function stealChart(id1,id2,idChart) {
-    hostSocket.emit('stealChart',id1,id2,idChart)
+  function stealChart(id1, id2, idChart) {
+    hostSocket.emit('stealChart', id1, id2, idChart)
   }
   
-  function addChart(idPlayer,idChart,text) {
-    hostSocket.emit('addChart',idPlayer,idChart,text)
+  function addChart(idPlayer, idChart, text) {
+    if (idChart>4) {
+      text = null
+    }
+    hostSocket.emit('addChart', idPlayer, idChart, text)
+  }
+  
+  function changeBunker(idAction) {
+    hostSocket.emit('refresh:bunkerData', idAction)
+  }
+  
+  function swapCharacter(idPlayer1,idPlayer2,idChart) {
+    console.log(idPlayer1,idPlayer2,idChart)
+    hostSocket.emit('exchangeChart',idPlayer1,idPlayer2,idChart)
   }
   
   //========================================================================================================================================================
@@ -228,6 +240,8 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     transferHost,
     stealChart,
     addChart,
+    changeBunker,
+    swapCharacter,
   }
 })
 

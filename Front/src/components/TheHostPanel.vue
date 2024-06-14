@@ -118,10 +118,10 @@ const rotateChangeDeleteItems = [
   {text: 'Аннулировать всем Хобби', value: 11},
 ]
 const bunkerCharacteristicsItems = [
-  {text: 'Когда был построен', value: 0},
-  {text: 'Размер', value: 1},
-  {text: 'Время нахождения', value: 2},
-  {text: 'Количество еды', value: 3},
+  {text: 'Когда был построен', value: 1},
+  {text: 'Размер', value: 2},
+  {text: 'Время нахождения', value: 3},
+  {text: 'Количество еды', value: 4},
 ]
 
 onMounted(() => {
@@ -186,7 +186,7 @@ function restartGame(e) {
         </div>
         <div class="hostPanel__buttons buttons-hostPanel">
           <AppButton class="buttons-hostPanel__btn" color="grayGold" border="true"
-                     @click="hostFunctional.refreshBunkerData($event,'catastrophe')">Изменить катаклизм
+                     @click="hostFunctional.refreshBunkerData">Изменить катаклизм
           </AppButton>
           <!--          <AppButton border="true" class="buttons-hostPanel__btn" color="grayGold"-->
           <!--                     @click="hostFunctional.refreshBunkerData($event)">Изменить бункер-->
@@ -263,7 +263,12 @@ function restartGame(e) {
                        :options="selectPlayer2WithoutSelectedFirst(funcData.swap.id1.value)"
                        v-model="funcData.swap.id2" />
             <AppSelect :options="playerCharacteristics" v-model="funcData.swap.chart" />
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.swapCharacter(
+                        funcData.swap.id1.value,
+                        funcData.swap.id2.value||null,
+                        funcData.swap.chart.value
+                        )">
               <span class="text">Обменять</span>
             </button>
           </AppSpoiler>
@@ -343,7 +348,8 @@ function restartGame(e) {
           </AppSpoiler>
           <AppSpoiler title="Изменить бункер">
             <AppSelect :options="bunkerCharacteristicsItems" v-model="funcData.bunkerCharacteristics.chart" />
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.changeBunker(funcData.bunkerCharacteristics.chart.value)">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>

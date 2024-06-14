@@ -393,7 +393,12 @@ module.exports = function(io) {
       socket.on('timer:stop', async (value) => {
         io.in(idRoom).emit('timer:stop')
       })
-      socket.on('refresh:bunkerData', async (chartName = null) => {
+      socket.on('refresh:bunkerData', async (chartId) => {
+        let arrayBunkerChart = ['allChart','bunkerCreated','bunkerSize','bunkerTime','bunkerFood','catastrophe' ]
+        let chartName = arrayBunkerChart[chartId]
+        if(chartId===0){
+          chartName = null
+        }
         let gameRoom = await UserModel.GameRooms.findOne({
           attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted'],
           where: {idRoom: idRoom},
@@ -448,6 +453,12 @@ module.exports = function(io) {
           }
           io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
             {bunkerData: data, logsData: {type: 'text', value: textForLog}})
+             io.in(idRoom).emit('sendMessage:timer', {
+                        title: 'Сообщение от ведущего',
+                        message: textForLog,
+                        color: 'green'
+                      }
+                    )
         }
         
       })
@@ -1176,7 +1187,7 @@ module.exports = function(io) {
         
       })
       socket.on('stealChart', async (playerId2, playerId1, chartId) => {
-        let chartArray = ['sex','body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
+        let chartArray = ['sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
         if (chartId>11 || chartId<0) {
           socket.emit("setError",
             {
@@ -1223,11 +1234,11 @@ module.exports = function(io) {
         
         let data = await playerDataService.stealChart(playerId1, playerId2, gameRoom, chartName)
         console.log(playerId2)
-        if(!data.isOpenPlayer1){
-        io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players:data.players[playerId1]})
+        if (!data.isOpenPlayer1) {
+          io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: data.players[playerId1]})
         }
-        if(!data.isOpenPlayer2){
-        io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players:data.players[playerId2]})
+        if (!data.isOpenPlayer2) {
+          io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players: data.players[playerId2]})
         }
         await UserModel.Logi.create({
           idRoom: idRoom,
@@ -1236,15 +1247,15 @@ module.exports = function(io) {
           step: await playerDataService.howStepLog(idRoom),
           lastVar: JSON.stringify(data.lastVar)
         })
-
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',{ players:data.emitData},
+        
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {players: data.emitData},
           {logsData: {type: `text`, value: textForLog}})
         io.in(idRoom).emit('sendMessage:timer', {
-                    title: 'Сообщение от ведущего',
-                    message: textForLog,
-                    color: 'green'
-                  }
-                )
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('addChart', async (playersId, chartId, chartText = null) => {
@@ -1266,11 +1277,13 @@ module.exports = function(io) {
             })
           }
           
-          if(isBadContent) {
+          if (isBadContent) {
             return
           }
         }
         let chartArray = ['trait', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
+        let nameChartArray = ['Человеческая черта', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. информация']
+
         if (chartId>7 || chartId<0) {
           socket.emit("setError",
             {
@@ -1282,21 +1295,15 @@ module.exports = function(io) {
         }
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let chartName = chartArray[chartId]
-        if (chartText && !(chartName === 'inventory' || chartName === 'backpack' || chartName === 'addInfo')){
-                    socket.emit("setError",
-                                      {
-                                        message: "Нельзя добавить текст для этих характеристик",
-                                        status: 400,
-                                        functionName: 'addChart'
-                                      })
-                                    return
-                  }
+        let nameChart = nameChartArray[chartId]
+
         let players = null
+        
         let textForLog = ''
         let lastVar = {}
         lastVar.chartName = chartName
         if (playersId===0) {
-          textForLog = `Ведущий добавил дополнительно ${chartName} всем игрокам`
+          textForLog = `Ведущий добавил дополнительно ${nameChart} всем игрокам`
           players = await UserModel.RoomSession.findAll({
             where: {
               gameRoomId: gameRoom.id,
@@ -1311,10 +1318,10 @@ module.exports = function(io) {
             if (!user) {
               return
             }
-            textForLog = `Ведущий добавил допольнительно ${chartName} игроку ${user.nickname}`
+            textForLog = `Ведущий добавил допольнительно ${nameChart} игроку ${user.nickname}`
           }
           else {
-            textForLog = `Ведущий добавил допольнительно игроку Гость#${Math.abs(playersId)}`
+            textForLog = `Ведущий добавил допольнительно ${nameChart} игроку Гость#${Math.abs(playersId)}`
           }
           players = await UserModel.RoomSession.findOne({
             where: {
@@ -1332,15 +1339,15 @@ module.exports = function(io) {
         let emitData = {players: {}, logsData: {}}
         for (let player of players) {
           lastVar[player.userId] = JSON.parse(player[chartName])
-          console.log(JSON.parse(player[chartName]).id.length,(typeof JSON.parse(player[chartName]).id))
-          if((typeof JSON.parse(player[chartName]).id)!=='number' && JSON.parse(player[chartName]).id.length>5){
+          console.log(JSON.parse(player[chartName]).id.length, (typeof JSON.parse(player[chartName]).id))
+          if ((typeof JSON.parse(player[chartName]).id)!=='number' && JSON.parse(player[chartName]).id.length>5) {
             socket.emit("setError",
-                        {
-                          message: "Превышен лимит добавления характеристики",
-                          status: 400,
-                          functionName: 'addChart'
-                        })
-                      return
+              {
+                message: "Превышен лимит добавления характеристики",
+                status: 400,
+                functionName: 'addChart'
+              })
+            return
           }
           let data = await playerDataService.addChart(player, gameRoom, chartName, chartText)
           player[chartName] = JSON.stringify(data)
@@ -1363,6 +1370,12 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: emitData.logsData.value,
+            color: 'green'
+          }
+        )
         
         
       })
@@ -1449,8 +1462,8 @@ module.exports = function(io) {
         
       })
       socket.on('exchangeChart', async (playerId1, playerId2, chartId) => {
-        let chartArray = ['sex', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
-        if (chartId>11 || chartId<0) {
+        let chartArray = ['sex','body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
+        if (chartId>12 || chartId<0) {
           socket.emit("setError",
             {
               message: "Такой характеристики не существует",
@@ -1468,9 +1481,8 @@ module.exports = function(io) {
         if (playerId1===0) {
           textForLog = `Ведущий совершил обмен характристикой ${chartName} между всеми игроками`
           let players = await UserModel.RoomSession.findAll({
-            attributes: ['userId', `${chartName}`],
-            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId1},
-            raw: true
+            attributes: ['userId', `${chartName}`,'id'],
+            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1}
           })
           let data = await playerDataService.exchangeChart(players, chartName)
           for (let player of players) {
@@ -1495,14 +1507,12 @@ module.exports = function(io) {
           textForLog = `Ведущий совершил обмен характеристикой между игроком ${await ioUserService.getNickname(
             playerId1)} и игроком ${await ioUserService.getNickname(playerId2)}`
           let player1 = await UserModel.RoomSession.findOne({
-            attributes: [`${chartName}`],
-            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId1},
-            raw: true
+            attributes: ['id',`${chartName}`],
+            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId1}
           })
           let player2 = await UserModel.RoomSession.findOne({
-            attributes: [`${chartName}`],
-            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId2},
-            raw: true
+            attributes: ['id',`${chartName}`],
+            where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId2}
           })
           if (!player1 && !player2) {
             socket.emit("setError",
@@ -1515,13 +1525,17 @@ module.exports = function(io) {
             
           }
           
-          let playerData1 = JSON.parse(player1)
-          let playerData2 = JSON.parse(player2)
+          let playerData1 = JSON.parse(player1[chartName])
+          let playerData2 = JSON.parse(player2[chartName])
           lastVar.chartName = chartName
           lastVar[playerId1] = playerData1
           lastVar[playerId2] = playerData2
           playerData1 = lastVar[playerId2]
           playerData2 = lastVar[playerId1]
+          player1[chartName]=JSON.stringify(playerData1)
+          player2[chartName]=JSON.stringify(playerData2)
+          await player1.save()
+          await player2.save()
           if (playerData1.isOpen) {
             emitData.players[playerId1] = {[chartName]: playerData1}
           }
@@ -1584,12 +1598,12 @@ module.exports = function(io) {
               'text', value: textForLog
           }
         })
-         io.in(idRoom).emit('sendMessage:timer', {
-                            title: 'Сообщение от ведущего',
-                            message: textForLog,
-                            color: 'green'
-                          }
-                        )
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('refresh:ByHour', async (chartId, makeId) => {
@@ -1843,11 +1857,11 @@ module.exports = function(io) {
         emitData.logsData.value = `Ведущий применил функцию ${makeName}`
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
-                    title: 'Сообщение от ведущего',
-                    message: emitData.logsData.value,
-                    color: 'green'
-                  }
-                )
+            title: 'Сообщение от ведущего',
+            message: emitData.logsData.value,
+            color: 'green'
+          }
+        )
       })
       socket.on('reverseLog', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
