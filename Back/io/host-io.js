@@ -394,9 +394,9 @@ module.exports = function(io) {
         io.in(idRoom).emit('timer:stop')
       })
       socket.on('refresh:bunkerData', async (chartId) => {
-        let arrayBunkerChart = ['allChart','bunkerCreated','bunkerSize','bunkerTime','bunkerFood','catastrophe' ]
+        let arrayBunkerChart = ['allChart', 'bunkerCreated', 'bunkerSize', 'bunkerTime', 'bunkerFood', 'catastrophe']
         let chartName = arrayBunkerChart[chartId]
-        if(chartId===0){
+        if (chartId===0) {
           chartName = null
         }
         let gameRoom = await UserModel.GameRooms.findOne({
@@ -453,12 +453,12 @@ module.exports = function(io) {
           }
           io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
             {bunkerData: data, logsData: {type: 'text', value: textForLog}})
-             io.in(idRoom).emit('sendMessage:timer', {
-                        title: 'Сообщение от ведущего',
-                        message: textForLog,
-                        color: 'green'
-                      }
-                    )
+          io.in(idRoom).emit('sendMessage:timer', {
+              title: 'Сообщение от ведущего',
+              message: textForLog,
+              color: 'green'
+            }
+          )
         }
         
       })
@@ -1104,9 +1104,10 @@ module.exports = function(io) {
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
       })
       socket.on('refresh:chartName', async (playersId, chartId, chartText = null) => {
+        
         if (chartText) {
           let forbiddenCharacters = await UserModel.BlackListWords.findAll()
-          
+          let isBadContent = false
           if (forbiddenCharacters) {
             forbiddenCharacters.forEach(word => {
               if (chartText.toLowerCase().includes(word.word.toLowerCase())) {
@@ -1116,13 +1117,16 @@ module.exports = function(io) {
                     status: 400,
                     functionName: 'refresh:chartName'
                   })
-                return
+                isBadContent = true
               }
             })
           }
+          if (isBadContent) {
+            return
+          }
         }
-        let chartArray = ['allChart', 'sex', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
-        if (chartId>12 || chartId<0) {
+        let chartArray = ['allChart', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
+        if (chartId>10 || chartId<0) {
           socket.emit("setError",
             {
               message: "Такой характеристики не существуетет",
@@ -1133,11 +1137,13 @@ module.exports = function(io) {
         }
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let chartName = chartArray[chartId]
+        let nameChartArray = ['Все характеристики', 'Пол', 'Телосложение', 'Человеческая черта', 'Профессия', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. информация', 'Спец. возможность 1', 'Спец. возможность 2']
+        let nameChart = nameChartArray[chartId]
         let players = null
         let textForLog = ''
         let lastVar = {}
         if (playersId===0) {
-          textForLog = `Ведущий изменил ${chartName} у всех игроков`
+          textForLog = `Ведущий изменил ${nameChart} у всех игроков`
           players = await UserModel.RoomSession.findAll({
             where: {
               gameRoomId: gameRoom.id,
@@ -1152,10 +1158,10 @@ module.exports = function(io) {
             if (!user) {
               return
             }
-            textForLog = `Ведущий изменил ${chartName} у игрока ${user.nickname}`
+            textForLog = `Ведущий изменил ${nameChart} у игрока ${user.nickname}`
           }
           else {
-            textForLog = `Ведущий изменил ${chartName} у игрока Гость#${Math.abs(playersId)}`
+            textForLog = `Ведущий изменил ${nameChart} у игрока Гость#${Math.abs(playersId)}`
           }
           players = await UserModel.RoomSession.findOne({
             where: {
@@ -1172,7 +1178,8 @@ module.exports = function(io) {
         }
         let data = await playerDataService.refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText)
         for (let player of players) {
-          io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', data.players[player.userId])
+          io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
+            {players: {[player.userId]: data.players[player.userId]}})
         }
         await UserModel.Logi.create({
           idRoom: idRoom,
@@ -1184,6 +1191,12 @@ module.exports = function(io) {
         
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', data.emitData,
           {logsData: {type: `text`, value: textForLog}})
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('stealChart', async (playerId2, playerId1, chartId) => {
@@ -1283,7 +1296,7 @@ module.exports = function(io) {
         }
         let chartArray = ['trait', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
         let nameChartArray = ['Человеческая черта', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. информация']
-
+        
         if (chartId>7 || chartId<0) {
           socket.emit("setError",
             {
@@ -1296,7 +1309,7 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let chartName = chartArray[chartId]
         let nameChart = nameChartArray[chartId]
-
+        
         let players = null
         
         let textForLog = ''
@@ -1438,7 +1451,7 @@ module.exports = function(io) {
           }
           players = [players]
         }
-        let emitData = {players: {}, logsData: {}}
+        let emitData = {players: {}, bunkerData: {}, logsData: {}}
         for (let player of players) {
           if (makeId===0) {
             let data = JSON.parse(player.inventory)
@@ -1446,8 +1459,9 @@ module.exports = function(io) {
             data.text = 'Пусто'
             data.id = 0
             player.inventory = JSON.stringify(data)
+            await player.save()
             if (data.isOpen) {
-              emitData.players[player.userId] = {inventory: data.text}
+              emitData.players[player.userId] = {inventory: data}
             }
             else {
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
@@ -1456,13 +1470,55 @@ module.exports = function(io) {
           }
           else {
             let data = JSON.parse(player.inventory)
+            if (data.text==='Пусто') {
+              socket.emit("setError",
+                {
+                  message: "Нельзя перенести пустоту",
+                  status: 400,
+                  functionName: 'deleteRelocate'
+                })
+              return
+            }
+            gameRoom.bunkerItemsOthers = `${gameRoom.bunkerItemsOthers},${data.text}`
+            data.text = 'Пусто'
+            data.id = 0
+            player.inventory = JSON.stringify(data)
+            await player.save()
+            await gameRoom.save()
+            if (data.isOpen) {
+              emitData.players[player.userId] = {inventory: data}
+            }
+            else {
+              io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
+                {players: {[player.userId]: {inventory: data}}})
+            }
+            let bunkerChart = await UserModel.ChartBunker.findAll(
+              {where: {id: [gameRoom.bunkerItems1, gameRoom.bunkerItems2, gameRoom.bunkerItems3]}})
+            console.log('BUNKER',bunkerChart)
+            let bunkerItems = []
+            for (let chart of bunkerChart) {
+              bunkerItems.push(chart.text)
+            }
+            console.log('ПРОВЕРКА НА ИТЕМЫ',bunkerItems, gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0))
+            bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
             
+            
+            emitData.bunkerData = {bunkerItems: bunkerItems}
           }
+          emitData.logsData.value = textForLog
+          emitData.logsData.type = 'text'
+          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+          io.in(idRoom).emit('sendMessage:timer', {
+              title: 'Сообщение от ведущего',
+              message: emitData.logsData.value,
+              color: 'green'
+            }
+          )
         }
         
       })
       socket.on('exchangeChart', async (playerId1, playerId2, chartId) => {
-        let chartArray = ['sex','body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
+        let chartArray = ['sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2']
         if (chartId>12 || chartId<0) {
           socket.emit("setError",
             {
@@ -1481,7 +1537,7 @@ module.exports = function(io) {
         if (playerId1===0) {
           textForLog = `Ведущий совершил обмен характристикой ${chartName} между всеми игроками`
           let players = await UserModel.RoomSession.findAll({
-            attributes: ['userId', `${chartName}`,'id'],
+            attributes: ['userId', `${chartName}`, 'id'],
             where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1}
           })
           let data = await playerDataService.exchangeChart(players, chartName)
@@ -1507,11 +1563,11 @@ module.exports = function(io) {
           textForLog = `Ведущий совершил обмен характеристикой между игроком ${await ioUserService.getNickname(
             playerId1)} и игроком ${await ioUserService.getNickname(playerId2)}`
           let player1 = await UserModel.RoomSession.findOne({
-            attributes: ['id',`${chartName}`],
+            attributes: ['id', `${chartName}`],
             where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId1}
           })
           let player2 = await UserModel.RoomSession.findOne({
-            attributes: ['id',`${chartName}`],
+            attributes: ['id', `${chartName}`],
             where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId2}
           })
           if (!player1 && !player2) {
@@ -1532,8 +1588,8 @@ module.exports = function(io) {
           lastVar[playerId2] = playerData2
           playerData1 = lastVar[playerId2]
           playerData2 = lastVar[playerId1]
-          player1[chartName]=JSON.stringify(playerData1)
-          player2[chartName]=JSON.stringify(playerData2)
+          player1[chartName] = JSON.stringify(playerData1)
+          player2[chartName] = JSON.stringify(playerData2)
           await player1.save()
           await player2.save()
           if (playerData1.isOpen) {

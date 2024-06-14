@@ -210,6 +210,18 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     hostSocket.emit('exchangeChart',idPlayer1,idPlayer2,idChart)
   }
   
+  function changeCharacteristics(playersId, chartId, chartText ) {
+    hostSocket.emit('refresh:chartName',playersId, chartId, chartText)
+  }
+  
+  function deleteRelocate(playerId) {
+    hostSocket.emit('deleteRelocate',playerId,0)
+  }
+  
+  function changeRelocate(playerId) {
+    hostSocket.emit('deleteRelocate',playerId,1)
+  }
+  
   //========================================================================================================================================================
   
   function changeSpaceNum(isPlus, e) {
@@ -242,6 +254,9 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     addChart,
     changeBunker,
     swapCharacter,
+    changeCharacteristics,
+    deleteRelocate,
+    changeRelocate,
   }
 })
 

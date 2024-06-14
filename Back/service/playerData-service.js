@@ -127,15 +127,13 @@ class playerDataService {
       phobia: JSON.parse(player.phobia),
       inventory: JSON.parse(player.inventory),
       backpack: JSON.parse(player.backpack),
-      addInfo: JSON.parse(player.addInfo),
-      spec1: JSON.parse(player.spec1),
-      spec2: JSON.parse(player.spec2)
+      addInfo: JSON.parse(player.addInfo)
     }
     return lastVar
   }
   
   async addChart(player, gameRoom, chartName, chartText) {
-    console.log(player[chartName])
+  //  console.log(player[chartName])
     let data = JSON.parse(player[chartName])
     let newId = 0
     if (data.text==='Пусто' || data.text==='Отсутствует' || data.text==='Без профессии') {
@@ -152,8 +150,8 @@ class playerDataService {
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
       let newData = JSON.parse(player[chartName])
       newData = await this.refreshDataPlayer(usePack, chartName, newData, gameRoom.id, player)
-      console.log(data.text)
-      console.log(newData.text)
+  //    console.log(data.text)
+  //    console.log(newData.text)
       let newText = `${data.text}, ${newData.text}`
       data.text = newText
       newId = newData.id
@@ -178,7 +176,7 @@ class playerDataService {
   async stealChart(playerId1, playerId2, gameRoom, chartName) {
     let players = {}
     let emitData = {}
-    console.log('player1', playerId1, 'player2', playerId2)
+  //  console.log('player1', playerId1, 'player2', playerId2)
     let player1 = await UserModel.RoomSession.findOne({
       attributes: ['userId', `${chartName}`, 'usePack', 'id', 'sex'],
       where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
@@ -220,7 +218,7 @@ class playerDataService {
     }
     player1[chartName] = JSON.stringify(dataPlayer1)
     player2[chartName] = JSON.stringify(dataPlayer2)
-    console.log('PLAYERS', player1, player2)
+  //  console.log('PLAYERS', player1, player2)
     await player1.save()
     await player2.save()
     return {
@@ -242,12 +240,14 @@ class playerDataService {
       for (let player of players) {
         let lastVar = this.getLastVar(player)
         let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoom.id)
-        resultPlayerData = await this.createDataPlayer(usePackIds, player.userId, gameRoom.id, player, true)
+        resultPlayerData = await this.createDataPlayer(usePackIds, player.userId, gameRoom.id,null, player, true)
+        //console.log(resultPlayerData)
+        //
         data.players = Object.assign(data.players, resultPlayerData)
-        data.lastVar = Object.assign(data.lastVar, lastVar)
+      //  data.lastVar = Object.assign(data.lastVar, lastVar)
       }
       let allPlayers = await UserModel.RoomSession.findAll({
-        attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
+        attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo','isMVPRefresh'],
         where: {gameRoomId: gameRoom.id, isPlayer: 1},
         raw: true
       })
@@ -273,15 +273,15 @@ class playerDataService {
       for (let player of players) {
         let lastData = JSON.parse(player[chartName])
         data.lastVar[player.userId] = {[chartName]: lastData}
-        if (chartText!==null && (chartName==='inventory' || chartName==='backpack' || chartName==='addInfo')) {
+        if (chartText && (chartName==='inventory' || chartName==='backpack' || chartName==='addInfo')) {
           lastData.text = chartText
         }
         else {
           let usePack = JSON.parse(player.usePack)
           await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
-          let lastData = await this.refreshDataPlayer(usePack, chartName, lastData, gameRoom.id, player)
+          lastData = await this.refreshDataPlayer(usePack, chartName, lastData, gameRoom.id, player)
         }
-        data.players[player.userId] = lastData
+        data.players[player.userId] = {[chartName]:lastData}
         player[chartName] = JSON.stringify(lastData)
         player.save()
         if (lastData.isOpen) {
@@ -315,18 +315,18 @@ class playerDataService {
       arrayData.push(JSON.parse(player[chartName]))
     }
     let i = 0
-    console.log('PLAYERS',players)
+   // console.log('PLAYERS',players)
     for (let player of players) {
-      console.log('!!!!!!!!!!!!!!!!',player[chartName])
+    //  console.log('!!!!!!!!!!!!!!!!',player[chartName])
       let data = JSON.parse(player[chartName])
       lastVar[player.userId] = data
-      console.log('RANDOM LIST',arrayList, arrayData[i])
+    //  console.log('RANDOM LIST',arrayList, arrayData[i])
       data.text = arrayData[arrayList[i]].text
       data.id = arrayData[arrayList[i]].id
       if (chartName==='profession') {
         data.description = arrayData[arrayList[i]].description
       }
-      console.log('DATA',data)
+  //    console.log('DATA',data)
       player[chartName] = JSON.stringify(data)
       await player.save()
       if (data.isOpen) {
@@ -337,8 +337,8 @@ class playerDataService {
       }
       i += 1
     }
-    console.log(dataPlayers)
-    console.log(emitData)
+   // console.log(dataPlayers)
+  //  console.log(emitData)
     return {
       lastVar: lastVar,
       emitData: emitData,
@@ -370,7 +370,7 @@ class playerDataService {
     else if (chartName==='bunkerSize') {
       gameRoom[chartName] = data.bunkerSize
       data.bunkerSize = `${data.bunkerSize} кв.м`
-      console.log(data)
+     // console.log(data)
     }
     else if (chartName==='catastrophe') {
       gameRoom[chartName] = data.newChart.id
@@ -386,12 +386,12 @@ class playerDataService {
   
   async refreshChartMvp(player, chartName, gameRoomId) {
     this.systemSettings = await this.getSystemSettingsData()
-    console.log(this.systemSettings)
+   // console.log(this.systemSettings)
     let data = JSON.parse(player[chartName])
-    console.log(chartName)
+   // console.log(chartName)
     
     if (!data.isOpen || (data.isOpen && (chartName.toString()!=='spec1' && chartName.toString()!=='spec2'))) {
-      console.log('data', data.isOpen)
+     // console.log('data', data.isOpen)
       let usePack = JSON.parse(player.usePack)
       let dataPack = null
       
@@ -399,7 +399,7 @@ class playerDataService {
       data = await this.refreshDataPlayer(usePack, chartName, data, gameRoomId, player)
     }
     else {
-      console.log('data2', data.isOpen)
+   //   console.log('data2', data.isOpen)
       data = null
     }
     return data
@@ -572,7 +572,7 @@ class playerDataService {
     if (gameRoom.voitingStatus===null) {
       return null
     }
-    console.log(gameRoom.voitingStatus)
+   // console.log(gameRoom.voitingStatus)
     let voitingPull = {}
     // voitingPull.status = gameRoom.voitingStatus
     if (gameRoom.voitingStatus===1) {
@@ -602,7 +602,7 @@ class playerDataService {
       
       
     }
-    console.log(voitingPull)
+   // console.log(voitingPull)
   }
   
   
@@ -638,7 +638,7 @@ class playerDataService {
         logsData.push(obLog)
       }
     }
-    console.log(objIsEmpty(logs))
+ //   console.log(objIsEmpty(logs))
     bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
     let bunkerItems = []
@@ -769,7 +769,7 @@ class playerDataService {
     }
     else if (chartName==='bunkerSize') {
             let bunkerSize = this.getRandomInt(20, 200)
-            console.log('bunkerSize',bunkerSize)
+           // console.log('bunkerSize',bunkerSize)
             return {bunkerSize: bunkerSize}
           }
     else if (chartName==='catastrophe') {
@@ -793,7 +793,7 @@ class playerDataService {
       
     }
     else {
-      console.log(chartName)
+     // console.log(chartName)
       return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
     }
   }
@@ -885,7 +885,7 @@ class playerDataService {
             age = 16
           }
         }
-        console.log(newAge, age)
+      //  console.log(newAge, age)
         let profession = this.getRandomData(
           'profession',
           isUsedSystemAdvancePack, age)
@@ -934,6 +934,7 @@ class playerDataService {
     let profession = playerData?.profession || null
     let isMVPRefresh = null
     let sexIsOpen = false
+    let healthIsOpen = false
     if (sex===null) {
       age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
       
@@ -959,6 +960,8 @@ class playerDataService {
       
       if (player) {
         sexIsOpen = JSON.parse(player['sex']).isOpen
+        healthIsOpen = JSON.parse(player['health']).isOpen
+        console.log('1111',JSON.parse(player['health']).isOpen)
       }
       
     }
@@ -967,47 +970,47 @@ class playerDataService {
       age = 41
     }
     
-    body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack, player)
+    body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack,0, player)
     
-    trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack, player)
+    trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack,0, player)
     
     if (health===null) {
       if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
         100)<=this.systemSettings.perfectHealthPercentage) {
-        health = {id: 0, text: 'Идеально здоров', isOpen: false}
+        health = {id: 0, text: 'Идеально здоров', isOpen: healthIsOpen}
         this.perfectHealthCount += 1
       }
       else {
-        health = this.getRandomData('health', isUsedSystemAdvancePack, player)
+        health = this.getRandomData('health', isUsedSystemAdvancePack,0, player)
       }
     }
     else {
-      health = {id: 0, text: health, isOpen: false}
+      health = {id: 0, text: health, isOpen: healthIsOpen}
     }
-    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack,
+    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack,0,
       player)
     
     
-    phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack, player)
+    phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack,0, player)
     
     
     inventory = inventory? {id: 0, text: inventory, isOpen: false}:this.getRandomData('inventory',
-      isUsedSystemAdvancePack, player)
+      isUsedSystemAdvancePack,0, player)
     
     
     backpack = backpack? {id: 0, text: backpack, isOpen: false}:this.getRandomData('backpack',
-      isUsedSystemAdvancePack, player)
+      isUsedSystemAdvancePack,0, player)
     
     
-    addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack,
+    addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack,0,
       player)
     
-    
-    spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack, player)
-    
-    
-    spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack, player)
-    
+    if(!isChange){
+    spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack,0, player)
+
+
+    spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack,0, player)
+    }
     
     profession = profession? {id: 0, text: profession, description: '', isOpen: false}:this.getRandomData(
       'profession',
@@ -1031,14 +1034,17 @@ class playerDataService {
     thisPlayer.inventory = JSON.stringify(inventory)
     thisPlayer.backpack = JSON.stringify(backpack)
     thisPlayer.addInfo = JSON.stringify(addInfo)
+    if(!isChange){
     thisPlayer.spec1 = JSON.stringify(spec1)
     thisPlayer.spec2 = JSON.stringify(spec2)
+    }
     thisPlayer.profession = JSON.stringify(profession)
     await thisPlayer.save()
-    
+   // console.log(body)
     let result = {}
+    if(!isChange){
     result[playerId] = {
-      
+
       sex: {text: sex, isOpen: sexIsOpen},
       body: body,
       trait: trait,
@@ -1052,6 +1058,22 @@ class playerDataService {
       spec2: spec2,
       profession: profession,
       isMVPRefresh: isMVPRefresh
+    }
+    }else{
+      result[playerId] = {
+
+            sex: {text: sex, isOpen: sexIsOpen},
+            body: body,
+            trait: trait,
+            health: health,
+            hobbies: hobbies,
+            phobia: phobia,
+            inventory: inventory,
+            backpack: backpack,
+            addInfo: addInfo,
+            profession: profession,
+            isMVPRefresh: isMVPRefresh
+          }
     }
     // console.log('CreateDataPlayer', result)
     return result
@@ -1087,7 +1109,7 @@ class playerDataService {
         throw ('Loop error')
       }
       this.getRandomPack(false, name)
-      console.log(this.usedPack)
+      // console.log(this.usedPack)
       let nameArray = this.usedPack.chartBunkerData.filter(item => item.name===name)
       
       if (nameArray.length) {
@@ -1117,12 +1139,13 @@ class playerDataService {
     if (name==='spec1' || name==='spec2') {
       name = 'card'
     }
+    console.log('00000000000000000')
     while (!result.text) {
       if (countWhile>10) {
         throw ('Loop throw')
       }
       this.getRandomPack(isUsedSystemAdvancePack, name)
-      // console.log('PROFESSION PACK LENGTH', this.usedPack.professionData.length);
+      console.log('111111111111111111')
       let playerData = null
       if (player) {
         playerData = JSON.parse(player[name])
@@ -1132,7 +1155,6 @@ class playerDataService {
           let resAge = +item.minAmateurAge || +this.systemSettings.minAmateurAge
           return resAge<= +age
         })
-        // console.log('PROFESIA KURVA', nameArray.length)
         if (nameArray.length) {
           let index = this.getRandomInt(0, nameArray.length - 1)
           result = nameArray[index]
@@ -1145,22 +1167,7 @@ class playerDataService {
           result.text = result.name
           delete result.name
           index = this.usedPack.professionData.indexOf(nameArray[index])
-          //   console.log(' ')
-          //   console.log(' ')
-          //   console.log(' ')
-          //  console.log(' ')
-          //   console.log(' ')
-          //    console.log(' ')
-          //    console.log(' ')
-          //    console.log(' ')
           this.usedPack.professionData.splice(index, 1)
-          //    console.log(result.text, this.usedPack.professionData)
-          //    console.log(' ')
-          //   console.log(' ')
-          //   console.log(' ')
-          //   console.log(' ')
-          //    console.log(' ')
-          //    console.log(' ')
         }
       }
       else {
@@ -1175,6 +1182,7 @@ class playerDataService {
           else {
             result.isOpen = false
           }
+          console.log(result)
           if (name!=='health') {
             delete result.dontAddLevelInfo
           }
@@ -1191,6 +1199,7 @@ class playerDataService {
           this.systemSettings.maxHeight)} см.)`
         break;
       case 'health':
+      console.log(result.text,result.dontAddLevelInfo)
         if (result.text!=='Идеально здоров' && result.dontAddLevelInfo===0) {
           
           
@@ -1396,7 +1405,7 @@ class playerDataService {
     }
     if (chartName!=='bunkerSize') {
       if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-        console.log(this.systemSettings.basePack)
+       // console.log(this.systemSettings.basePack)
         this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
         //  console.log('Сделали системный пак')
       }
@@ -1405,7 +1414,7 @@ class playerDataService {
         this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
           true)
       }
-      console.log(baseIdPack, advanceIdPack)
+     // console.log(baseIdPack, advanceIdPack)
       this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
       this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
     }
@@ -1426,7 +1435,7 @@ class playerDataService {
       }
     }
     if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-      console.log(this.systemSettings.basePack)
+   //   console.log(this.systemSettings.basePack)
       this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName)
       //  console.log('Сделали системный пак')
     }
@@ -1434,7 +1443,7 @@ class playerDataService {
     if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
       this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName)
     }
-    console.log(baseIdPack, advanceIdPack)
+    //console.log(baseIdPack, advanceIdPack)
     this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName)
     this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
     
@@ -1566,8 +1575,8 @@ class playerDataService {
   }
   
   async getDataPackRefresh(dataPackId, useChartId, chartName, isBunkerData = false) {
-    console.log(useChartId)
-    console.log(dataPackId)
+  //  console.log(useChartId)
+  //  console.log(dataPackId)
     if (chartName==='profession' && !isBunkerData) {
       let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
         {attributes: ['professionId'], where: {chartPackId: dataPackId}})
@@ -1599,7 +1608,7 @@ class playerDataService {
       }
       
       let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
-        {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
+        {attributes: ['id', 'name', 'text','dontAddLevelInfo'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
       
       return {chartPlayerData: dataPlayerChartData}
     }
@@ -1633,7 +1642,7 @@ class playerDataService {
           dataPlayer.push(chartId.chartPlayerId)
         }
         let dataPlayerChart = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text'], where: {id: dataPlayer}, raw: true})
+          {attributes: ['id', 'name', 'text','dontAddLevelInfo'], where: {id: dataPlayer}, raw: true})
         //  console.log(dataPlayer)
         return dataPlayerChart
       case 'bunker':
@@ -1678,7 +1687,7 @@ class playerDataService {
           dataProfessionIdPlayerData.push(chartId.professionId)
         }
         let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
+          {attributes: ['id', 'name', 'text','dontAddLevelInfo'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
         let dataProfessionChartData = await UserModel.Profession.findAll({
           attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
           where: {id: dataProfessionIdPlayerData}, raw: true

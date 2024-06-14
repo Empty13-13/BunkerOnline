@@ -352,9 +352,10 @@ function getRandomNumToDice() {
                 <div class="bunker__items items-bunker">
                   <div class="items-bunker__title">В бункере присутствует:</div>
                   <ul class="items-bunker__list">
-                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[0] }}</li>
-                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[1] }}</li>
-                    <li class="items-bunker__item">{{ selectedGameData.bunkerData.bunkerItems[2] }}</li>
+                    <li class="items-bunker__item"
+                        v-for="bunkerItem in selectedGameData.bunkerData.bunkerItems"
+                        :key="bunkerItem"
+                    >{{ bunkerItem }}</li>
                   </ul>
                 </div>
                 <p class="bunker__capacity">

@@ -76,8 +76,17 @@ const playerCharacteristics = [
   {text: 'Дополнительные сведения', value: 9},
 ]
 const playerCharacteristicsWithAll = [
-  {text: 'Все характеристики', value: -1},
-  ...playerCharacteristics
+  {text: 'Все характеристики', value: 0},
+  {text: 'Пол', value: 1},
+  {text: 'Телосложение', value: 2},
+  {text: 'Человеческая черта', value: 3},
+  {text: 'Профессия', value: 4},
+  {text: 'Здоровье', value: 5},
+  {text: 'Хобби / Увлечения', value: 6},
+  {text: 'Фобия/Страх', value: 7},
+  {text: 'Крупный инвентарь', value: 8},
+  {text: 'Рюкзак', value: 9},
+  {text: 'Дополнительные сведения', value: 10},
 ]
 const healItems = [
   {text: "Сделать идеально здоровым", value: 0},
@@ -223,13 +232,17 @@ function restartGame(e) {
           <AppSpoiler title="Изменить характеристику">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.characteristics.id" />
             <AppSelect :options="playerCharacteristicsWithAll" v-model="funcData.characteristics.chart" />
-            <div :class="![7,8,9].includes(funcData.characteristics.chart.value)?'_hide':''"
+            <div :class="![8,9,10].includes(funcData.characteristics.chart.value)?'_hide':''"
                  class="characteristicsInput">
               <input v-model="funcData.characteristics.inputValue"
                      placeholder="Ваша характеристика"
                      type="text">
             </div>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.changeCharacteristics(
+                funcData.characteristics.id.value,
+                funcData.characteristics.chart.value,
+                funcData.characteristics.inputValue,
+            )">
               <span class="text">Изменить характеристику</span>
             </button>
           </AppSpoiler>
@@ -331,11 +344,11 @@ function restartGame(e) {
           </AppSpoiler>
           <AppSpoiler title="Удалить/перенести инвентарь">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.deleteInventory.id" />
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.deleteRelocate(funcData.deleteInventory.id.value)">
               <span class="text">Удалить инвентарь</span>
             </button>
             <button v-if="funcData.deleteInventory.id.value !== 0" class="hostButton btn grayGold border"
-                    @click.prevent="charClick">
+                    @click.prevent="hostFunctional.changeRelocate(funcData.deleteInventory.id.value)">
               <span class="text">Перенести инвентарь</span>
             </button>
           </AppSpoiler>

@@ -80,6 +80,7 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerItems1: {type: DataTypes.INTEGER},
   bunkerItems2: {type: DataTypes.INTEGER},
   bunkerItems3: {type: DataTypes.INTEGER},
+  bunkerItemsOthers: {type: DataTypes.STRING(1000)},
   bunkerFood: {type: DataTypes.INTEGER},
   imageId: {type: DataTypes.INTEGER},
   voitingStatus: {type: DataTypes.TINYINT} 
@@ -159,7 +160,7 @@ const Logi = sequelize.define('logi', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   idRoom: {type: DataTypes.STRING},
   funcName: {type: DataTypes.STRING},
-  lastVar: {type: DataTypes.STRING(1000)},
+  lastVar: {type: DataTypes.STRING(15000)},
   text: {type: DataTypes.STRING(500)},
   step: {type: DataTypes.INTEGER},
   userId: {type: DataTypes.INTEGER},
