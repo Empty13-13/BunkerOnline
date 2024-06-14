@@ -169,7 +169,7 @@ class UserService {
         isAdmin = true
       }
     }
-    
+    console.log('userID',userId)
     const users = await UserModel.User.findOne({where: {id: userId}})
     if (!users) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
@@ -245,6 +245,7 @@ class UserService {
     // const avatar = user.data['avatar']
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
+    console.log(candidate)
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
     //console.log(candidateUser.userId)
     if (!candidate) {

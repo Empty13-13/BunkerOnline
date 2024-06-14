@@ -12,6 +12,7 @@ require('dotenv').config()
 const path = require('path')
 const {Op} = require('sequelize')
 const playerDataService = require('../service/playerData-service')
+const {User} = require("../model/models");
 
 /**
  * @type {number}
@@ -32,7 +33,12 @@ class ioUserService {
     return result
     
   }
-  
+  async reversLog(log,gameRoom,idRoom){
+    let funcName = log.functionName
+    let players = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1}})
+    //SetNull ByHour exchangeChart deleteRelocate addChart stealChart refresh:chartName cureMake degreeOfSick sexOpposite professionExp
+
+  }
   async getNickname(userId) {
     let nickname = ''
     if (userId>0) {

@@ -206,6 +206,7 @@ class UserController {
   async getUser(req, res, next) {
     try {
       const userId = req.params.id
+      console.log(userId)
       // const id = req.headers
       let token = null
       const accessToken = req.headers.authorization
