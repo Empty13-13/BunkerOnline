@@ -115,98 +115,134 @@ class playerDataService {
     }
     return {player: player, isOpen: isOpen, data: data, lastVar: lastVar}
   }
-  getLastVar(player){
-    let lastVar ={}
-    lastVar[player.userId] ={
-      sex : JSON.parse(player.sex),
-      trait : JSON.parse(player.trait),
-      profession : JSON.parse(player.profession),
-      health : JSON.parse(player.health),
-      hobbies : JSON.parse(player.hobbies),
-      phobia : JSON.parse(player.phobia),
-      inventory : JSON.parse(player.inventory),
-      backpack : JSON.parse(player.backpack),
-      addInfo : JSON.parse(player.addInfo),
-      spec1 : JSON.parse(player.spec1),
-      spec2 : JSON.parse(player.spec2)
+  
+  getLastVar(player) {
+    let lastVar = {}
+    lastVar[player.userId] = {
+      sex: JSON.parse(player.sex),
+      trait: JSON.parse(player.trait),
+      profession: JSON.parse(player.profession),
+      health: JSON.parse(player.health),
+      hobbies: JSON.parse(player.hobbies),
+      phobia: JSON.parse(player.phobia),
+      inventory: JSON.parse(player.inventory),
+      backpack: JSON.parse(player.backpack),
+      addInfo: JSON.parse(player.addInfo),
+      spec1: JSON.parse(player.spec1),
+      spec2: JSON.parse(player.spec2)
     }
     return lastVar
   }
-  async addChart(player,gameRoom,chartName,chartText){
+  
+  async addChart(player, gameRoom, chartName, chartText) {
+    console.log(player[chartName])
     let data = JSON.parse(player[chartName])
-    if(chartText){
+    let newId = 0
+    if (data.text==='Пусто' || data.text==='Отсутствует' || data.text==='Без профессии') {
+      data.text = ''
+      data.id = null
+    }
+    
+    if (chartText) {
       data.text = `${data.text}, ${chartText}`
     }
-    else{
+    else {
       this.systemSettings = await this.getSystemSettingsData()
-      let usePack = JSON.parse(player1.usePack)
+      let usePack = JSON.parse(player.usePack)
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
-      let newData = await this.refreshDataPlayer(usePack, chartName, data, gameRoom.id, player)
-      data.text = `${data.text}, ${newData.text}`
-      data.id = [data.id,newData.id]
+      let newData = JSON.parse(player[chartName])
+      newData = await this.refreshDataPlayer(usePack, chartName, newData, gameRoom.id, player)
+      console.log(data.text)
+      console.log(newData.text)
+      let newText = `${data.text}, ${newData.text}`
+      data.text = newText
+      newId = newData.id
+      
+      
+    }
+    if ((typeof data.id)!=='number' && data.id!==null) {
+      data.id = [...data.id, newId]
+    }
+    else {
+      if (data.id===null) {
+        data.id = newId
+        data.text = data.text.replaceAll(',', '')
+      }
+      else {
+        data.id = [data.id, newId]
+      }
     }
     return data
   }
-  async stealChart(playerId1,playerId2,gameRoom,chartName){
+  
+  async stealChart(playerId1, playerId2, gameRoom, chartName) {
     let players = {}
     let emitData = {}
+    console.log('player1', playerId1, 'player2', playerId2)
     let player1 = await UserModel.RoomSession.findOne({
-      attributes: ['userId',`${chartName}`,'usePack'],
-      where: {gameRoomId: gameRoom.id, isPlayer: 1,userId:playerId1},
-      raw: true
+      attributes: ['userId', `${chartName}`, 'usePack', 'id', 'sex'],
+      where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
     })
     let player2 = await UserModel.RoomSession.findOne({
-      attributes: ['userId',`${chartName}`],
-      where: {gameRoomId: gameRoom.id, isPlayer: 1,userId:playerId2},
-      raw: true
+      attributes: ['userId', `${chartName}`, 'id'],
+      where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId2}
     })
     let dataPlayer1 = JSON.parse(player1[chartName])
     let dataPlayer2 = JSON.parse(player2[chartName])
-    let lastVar = {[chartName]:{[playerId1]:dataPlayer1,[playerId2]:dataPlayer2}}
+    let lastVar = {[chartName]: {[playerId1]: dataPlayer1, [playerId2]: dataPlayer2}}
     dataPlayer2.id = dataPlayer1.id
-    dataPlayer2.text = dataPlayer2.text
-    if(chartName === 'profession'){
+    dataPlayer2.text = dataPlayer1.text
+    if (chartName==='profession') {
       dataPlayer2.description = dataPlayer1.description
     }
-    if(dataPlayer2.isOpen){
-      emitData[playerId2] = dataPlayer2
+    let isOpenPlayer1 = false
+    let isOpenPlayer2 = false
+    if (dataPlayer2.isOpen) {
+      emitData[playerId2] = {[chartName]: dataPlayer2}
+      isOpenPlayer2 = true
     }
-    players[playerId2] = dataPlayer2
-    if(chartName ==='hobbies' ||chartName ==='inventory' ||chartName ==='backpack'||chartName ==='addInfo'){
+    players[playerId2] = {[chartName]: dataPlayer2}
+    if (chartName==='hobbies' || chartName==='inventory' || chartName==='backpack' || chartName==='addInfo') {
       dataPlayer1.id = 0
       dataPlayer1.text = 'Пусто'
-    }else{
-
+    }
+    else {
+      
       this.systemSettings = await this.getSystemSettingsData()
       let usePack = JSON.parse(player1.usePack)
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
-      let dataPlayer1 = await this.refreshDataPlayer(usePack, chartName, dataPlayer1, gameRoom.id, player1)
+      dataPlayer1 = await this.refreshDataPlayer(usePack, chartName, dataPlayer1, gameRoom.id, player1)
     }
-    players[playerId1] = dataPlayer1
-    if(dataPlayer1.isOpen){
-      emitData[playerId1] = dataPlayer1
+    players[playerId1] = {[chartName]: dataPlayer1}
+    if (dataPlayer1.isOpen) {
+      emitData[playerId1] = {[chartName]: dataPlayer1}
+      isOpenPlayer1 = true
     }
-    player1 = JSON.stringify(dataPlayer1)
-    player2 = JSON.stringify(dataPlayer2)
+    player1[chartName] = JSON.stringify(dataPlayer1)
+    player2[chartName] = JSON.stringify(dataPlayer2)
+    console.log('PLAYERS', player1, player2)
     await player1.save()
     await player2.save()
-    return{
-      players:players,
-      lastVar:lastVar,
-      emitData:emitData
+    return {
+      players: players,
+      lastVar: lastVar,
+      emitData: emitData,
+      isOpenPlayer1: isOpenPlayer1,
+      isOpenPlayer2: isOpenPlayer2
     }
   }
-  async refreshChartPlayers(chartName, idRoom, players, gameRoom,chartText) {
+  
+  async refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText) {
     this.systemSettings = await this.getSystemSettingsData()
-    let data ={ players:{},lastVar:{},emitData:{players:{}}}
+    let data = {players: {}, lastVar: {}, emitData: {players: {}}}
     if (chartName==='allChart') {
       let hostPackIds = await this.hostUsePack(gameRoom.hostId)
       let resultPlayerData
-      await this.collectAndSetDataForPlayer(hostPackIds, players,true)
+      await this.collectAndSetDataForPlayer(hostPackIds, players, true)
       for (let player of players) {
         let lastVar = this.getLastVar(player)
         let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoom.id)
-        resultPlayerData = await this.createDataPlayer(usePackIds, player.userId, gameRoom.id,player,true)
+        resultPlayerData = await this.createDataPlayer(usePackIds, player.userId, gameRoom.id, player, true)
         data.players = Object.assign(data.players, resultPlayerData)
         data.lastVar = Object.assign(data.lastVar, lastVar)
       }
@@ -215,90 +251,95 @@ class playerDataService {
         where: {gameRoomId: gameRoom.id, isPlayer: 1},
         raw: true
       })
-
+      
       for (let player in allPlayers) {
         let playerData = {}
-
-          for (let key in allPlayers[player]) {
-            if (key.toString()!=='isMVPRefresh') {
-              let data = JSON.parse(allPlayers[player][key])
-              if (data && data.isOpen) {
-                playerData[key] = data
-              }
+        
+        for (let key in allPlayers[player]) {
+          if (key.toString()!=='isMVPRefresh') {
+            let data = JSON.parse(allPlayers[player][key])
+            if (data && data.isOpen) {
+              playerData[key] = data
             }
           }
-
+        }
+        
         if (!objIsEmpty(playerData)) {
-         data.emitData.players[allPlayers[player].userId] = playerData
+          data.emitData.players[allPlayers[player].userId] = playerData
         }
       }
     }
     else {
-      for(let player of players) {
+      for (let player of players) {
         let lastData = JSON.parse(player[chartName])
-        data.lastVar[player.userId] = {[chartName]:lastData}
-        if (chartText !== null && (chartName === 'inventory' || chartName === 'backpack' || chartName === 'addInfo')) {
-          lastData.text=chartText
-        }else{
+        data.lastVar[player.userId] = {[chartName]: lastData}
+        if (chartText!==null && (chartName==='inventory' || chartName==='backpack' || chartName==='addInfo')) {
+          lastData.text = chartText
+        }
+        else {
           let usePack = JSON.parse(player.usePack)
           await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
-         let lastData = await this.refreshDataPlayer(usePack, chartName, lastData, gameRoom.id, player)
+          let lastData = await this.refreshDataPlayer(usePack, chartName, lastData, gameRoom.id, player)
         }
         data.players[player.userId] = lastData
         player[chartName] = JSON.stringify(lastData)
         player.save()
-        if(lastData.isOpen){
+        if (lastData.isOpen) {
           data.emitData.players[player.userId] = lastData
         }
       }
     }
     return data
   }
-  indexForRandom(length){
+  
+  indexForRandom(length) {
     let array = []
-    for(let i=1;i<length;i++){
+    for (let i = 1; i<length; i++) {
       array.push(i)
     }
-    for (let i = array.length - 1; i > 0; i--) {
+    for (let i = array.length - 1; i>0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array
   }
-  async exchangeChart(players,chartName){
+  
+  async exchangeChart(players, chartName) {
     let arrayData = []
     let lastVar = {}
-    let dataPlayers ={}
-    let emitData = {players:{}}
+    let dataPlayers = {}
+    let emitData = {players: {}}
     lastVar.chartName = chartName
     let arrayList = this.indexForRandom(players.length)
-    for(let player of players){
+    for (let player of players) {
       arrayData.push(JSON.parse(player[chartName]))
     }
-    let i =0
-    for(let player of players){
+    let i = 0
+    for (let player of players) {
       let data = JSON.parse(player[chartName])
-      lastVar[player.userId]=data
+      lastVar[player.userId] = data
       data.text = arrayData[arrayList[i]].text
       data.id = arrayData[arrayList[i]].id
-      if(chartName==='profession'){
+      if (chartName==='profession') {
         data.description = arrayData[arrayList[i]].description
       }
-      player[chartName]= JSON.stringify(data)
+      player[chartName] = JSON.stringify(data)
       await player.save()
-      if(data.isOpen){
-      emitData.players[player.userId] = {[chartName]:data}
-      }else{
-        dataPlayers[player.userId] = {[chartName]:data}
+      if (data.isOpen) {
+        emitData.players[player.userId] = {[chartName]: data}
       }
-      i+=1
+      else {
+        dataPlayers[player.userId] = {[chartName]: data}
+      }
+      i += 1
     }
     return {
-      lastVar:lastVar,
-      emitData:emitData,
-      players:dataPlayers
+      lastVar: lastVar,
+      emitData: emitData,
+      players: dataPlayers
     }
   }
+  
   async refreshChartBunker(chartName = null, idRoom, userId) {
     this.systemSettings = await this.getSystemSettingsData()
     let gameRoom = await UserModel.GameRooms.findOne({
@@ -862,7 +903,7 @@ class playerDataService {
     
   }
   
-  async createDataPlayer(usePackIds, playerId, gameRoomId, playerData,player=null,isChange=false) {
+  async createDataPlayer(usePackIds, playerId, gameRoomId, playerData, player = null, isChange = false) {
     let isUsedSystemAdvancePack = false
     if (usePackIds.includes(this.systemSettings.advancePack)) {
       isUsedSystemAdvancePack = true
@@ -881,6 +922,7 @@ class playerDataService {
     let spec2 = playerData?.spec2 || null
     let profession = playerData?.profession || null
     let isMVPRefresh = null
+    let sexIsOpen = false
     if (sex===null) {
       age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
       
@@ -903,20 +945,20 @@ class playerDataService {
         sex += ' | чайлдфри'
         this.childFreeCount += 1
       }
-      let sexIsOpen = false
-      if(player){
+      
+      if (player) {
         sexIsOpen = JSON.parse(player['sex']).isOpen
       }
-
+      
     }
     else {
       
       age = 41
     }
     
-    body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack)
+    body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack, player)
     
-    trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack)
+    trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack, player)
     
     if (health===null) {
       if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
@@ -925,38 +967,40 @@ class playerDataService {
         this.perfectHealthCount += 1
       }
       else {
-        health = this.getRandomData('health', isUsedSystemAdvancePack)
+        health = this.getRandomData('health', isUsedSystemAdvancePack, player)
       }
     }
     else {
       health = {id: 0, text: health, isOpen: false}
     }
-    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack)
+    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack,
+      player)
     
     
-    phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack)
+    phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack, player)
     
     
     inventory = inventory? {id: 0, text: inventory, isOpen: false}:this.getRandomData('inventory',
-      isUsedSystemAdvancePack)
+      isUsedSystemAdvancePack, player)
     
     
     backpack = backpack? {id: 0, text: backpack, isOpen: false}:this.getRandomData('backpack',
-      isUsedSystemAdvancePack)
+      isUsedSystemAdvancePack, player)
     
     
-    addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack)
+    addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack,
+      player)
     
     
-    spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack)
+    spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack, player)
     
     
-    spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack)
+    spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack, player)
     
     
     profession = profession? {id: 0, text: profession, description: '', isOpen: false}:this.getRandomData(
       'profession',
-      isUsedSystemAdvancePack, age)
+      isUsedSystemAdvancePack, age, player)
     
     
     let thisPlayer = await UserModel.RoomSession.findOne({where: {userId: playerId, gameRoomId: gameRoomId}})
@@ -1053,7 +1097,7 @@ class playerDataService {
     return result
   }
   
-  getRandomData(name, isUsedSystemAdvancePack, age = 0) {
+  getRandomData(name, isUsedSystemAdvancePack, age = 0, player) {
     let result = {}
     let countWhile = 0
     age = +age
@@ -1065,10 +1109,10 @@ class playerDataService {
       if (countWhile>10) {
         throw ('Loop throw')
       }
-      this.getRandomPack(isUsedSystemAdvancePack, name,player)
+      this.getRandomPack(isUsedSystemAdvancePack, name)
       // console.log('PROFESSION PACK LENGTH', this.usedPack.professionData.length);
       let playerData = null
-      if(player){
+      if (player) {
         playerData = JSON.parse(player[name])
       }
       if (name==='profession') {
@@ -1080,9 +1124,10 @@ class playerDataService {
         if (nameArray.length) {
           let index = this.getRandomInt(0, nameArray.length - 1)
           result = nameArray[index]
-          if(playerData){
+          if (playerData) {
             result.isOpen = playerData.isOpen
-          }else {
+          }
+          else {
             result.isOpen = false
           }
           result.text = result.name
@@ -1112,9 +1157,10 @@ class playerDataService {
           let index = this.getRandomInt(0, nameArray.length - 1)
           result = nameArray[index]
           delete result.name
-          if(playerData){
+          if (playerData) {
             result.isOpen = playerData.isOpen
-          }else {
+          }
+          else {
             result.isOpen = false
           }
           if (name!=='health') {
@@ -1383,7 +1429,7 @@ class playerDataService {
     
   }
   
-  async collectAndSetDataForPlayer(hostPack, players,isChange=false) {
+  async collectAndSetDataForPlayer(hostPack, players, isChange = false) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
     // console.log('//////////////////')
     //console.log(baseIdPack, advanceIdPack)
@@ -1394,9 +1440,10 @@ class playerDataService {
     // this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
     // console.log('collectAndSetDataForPlayer', baseIdPack.includes(+this.systemSettings.basePack))
     if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-      if(!isChange) {
+      if (!isChange) {
         this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
-      }else{
+      }
+      else {
         this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'playerData')
       } //  console.log('Сделали системный пак')
     }
@@ -1415,14 +1462,15 @@ class playerDataService {
         }
       }
     }
-    if(!isChange) {
+    if (!isChange) {
       this.basePack = await this.getDataPackData(baseIdPack, 'all')
       this.advancePack = await this.getDataPackData(advanceIdPack, 'all')
       // console.log('usePriorityAccess', usePriorityAccess)
       if (usePriorityAccess) {
         this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'all')
       }
-    }else{
+    }
+    else {
       this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
       this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
       // console.log('usePriorityAccess', usePriorityAccess)

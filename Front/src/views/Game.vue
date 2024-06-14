@@ -303,7 +303,7 @@ function getRandomNumToDice() {
         <img src="/img/icons/watcher.svg" alt="">
       </div>
       <div class="timerBlock"
-           :class="hostFunctional.haveAccess?myProfile.isAdmin?'_hostAndAdmin':'_host':''"
+           :class="hostFunctional.haveAccess?myProfile.isAdmin?'_hostAndAdmin':'_host':myProfile.isAdmin?'_admin':''"
       >
         <div class="timerBlock__body btn gold border">
           <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
@@ -2104,7 +2104,7 @@ function getRandomNumToDice() {
     transform: translate(0);
   }
 
-  &._host {
+  &._host,&._admin {
     @media (max-width: $mobile) {
       bottom: 70px;
     }
@@ -2115,7 +2115,6 @@ function getRandomNumToDice() {
       bottom: 120px;
     }
   }
-
 
   &__body {
     padding: 15px 20px;

@@ -78,6 +78,12 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       const color = data.color
       globalPopup.activate(title || 'Сообщение от сервера', message || '', color)
     })
+    userSocket.on('sendMessage:timer', data => {
+      const title = data.title
+      const message = data.message
+      const color = data.color
+      globalPopup.activate(title || 'Сообщение от сервера', message || '', color,true)
+    })
     userSocket.on('startedGame', data => {
       console.log('Игра началась')
       globalPreloader.activate()

@@ -1,10 +1,13 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
-import { useSelectedGameData } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { ref } from "vue";
+import { useMyProfileStore } from "@/stores/profile.js";
 
 const selectedGameData = useSelectedGameData()
+const myProfile = useMyProfileStore()
+const hostFunctional = useHostFunctionalStore()
 
 const funcData = ref({
   sendMessage: {
@@ -32,7 +35,7 @@ function sendMessage(e) {
 
 <template>
   <AppButton @click="toggleShow" border="true" class="activateButton"
-             color="gold">Админ панель
+             color="gold" :style="hostFunctional.haveAccess?'':'bottom: 15px'">Админ панель
   </AppButton>
   <div class="adminPanel" :class="showPanel?'_active':''">
     <div @click="toggleShow" class="adminPanel__wrapper"></div>

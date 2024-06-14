@@ -86,36 +86,36 @@ const healItems = [
   {text: "Вылечить фобию", value: 3},
 ]
 const addCharacteristicItems = [
-  {text: 'Человеческая черта', value: 2},
-  {text: 'Здоровье', value: 4},
-  {text: 'Хобби / Увлечения', value: 5},
-  {text: 'Фобия/Страх', value: 6},
-  {text: 'Крупный инвентарь', value: 7},
-  {text: 'Рюкзак', value: 8},
-  {text: 'Дополнительные сведения', value: 9},]
+  {text: 'Человеческая черта', value: 0},
+  {text: 'Здоровье', value: 1},
+  {text: 'Хобби / Увлечения', value: 2},
+  {text: 'Фобия/Страх', value: 3},
+  {text: 'Крупный инвентарь', value: 4},
+  {text: 'Рюкзак', value: 5},
+  {text: 'Дополнительные сведения', value: 6},]
 const rotateChangeDeleteItems = [
-  {text: 'Пол по часовой стрелке', value: 2},
-  {text: 'Пол против часовой стрелки', value: 2},
-  {text: 'Телосложение по часовой стрелке', value: 2},
-  {text: 'Телосложение против часовой стрелки', value: 2},
-  {text: 'Человеческая черта по часовой стрелке', value: 2},
-  {text: 'Человеческая черта против часовой стрелки', value: 2},
-  {text: 'Профессия по часовой стрелке', value: 2},
-  {text: 'Профессия против часовой стрелки', value: 2},
-  {text: 'Здоровье по часовой стрелке', value: 2},
-  {text: 'Здоровье против часовой стрелки', value: 2},
-  {text: 'Хобби по часовой стрелке', value: 2},
-  {text: 'Хобби против часовой стрелки', value: 2},
-  {text: 'Фобия по часовой стрелке', value: 2},
-  {text: 'Фобия против часовой стрелки', value: 2},
-  {text: 'Инвентарь по часовой стрелке', value: 2},
-  {text: 'Инвентарь против часовой стрелки', value: 2},
-  {text: 'Рюкзак по часовой стрелке', value: 2},
-  {text: 'Рюкзак против часовой стрелки', value: 2},
-  {text: 'Доп. Сведения по часовой стрелке', value: 2},
-  {text: 'Доп. Сведения против часовой стрелки', value: 2},
-  {text: 'Аннулировать всем профессию', value: 2},
-  {text: 'Аннулировать всем Хобби', value: 2},
+  {text: 'Пол по часовой стрелке', value: 0, rotate: 0},
+  {text: 'Пол против часовой стрелки', value: 0, rotate: 1},
+  {text: 'Телосложение по часовой стрелке', value: 1, rotate: 0},
+  {text: 'Телосложение против часовой стрелки', value: 1, rotate: 1},
+  {text: 'Человеческая черта по часовой стрелке', value: 2, rotate: 0},
+  {text: 'Человеческая черта против часовой стрелки', value: 2, rotate: 1},
+  {text: 'Профессия по часовой стрелке', value: 3, rotate: 0},
+  {text: 'Профессия против часовой стрелки', value: 3, rotate: 1},
+  {text: 'Здоровье по часовой стрелке', value: 4, rotate: 0},
+  {text: 'Здоровье против часовой стрелки', value: 4, rotate: 1},
+  {text: 'Хобби по часовой стрелке', value: 5, rotate: 0},
+  {text: 'Хобби против часовой стрелки', value: 5, rotate: 1},
+  {text: 'Фобия по часовой стрелке', value: 6, rotate: 0},
+  {text: 'Фобия против часовой стрелки', value: 6, rotate: 1},
+  {text: 'Инвентарь по часовой стрелке', value: 7, rotate: 0},
+  {text: 'Инвентарь против часовой стрелки', value: 7, rotate: 1},
+  {text: 'Рюкзак по часовой стрелке', value: 8, rotate: 0},
+  {text: 'Рюкзак против часовой стрелки', value: 8, rotate: 1},
+  {text: 'Доп. Сведения по часовой стрелке', value: 9, rotate: 0},
+  {text: 'Доп. Сведения против часовой стрелки', value: 9, rotate: 1},
+  {text: 'Аннулировать всем профессию', value: 10},
+  {text: 'Аннулировать всем Хобби', value: 11},
 ]
 const bunkerCharacteristicsItems = [
   {text: 'Когда был построен', value: 0},
@@ -273,7 +273,8 @@ function restartGame(e) {
                        :options="selectPlayer2WithoutSelectedFirst(funcData.steal.id1.value)" />
             <AppSelect v-model="funcData.steal.chart" :options="playerCharacteristics" />
             <div class="hostButtonBlock">
-              <button class="hostButton btn grayGold border" @click.prevent="charClick">
+              <button class="hostButton btn grayGold border"
+                      @click.prevent="hostFunctional.stealChart(funcData.steal.id1.value,funcData.steal.id2.value,funcData.steal.chart.value)">
                 <span class="text">Украсть</span>
               </button>
               <div class="hostButtonBlock__smallInfo smallInfo-hostButtonBlock">
@@ -307,13 +308,19 @@ function restartGame(e) {
           <AppSpoiler title="Добавить доп. характеристику">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.addCharacteristic.id" />
             <AppSelect :options="addCharacteristicItems" v-model="funcData.addCharacteristic.chart" />
-            <div :class="![7,8,9].includes(funcData.addCharacteristic.chart.value)?'_hide':''"
+            <div :class="![4,5,6].includes(funcData.addCharacteristic.chart.value)?'_hide':''"
                  class="characteristicsInput">
               <input v-model="funcData.addCharacteristic.inputValue"
                      placeholder="Ваша характеристика"
+                     maxlength="100"
                      type="text">
             </div>
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.addChart(
+                        funcData.addCharacteristic.id.value,
+                    funcData.addCharacteristic.chart.value,
+                    funcData.addCharacteristic.inputValue
+                    )">
               <span class="text">Добавить</span>
             </button>
           </AppSpoiler>
@@ -329,7 +336,8 @@ function restartGame(e) {
           </AppSpoiler>
           <AppSpoiler title="Изменить по/против/аннулировать">
             <AppSelect :options="rotateChangeDeleteItems" v-model="funcData.rotateChangeDelete.chart" />
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.rotateChangeDelete(rotateChangeDeleteItems,funcData.rotateChangeDelete.chart)">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
@@ -370,7 +378,8 @@ function restartGame(e) {
           </AppSpoiler>
           <AppSpoiler title="Сменить ведущего">
             <AppSelect :options="selectedGameData.getAllPlayersSelect" v-model="funcData.changeHost.id" />
-            <button class="hostButton btn grayGold border" @click.prevent="charClick">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.transferHost(funcData.changeHost.id.value)">
               <span class="text">Сменить ведущего</span>
             </button>
           </AppSpoiler>
@@ -382,7 +391,6 @@ function restartGame(e) {
       </div>
     </div>
   </div>
-  А
   <button @click.left="isOpen=!isOpen" class="hostActivateButton btn gold border" :class="isOpen?'_active':''">
     <span class="hostActivateButton__icon">
       <span class=""></span>

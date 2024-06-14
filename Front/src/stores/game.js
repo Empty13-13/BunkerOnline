@@ -172,6 +172,32 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     })
   }
   
+  function rotateChangeDelete(array,obj) {
+    if (obj.value===10) {
+      hostSocket.emit('refresh:SetNull', 0)
+    }
+    else if (obj.value===11) {
+      hostSocket.emit('refresh:SetNull', 1)
+    }
+    else {
+      console.log(array.find(item => item.text === obj.text).rotate)
+      hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text ===obj.text).rotate)
+    }
+  }
+  
+  function transferHost(id) {
+    console.log(id)
+    hostSocket.emit('transferHost',id)
+  }
+  
+  function stealChart(id1,id2,idChart) {
+    hostSocket.emit('stealChart',id1,id2,idChart)
+  }
+  
+  function addChart(idPlayer,idChart,text) {
+    hostSocket.emit('addChart',idPlayer,idChart,text)
+  }
+  
   //========================================================================================================================================================
   
   function changeSpaceNum(isPlus, e) {
@@ -198,6 +224,10 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     rollTheDice,
     professionRotate,
     setAllProfessionToNull,
+    rotateChangeDelete,
+    transferHost,
+    stealChart,
+    addChart,
   }
 })
 
@@ -269,7 +299,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getAllPlayersSelect = computed(() => {
     let resultArr = []
     for (let id in userData.value) {
-      resultArr.push({value:id, text: userData.value[id].nickname})
+      resultArr.push({value: id, text: userData.value[id].nickname})
     }
     return resultArr
   })
