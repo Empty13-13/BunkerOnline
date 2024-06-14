@@ -1249,7 +1249,7 @@ module.exports = function(io) {
       })
       socket.on('addChart', async (playersId, chartId, chartText = null) => {
         if (chartText) {
-          let is
+          let isBadContent = false
           let forbiddenCharacters = await UserModel.BlackListWords.findAll()
           
           if (forbiddenCharacters) {
@@ -1261,9 +1261,13 @@ module.exports = function(io) {
                     status: 400,
                     functionName: 'addChart'
                   })
-                return
+                isBadContent = true
               }
             })
+          }
+          
+          if(isBadContent) {
+            return
           }
         }
         let chartArray = ['trait', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
