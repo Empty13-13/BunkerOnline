@@ -301,6 +301,24 @@ async function updateMyGames() {
       font-size: 12px;
     }
   }
+
+  &__playVoice {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #00000080;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 15px auto 0px auto;
+
+    span {
+      margin-left: 10px;
+      width: 30px;
+      height: 30px;
+    }
+  }
 }
 
 //========================================================================================================================================================

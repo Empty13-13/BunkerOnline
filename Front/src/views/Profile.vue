@@ -525,9 +525,10 @@ function changeEmailHandler(e) {
               <!--                <option value="1" :selected="data.isMale===1">Мужской</option>-->
               <!--              </select>-->
             </div>
-            <div v-if="isMyProfile" class="middle-profileBlock__column">
+            <div v-if="isMyProfile" class="middle-profileBlock__column _column">
               <label for="about">О себе</label>
               <textarea maxlength="254" ref="aboutInput" name="about" id="about" placeholder="Текст о себе">{{data.about}}</textarea>
+              <input v-if="!myProfile.isStreamer" type="text" class="middle-profileBlock__streamInput" placeholder="Вставьте ссылку на стрим">
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <AppLoader v-if="isSaveLoader" />
@@ -539,8 +540,8 @@ function changeEmailHandler(e) {
               <AppButton @click="changePasswordHandler" color="gold" border="true" class="change-profileBlock__btn">
                 Сменить пароль
               </AppButton>
-              <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">Сменить
-                                                                                                                 почту
+              <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">
+                Сменить  почту
               </AppButton>
             </div>
           </div>
@@ -1024,6 +1025,14 @@ function changeEmailHandler(e) {
         margin-bottom: 30px;
       }
     }
+
+    &._column {
+      flex-direction: column;
+    }
+  }
+
+  &__streamInput {
+    margin-top: 10px;
   }
 
   label {
