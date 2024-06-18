@@ -83,7 +83,9 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerItemsOthers: {type: DataTypes.STRING(1000)},
   bunkerFood: {type: DataTypes.INTEGER},
   imageId: {type: DataTypes.INTEGER},
-  voitingStatus: {type: DataTypes.TINYINT} 
+  userList: {type: DataTypes.STRING},
+  bunkerAge: {type: DataTypes.STRING},
+  voitingStatus: {type: DataTypes.TINYINT}
 })
 
 const RoomSession = sequelize.define('roomSession', {

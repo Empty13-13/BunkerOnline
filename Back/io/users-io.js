@@ -173,6 +173,15 @@ module.exports = function(io) {
         
         if (game && game.isStarted===1) {
           let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
+          if(!player.isAlive || !player.isPlayer){
+             socket.emit("setError",
+                        {
+                          message: "Вы не можете открывать характеристики по причине: Вас изгнали/вы не игрок",
+                          status: 400,
+                          functionName: 'openChart'
+                        })
+                      return
+          }
           if (player[chartName]) {
             let emitData = {}
             let data = JSON.parse(player[chartName])
@@ -235,6 +244,15 @@ module.exports = function(io) {
             let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
             if (game && game.isStarted===1) {
               let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
+              if(!player.isAlive || !player.isPlayer){
+                           socket.emit("setError",
+                                      {
+                                        message: "Вы не можете меня характеристики по причине: Вас изгнали/вы не игрок",
+                                        status: 400,
+                                        functionName: 'refreshChartMVP'
+                                      })
+                                    return
+                        }
               if (player[chartName] && player.isMVPRefresh!==1) {
                 let data = await playerDataService.refreshChartMvp(player, chartName, game.id)
                 if (data===null) {

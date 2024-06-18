@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
-import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/stores/game.js";
 import { hostSocket, userSocket } from "@/socket/sockets.js";
 import { switchError } from "@/logics/socketLogic.js";
 
@@ -33,6 +33,10 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
     
     hostSocket.on('disconnect', socket => {
       console.log('Отключились от функционала хоста')
+    })
+    
+    userSocket.on('restartGame', () => {
+      hostSocket.emit('startGame');
     })
   }
   

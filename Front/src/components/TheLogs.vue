@@ -58,6 +58,7 @@ const selectedGameData = useSelectedGameData()
               <p v-else class="list-logs__text"
                  v-html="selectedGameData.getLogHtml(log)"
               ></p>
+              <p class="list-logs__date">{{`${new Date(log.date).getHours()}:${new Date(log.date).getMinutes()}`}}</p>
             </li>
           </ul>
         </div>
@@ -114,6 +115,14 @@ const selectedGameData = useSelectedGameData()
   }
 
   &__text {
+  }
+
+  &__date {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    margin-right: 15px;
+    width: 45px;
   }
 }
 

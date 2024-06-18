@@ -174,7 +174,7 @@ class UserController {
     const userData = await userService.connectionDiscord(code)
     // console.log(userData)
     if (userData==='banned') {
-      res.redirect(423, `${process.env.FRONT_API}/login`)
+      res.redirect(`${process.env.FRONT_API}/login?blocked=true`)
       return
     }
     res.cookie('refreshToken', userData.refreshToken,

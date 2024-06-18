@@ -7,6 +7,7 @@ import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
+import { hostSocket } from "@/socket/sockets.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -172,54 +173,95 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
     })
   }
   
-  function rotateChangeDelete(array, obj) {
-    if (obj.value===10) {
-      hostSocket.emit('refresh:SetNull', 0)
-    }
-    else if (obj.value===11) {
-      hostSocket.emit('refresh:SetNull', 1)
-    }
-    else {
-      console.log(array.find(item => item.text===obj.text).rotate)
-      hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text===obj.text).rotate)
-    }
+  function rotateChangeDelete(e, array, obj) {
+    showConfirmBlock(e.target, () => {
+      if (obj.value===10) {
+        hostSocket.emit('refresh:SetNull', 0)
+      }
+      else if (obj.value===11) {
+        hostSocket.emit('refresh:SetNull', 1)
+      }
+      else {
+        console.log(array.find(item => item.text===obj.text).rotate)
+        hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text===obj.text).rotate)
+      }
+    })
   }
   
-  function transferHost(id) {
-    console.log(id)
-    hostSocket.emit('transferHost', id)
+  function transferHost(e, id) {
+    showConfirmBlock(e.target, () => {
+      console.log(id)
+      hostSocket.emit('transferHost', id)
+    }, 'Вы действительно хотите передать права ведущего другому игроку?')
   }
   
-  function stealChart(id1, id2, idChart) {
-    hostSocket.emit('stealChart', id1, id2, idChart)
+  function stealChart(e, id1, id2, idChart) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('stealChart', id1, id2, idChart)
+    })
   }
   
-  function addChart(idPlayer, idChart, text) {
-    if (idChart>4) {
-      text = null
-    }
-    hostSocket.emit('addChart', idPlayer, idChart, text)
+  function addChart(e, idPlayer, idChart, text) {
+    showConfirmBlock(e.target, () => {
+      if (idChart<4) {
+        text = null
+      }
+      hostSocket.emit('addChart', idPlayer, idChart, text)
+    })
   }
   
-  function changeBunker(idAction) {
-    hostSocket.emit('refresh:bunkerData', idAction)
+  function changeBunker(e, idAction) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:bunkerData', idAction)
+    })
   }
   
-  function swapCharacter(idPlayer1,idPlayer2,idChart) {
-    console.log(idPlayer1,idPlayer2,idChart)
-    hostSocket.emit('exchangeChart',idPlayer1,idPlayer2,idChart)
+  function swapCharacter(e, idPlayer1, idPlayer2, idChart) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('exchangeChart', idPlayer1, idPlayer2, idChart)
+    })
   }
   
-  function changeCharacteristics(playersId, chartId, chartText ) {
-    hostSocket.emit('refresh:chartName',playersId, chartId, chartText)
+  function changeCharacteristics(e, playersId, chartId, chartText) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:chartName', playersId, chartId, chartText)
+    })
   }
   
-  function deleteRelocate(playerId) {
-    hostSocket.emit('deleteRelocate',playerId,0)
+  function deleteRelocate(e, playerId, funcId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('deleteRelocate', playerId, funcId)
+    })
   }
   
-  function changeRelocate(playerId) {
-    hostSocket.emit('deleteRelocate',playerId,1)
+  function changeRelocate(e, playerId, funcId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('deleteRelocate', playerId, funcId)
+    })
+  }
+  
+  function healthOrDo(e, playerId, chartId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:cureMake', playerId, chartId)
+    })
+  }
+  
+  function sexOpposite(e, playerId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:sexOpposite', playerId)
+    })
+  }
+  
+  function degreeOfSick(e, playerId, chartId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:degreeOfSick', playerId, chartId)
+    })
+  }
+  
+  function professionExp(e, playerId, chartId) {
+    showConfirmBlock(e.target, () => {
+      hostSocket.emit('refresh:professionExp', playerId, chartId)
+    })
   }
   
   //========================================================================================================================================================
@@ -239,6 +281,10 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   return {
     haveAccess,
     isPlayerToo,
+    healthOrDo,
+    professionExp,
+    degreeOfSick,
+    sexOpposite,
     clearData,
     startVoiting,
     endVoiting,
@@ -308,9 +354,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     let resultArr = []
     for (let id in userData.value) {
       if (!!userData.value[id].isPlayer) {
-        resultArr.push({id, data: userData.value[id]})
+        resultArr.push({id:id, data: userData.value[id]})
       }
     }
+    console.log(resultArr)
     return resultArr
   })
   const getPlayerForSelect = computed(() => {
@@ -359,9 +406,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     if (data.hasOwnProperty('userData')) {
       for (let userId in data.userData) {
-        userData.value[userId] = userData.value[userId] || {}
-        for (let key in data.userData[userId]) {
-          userData.value[userId][key] = data.userData[userId][key]
+        if(userId==='sortedPlayers') {
+          userData.value[userId] = data.userData[userId]
+        } else {
+          userData.value[userId] = userData.value[userId] || {}
+          for (let key in data.userData[userId]) {
+            userData.value[userId][key] = data.userData[userId][key]
+          }
         }
       }
     }

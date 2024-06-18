@@ -118,7 +118,7 @@ const navBlock = ref()
                     <router-link to="/">Инвентарь</router-link>
                   </li>
                   <li>
-                    <router-link to="/">Дополнительные сведения</router-link>
+                    <router-link to="/">Дополнительное сведение</router-link>
                   </li>
                   <li>
                     <router-link to="/">Спец. возможность #1</router-link>

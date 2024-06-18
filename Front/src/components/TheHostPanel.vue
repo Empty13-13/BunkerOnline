@@ -6,7 +6,7 @@ import AppSelect from "@/components/Forms/AppSelect.vue";
 import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { hostSocket, userSocket } from "@/socket/sockets.js";
-import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
+import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/stores/game.js";
 import { RouterView } from "vue-router";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
@@ -73,7 +73,7 @@ const playerCharacteristics = [
   {text: 'Фобия/Страх', value: 6},
   {text: 'Крупный инвентарь', value: 7},
   {text: 'Рюкзак', value: 8},
-  {text: 'Дополнительные сведения', value: 9},
+  {text: 'Дополнительное сведение', value: 9},
 ]
 const playerCharacteristicsWithAll = [
   {text: 'Все характеристики', value: 0},
@@ -86,7 +86,7 @@ const playerCharacteristicsWithAll = [
   {text: 'Фобия/Страх', value: 7},
   {text: 'Крупный инвентарь', value: 8},
   {text: 'Рюкзак', value: 9},
-  {text: 'Дополнительные сведения', value: 10},
+  {text: 'Дополнительное сведение', value: 10},
 ]
 const healItems = [
   {text: "Сделать идеально здоровым", value: 0},
@@ -101,7 +101,7 @@ const addCharacteristicItems = [
   {text: 'Фобия/Страх', value: 3},
   {text: 'Крупный инвентарь', value: 4},
   {text: 'Рюкзак', value: 5},
-  {text: 'Дополнительные сведения', value: 6},]
+  {text: 'Дополнительное сведение', value: 6},]
 const rotateChangeDeleteItems = [
   {text: 'Пол по часовой стрелке', value: 0, rotate: 0},
   {text: 'Пол против часовой стрелки', value: 0, rotate: 1},
@@ -154,9 +154,6 @@ function closeRoom(e) {
 function restartGame(e) {
   showConfirmBlock(e.target, () => {
     hostSocket.emit('clearData');
-    userSocket.on('restartGame', () => {
-      hostSocket.emit('startGame');
-    })
   }, 'Вы уверены что хотите создать новую игру? Весь прогресс текущей игры будет утрачен')
 }
 
@@ -239,6 +236,7 @@ function restartGame(e) {
                      type="text">
             </div>
             <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.changeCharacteristics(
+                $event,
                 funcData.characteristics.id.value,
                 funcData.characteristics.chart.value,
                 funcData.characteristics.inputValue,
@@ -250,7 +248,9 @@ function restartGame(e) {
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.profession.id" />
             <AppSelect :options="professionItems" v-model="funcData.profession.chart" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostSocket.emit('refresh:professionExp',funcData.profession.id.value,funcData.profession.chart.value)">
+                    @click.prevent="hostFunctional.professionExp($event,
+                    funcData.profession.id.value,
+                    funcData.profession.chart.value)">
               <span class="text">Изменить стаж профессии</span>
             </button>
           </AppSpoiler>
@@ -258,15 +258,16 @@ function restartGame(e) {
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.health.id" />
             <AppSelect :options="healthLevel" v-model="funcData.health.chart" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostSocket.emit('refresh:degreeOfSick',funcData.health.id.value,funcData.health.chart.value)">
+                    @click.prevent="hostFunctional.degreeOfSick($event,
+                    funcData.health.id.value,
+                    funcData.health.chart.value)">
               <span class="text">Изменить степень болезни</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить пол на противоположный">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.body.id" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostSocket.emit('refresh:sexOpposite',funcData.body.id.value)"
-            >
+                    @click.prevent="hostFunctional.sexOpposite($event,funcData.body.id.value)">
               <span class="text">Изменить пол</span>
             </button>
           </AppSpoiler>
@@ -278,6 +279,7 @@ function restartGame(e) {
             <AppSelect :options="playerCharacteristics" v-model="funcData.swap.chart" />
             <button class="hostButton btn grayGold border"
                     @click.prevent="hostFunctional.swapCharacter(
+                        $event,
                         funcData.swap.id1.value,
                         funcData.swap.id2.value||null,
                         funcData.swap.chart.value
@@ -292,7 +294,7 @@ function restartGame(e) {
             <AppSelect v-model="funcData.steal.chart" :options="playerCharacteristics" />
             <div class="hostButtonBlock">
               <button class="hostButton btn grayGold border"
-                      @click.prevent="hostFunctional.stealChart(funcData.steal.id1.value,funcData.steal.id2.value,funcData.steal.chart.value)">
+                      @click.prevent="hostFunctional.stealChart($event,funcData.steal.id1.value,funcData.steal.id2.value,funcData.steal.chart.value)">
                 <span class="text">Украсть</span>
               </button>
               <div class="hostButtonBlock__smallInfo smallInfo-hostButtonBlock">
@@ -319,7 +321,12 @@ function restartGame(e) {
             <AppSelect v-model="funcData.heal.id" :options="selectedGameData.getPlayerForSelectAndAll" />
             <AppSelect v-model="funcData.heal.chart" :options="healItems" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostSocket.emit('refresh:cureMake',funcData.heal.id.value,funcData.heal.chart.value)">
+                    @click.prevent="
+                    hostFunctional.healthOrDo(
+                        $event,
+                    funcData.heal.id.value,
+                    funcData.heal.chart.value
+                    )">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
@@ -335,6 +342,7 @@ function restartGame(e) {
             </div>
             <button class="hostButton btn grayGold border"
                     @click.prevent="hostFunctional.addChart(
+                        $event,
                         funcData.addCharacteristic.id.value,
                     funcData.addCharacteristic.chart.value,
                     funcData.addCharacteristic.inputValue
@@ -344,25 +352,34 @@ function restartGame(e) {
           </AppSpoiler>
           <AppSpoiler title="Удалить/перенести инвентарь">
             <AppSelect :options="selectedGameData.getPlayerForSelectAndAll" v-model="funcData.deleteInventory.id" />
-            <button class="hostButton btn grayGold border" @click.prevent="hostFunctional.deleteRelocate(funcData.deleteInventory.id.value)">
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.deleteRelocate($event,funcData.deleteInventory.id.value,0)">
               <span class="text">Удалить инвентарь</span>
             </button>
+            <button class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.deleteRelocate($event,funcData.deleteInventory.id.value,2)">
+              <span class="text">Удалить рюкзак</span>
+            </button>
             <button v-if="funcData.deleteInventory.id.value !== 0" class="hostButton btn grayGold border"
-                    @click.prevent="hostFunctional.changeRelocate(funcData.deleteInventory.id.value)">
+                    @click.prevent="hostFunctional.changeRelocate($event,funcData.deleteInventory.id.value,1)">
               <span class="text">Перенести инвентарь</span>
+            </button>
+            <button v-if="funcData.deleteInventory.id.value !== 0" class="hostButton btn grayGold border"
+                    @click.prevent="hostFunctional.changeRelocate($event,funcData.deleteInventory.id.value,3)">
+              <span class="text">Перенести рюкзак</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить по/против/аннулировать">
             <AppSelect :options="rotateChangeDeleteItems" v-model="funcData.rotateChangeDelete.chart" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostFunctional.rotateChangeDelete(rotateChangeDeleteItems,funcData.rotateChangeDelete.chart)">
+                    @click.prevent="hostFunctional.rotateChangeDelete($event,rotateChangeDeleteItems,funcData.rotateChangeDelete.chart)">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
           <AppSpoiler title="Изменить бункер">
             <AppSelect :options="bunkerCharacteristicsItems" v-model="funcData.bunkerCharacteristics.chart" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostFunctional.changeBunker(funcData.bunkerCharacteristics.chart.value)">
+                    @click.prevent="hostFunctional.changeBunker($event, funcData.bunkerCharacteristics.chart.value)">
               <span class="text">Применить</span>
             </button>
           </AppSpoiler>
@@ -398,7 +415,7 @@ function restartGame(e) {
           <AppSpoiler title="Сменить ведущего">
             <AppSelect :options="selectedGameData.getAllPlayersSelect" v-model="funcData.changeHost.id" />
             <button class="hostButton btn grayGold border"
-                    @click.prevent="hostFunctional.transferHost(funcData.changeHost.id.value)">
+                    @click.prevent="hostFunctional.transferHost($event,funcData.changeHost.id.value)">
               <span class="text">Сменить ведущего</span>
             </button>
           </AppSpoiler>

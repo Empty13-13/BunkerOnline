@@ -81,7 +81,7 @@ const itemsName = [
   ['Фобия/Страх', 'phobia'],
   ['Крупный инвентарь', 'inventory'],
   ['Рюкзак', 'backpack'],
-  ['Дополнительные сведения', 'addInfo'],
+  ['Дополнительное сведение', 'addInfo'],
 ]
 const navigationItems = [
   {name: 'Катаклизм', showWatcher: true, goToId: 'welcome'},

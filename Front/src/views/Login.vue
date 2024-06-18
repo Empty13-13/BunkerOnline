@@ -4,7 +4,7 @@ import { validationRegistration, testNicknameKey, clearError } from '@/plugins/a
 import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
-import { ref } from "vue";
+import { onBeforeMount, ref } from "vue";
 import { objIsEmpty, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
 import router from "@/router/index.js";
 import AppLoader from "@/components/AppLoader.vue";
@@ -38,7 +38,7 @@ async function registrationHandler(e) {
   }
   let errors = validationRegistration(data)
 
-  if(!rulesChecked.value) {
+  if (!rulesChecked.value) {
     useAuthStore().errors.input = 'rules'
     useAuthStore().errors.message = "Ознакомьтесь с правилами"
     errors['rules'] = 'Ознакомьтесь с правилами'
@@ -66,11 +66,11 @@ const isForgetPassword = ref(false)
 
 async function loginHandler(e) {
   e.preventDefault()
-  if(isForgetPassword.value) {
+  if (isForgetPassword.value) {
     clearError(loginInput.value)
-    let errors = validationRegistration({email:loginInput.value.value})
-    if(errors.email) {
-      setErrorForInput('nickname',errors.email)
+    let errors = validationRegistration({email: loginInput.value.value})
+    if (errors.email) {
+      setErrorForInput('nickname', errors.email)
       return
     }
 
@@ -79,7 +79,8 @@ async function loginHandler(e) {
       setErrorForInput('nickname', useAuthStore().errors.message)
     }
     else {
-      globalPopup.activate('Успешно!','Инструкция по восстановлению пароля была отправлена на email '+loginInput.value.value,'green')
+      globalPopup.activate('Успешно!',
+          'Инструкция по восстановлению пароля была отправлена на email ' + loginInput.value.value, 'green')
     }
   }
   else {
@@ -132,7 +133,6 @@ function focusInInput(e) {
   slideUp(e.target.parentNode.querySelector('small'), 200)
 }
 
-
 function linkTo(href, isState = false) {
   let resultHref = href
   if (isState) {
@@ -144,6 +144,15 @@ function linkTo(href, isState = false) {
 
   window.location.href = resultHref
 }
+
+onBeforeMount(async () => {
+  if (router.currentRoute.value.query.blocked==='true') {
+    await router.push({name: 'login'})
+    globalPopup.activate('Аккаунт заблокирован',
+        'Ваш аккаунт заблокирован за нарушение правил игры. Для того чтобы узнать подробности, пожалуйста, свяжитесь с администрацией сайта',
+        'red',)
+  }
+})
 
 //========================================================================================================================================================
 function setErrorForInput(inputName, textSmall) {
@@ -158,7 +167,7 @@ function setErrorForInput(inputName, textSmall) {
 
 function clickRulesHandler(e) {
   e.preventDefault()
-  globalPopup.activate('Как играть?','Написать текст в будущем')
+  globalPopup.activate('Как играть?', 'Написать текст в будущем')
 }
 
 </script>
@@ -167,20 +176,22 @@ function clickRulesHandler(e) {
   <main class="authBlock">
     <AppBackground class="backgroundAuth" img-name="profile.jpg" />
     <div class="authBlock__container">
-      <h1  class="authBlock__title">Вход и регистрация</h1>
+      <h1 class="authBlock__title">Вход и регистрация</h1>
       <div class="authBlock__body">
         <div class="authBlock__login login-authBlock linear-border gold">
           <div class="login-authBlock__body">
-            <h2 class="login-authBlock__title">{{ isForgetPassword?'Забыли пароль?':'Вход' }}</h2>
+            <h2 class="login-authBlock__title">{{ isForgetPassword? 'Забыли пароль?':'Вход' }}</h2>
             <form novalidate @submit="loginHandler" class="login-authBlock__form authBlock-form">
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input autofocus @focus="focusInInput" ref="loginInput" autocomplete="email" :placeholder="isForgetPassword?'Введите email аккаунта':'Ваш ник или email'" type="text"
+                <input autofocus @focus="focusInInput" ref="loginInput" autocomplete="email"
+                       :placeholder="isForgetPassword?'Введите email аккаунта':'Ваш ник или email'" type="text"
                        name="nickname">
               </div>
               <div v-if="!isForgetPassword" class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password" autocomplete="on">
+                <input @focus="focusInInput" placeholder="Пароль" ref="password" type="password" name="password"
+                       autocomplete="on">
               </div>
               <div v-if="!isForgetPassword">
                 <p>Войти с помощью</p>
@@ -192,9 +203,10 @@ function clickRulesHandler(e) {
 
                 </span>
               </div>
-              <div @click="isForgetPassword=!isForgetPassword" class="authBlock-form__forgetPassword"><span>{{ isForgetPassword?'Вход':'Забыли пароль?' }}</span></div>
+              <div @click="isForgetPassword=!isForgetPassword" class="authBlock-form__forgetPassword">
+                <span>{{ isForgetPassword? 'Вход':'Забыли пароль?' }}</span></div>
               <AppLoader v-if="useAuthStore().isLoader" />
-              <AppButton v-else color="gold">{{ isForgetPassword?'Отправить':'Войти' }}</AppButton>
+              <AppButton v-else color="gold">{{ isForgetPassword? 'Отправить':'Войти' }}</AppButton>
             </form>
           </div>
         </div>
@@ -216,11 +228,13 @@ function clickRulesHandler(e) {
               </div>
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" autocomplete="new-password" ref="passwordReg" placeholder="Пароль" type="password" name="passwordReg">
+                <input @focus="focusInInput" autocomplete="new-password" ref="passwordReg" placeholder="Пароль"
+                       type="password" name="passwordReg">
               </div>
               <div class="authBlock-form__input">
                 <small hidden="">Какой то текст с ошибкой</small>
-                <input @focus="focusInInput" autocomplete="new-password" ref="passwordRepeatReg" placeholder="Подтвердите пароль" type="password"
+                <input @focus="focusInInput" autocomplete="new-password" ref="passwordRepeatReg"
+                       placeholder="Подтвердите пароль" type="password"
                        name="passwordRepeatReg">
               </div>
               <div class="checkbox authBlock-form__input">
@@ -457,7 +471,7 @@ function clickRulesHandler(e) {
 .mainRules {
   text-decoration: underline;
 
-  &:hover{
+  &:hover {
     text-decoration: none;
   }
 }
