@@ -362,10 +362,14 @@ class playerDataService {
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
     // console.log('Three')
     //console.log(chartName==='bunkerSize',chartName)
-    if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize') {
+    if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize' && chartName!=='bunkerCreated') {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
       
+    }else if(chartName==='bunkerCreated'){
+      gameRoom[chartName] = data.id
+      gameRoom.bunkerAge = data.bunkerAge
+      data = {[chartName]:data.text}
     }
     else if (chartName==='bunkerSize') {
       gameRoom[chartName] = data.bunkerSize
