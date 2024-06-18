@@ -378,10 +378,11 @@ class playerDataService {
     }
     else if (chartName==='catastrophe') {
       gameRoom[chartName] = data.newChart.id
-      gameRoom[chartName] = data.imageId
+      gameRoom.imageId = data.imageId
       data = {[chartName]: data.newChart.text, imageName: data.imageName}
       
     }
+    await gameRoom.save()
     // console.log(data)
     return data
     
@@ -653,8 +654,9 @@ class playerDataService {
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers'&& key.toString()!=='bunkerAge') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
+        console.log(gameRoom[key])
         bunkerData[key] = chartBunker.text
         
       }
@@ -838,9 +840,6 @@ class playerDataService {
     }
     else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
       return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
-    }else if(chartName==='bunkerCreated'){
-       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
-       
     }
     else if (chartName==='bunkerSize') {
       let bunkerSize = this.getRandomInt(20, 200)
