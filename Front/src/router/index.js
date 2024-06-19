@@ -53,6 +53,11 @@ const router = createRouter({
       component: () => import('../views/Wiki.vue')
     },
     {
+      path: '/wiki/:page',
+      name: 'subWiki',
+      component: () => import('../views/SubWiki.vue')
+    },
+    {
       path: '/updates',
       name: 'updates',
       component: Updates

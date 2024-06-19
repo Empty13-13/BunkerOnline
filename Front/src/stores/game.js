@@ -352,12 +352,11 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getActivePlayersFromUserData = computed(() => {
     let resultArr = []
-    for (let id in userData.value) {
-      if (!!userData.value[id].isPlayer) {
-        resultArr.push({id:id, data: userData.value[id]})
+    userData.value.sortedPlayers.forEach(id => {
+      if(!!userData.value[id].isPlayer) {
+        resultArr.push({id: id, data: userData.value[id]})
       }
-    }
-    console.log(resultArr)
+    })
     return resultArr
   })
   const getPlayerForSelect = computed(() => {
@@ -406,9 +405,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     if (data.hasOwnProperty('userData')) {
       for (let userId in data.userData) {
-        if(userId==='sortedPlayers') {
+        if (userId==='sortedPlayers') {
           userData.value[userId] = data.userData[userId]
-        } else {
+        }
+        else {
           userData.value[userId] = userData.value[userId] || {}
           for (let key in data.userData[userId]) {
             userData.value[userId][key] = data.userData[userId][key]
