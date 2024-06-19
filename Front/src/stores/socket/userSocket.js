@@ -148,7 +148,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     
     userSocket.on('restartGame', () => {
       globalPreloader.activate()
-      selectedGameData.clearData()
+      // selectedGameData.clearData()
       console.log('Заново играем')
       globalPopup.activate('Сообщение от ведущего', 'Игра началась заново', 'green', true)
       globalPreloader.deactivate()

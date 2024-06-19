@@ -342,44 +342,7 @@ module.exports = function(io) {
         }
       })
       socket.on('voiting:finished', async () => {
-        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        if (gameRoom && gameRoom.isStarted) {
-          if (gameRoom.voitingStatus!==null) {
-            gameRoom.voitingStatus = 1
-            let voitingData = await playerDataService.getAvailableVoitingData(gameRoom, userId)
-            await gameRoom.save()
-            let logs = JSON.stringify(voitingData)
-            await UserModel.Logi.create(
-              {
-                idRoom: idRoom, funcName:
-                  'voitingFinished', text:
-                  'Голосование закончилось', step:
-                  0, lastVar:
-                logs
-              }
-            )
-            io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
-              {voitingData: voitingData, logsData: [{type: 'voiting', value: voitingData, date: new Date()}]})
-            // io.in(`watchers:${idRoom}`).emit('setAllGameData', {voitingData: voitingData})
-          }
-          else {
-            socket.emit("setError",
-              {
-                message: "Игра не началась, либо комнаты не существует",
-                status: 603,
-                functionName: 'voiting:finished'
-              })
-          }
-          
-        }
-        else {
-          socket.emit("setError",
-            {
-              message: "Игра не началась, либо комнаты не существует",
-              status: 603,
-              functionName: 'voiting:finished'
-            })
-        }
+       await ioUserService.finishedVoiting(idRoom,userId,io,socket)
       })
       socket.on('timer:start', async (seconds) => {
         io.in(idRoom).emit('timer:start', seconds)
@@ -1691,7 +1654,7 @@ module.exports = function(io) {
         
       })
       socket.on('refresh:ByHour', async (chartId, makeId) => {
-        console.log('MAKE', makeId, chartId)
+       // console.log('MAKE', makeId, chartId)
         let makeArray = ['по часовой стрелке', 'против часовой стрелке']
         if (makeId>1 || makeId<0) {
           socket.emit("setError",
@@ -1717,6 +1680,7 @@ module.exports = function(io) {
         }
         let chartName = chartArray[chartId]
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let userList = JSON.parse(gameRoom.userList)
         let players = await UserModel.RoomSession.findAll({
           where: {
             gameRoomId: gameRoom.id,
@@ -1724,6 +1688,7 @@ module.exports = function(io) {
             isAlive: 1
           }
         })
+        console.log(players)
         let lastVar = {}
         lastVar.chartName = chartName
         let emitData = {players: {}, logsData: {}}
@@ -1731,10 +1696,10 @@ module.exports = function(io) {
           let dataForNextPlayer = {}
           
           let vars = {}
-          
-          let lastPlayer = players[players.length - 1]
+          let zeroPlayer = players.find(item => item.userId===userList[0])
+          let lastPlayer = players.find(item => item.userId===userList[userList.length-1])    //players[players.length - 1]
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
-          dataForNextPlayer = JSON.parse(players[0][chartName])
+          dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
           playerProfessionData.isOpen = dataForNextPlayer.isOpen
           vars.id = dataForNextPlayer.id
           vars.text = dataForNextPlayer.text
@@ -1742,7 +1707,7 @@ module.exports = function(io) {
             vars.description = dataForNextPlayer.description
           }
           
-          lastVar[players[0].userId] = vars
+          lastVar[zeroPlayer.userId] = vars
           vars.id = playerProfessionData.id
           vars.text = playerProfessionData.text
           if (chartName==='profession') {
@@ -1750,18 +1715,18 @@ module.exports = function(io) {
           }
           lastVar[lastPlayer.userId] = vars
           if (playerProfessionData.isOpen) {
-            console.log("isOpen", players[0].userId)
-            emitData.players[players[0].userId] = {[chartName]: playerProfessionData}
+          //  console.log("isOpen", players[0].userId)
+            emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
-            io.to(`user:${players[0].userId}:${idRoom}`).emit('setAllGameData',
-              {players: {[players[0].userId]: {[chartName]: playerProfessionData}}})
+            io.to(`user:${zeroPlayer.userId}:${idRoom}`).emit('setAllGameData',
+              {players: {[zeroPlayer.userId]: {[chartName]: playerProfessionData}}})
           }
-          players[0][chartName] = JSON.stringify(playerProfessionData)
-          await players[0].save()
+          zeroPlayer[chartName] = JSON.stringify(playerProfessionData)
+          await zeroPlayer.save()
           
           for (let i = 1; i<players.length; i++) {
-            let player = players[i]
+            let player = players.find(item => item.userId===userList[i])
             let data = JSON.parse(player[chartName])
             dataForNextPlayer.isOpen = data.isOpen
             vars.id = data.id
@@ -1772,17 +1737,17 @@ module.exports = function(io) {
             lastVar[player.userId] = vars
             
             if (data.isOpen) {
-              console.log("isOpen", player.userId)
+           //   console.log("isOpen", player.userId)
               emitData.players[player.userId] = {[chartName]: dataForNextPlayer}
             }
             else {
-              console.log('!open')
+             // console.log('!open')
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
                 {players: {[player.userId]: {[chartName]: dataForNextPlayer}}}
               )
             }
-            players[i][chartName] = JSON.stringify(dataForNextPlayer)
-            await players[i].save()
+            player[chartName] = JSON.stringify(dataForNextPlayer)
+            await player.save()
             
             dataForNextPlayer = data
           }
@@ -1790,12 +1755,12 @@ module.exports = function(io) {
         else {
           console.log(makeId, 'PRISHLO')
           let dataForNextPlayer = {}
-          
+          let userList = JSON.parse(gameRoom.userList)
           let vars = {}
-          
-          let lastPlayer = players[0]
+          let zeroPlayer = players.find(item => item.userId===userList[userList.length-1])
+          let lastPlayer = players.find(item => item.userId===userList[0])
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
-          dataForNextPlayer = JSON.parse(players[players.length - 1][chartName])
+          dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
           playerProfessionData.isOpen = dataForNextPlayer.isOpen
           vars.id = dataForNextPlayer.id
           vars.text = dataForNextPlayer.text
@@ -1803,7 +1768,7 @@ module.exports = function(io) {
             vars.description = dataForNextPlayer.description
           }
           
-          lastVar[players[players.length - 1].userId] = vars
+          lastVar[zeroPlayer.userId] = vars
           vars.id = playerProfessionData.id
           vars.text = playerProfessionData.text
           if (chartName==='profession') {
@@ -1812,23 +1777,23 @@ module.exports = function(io) {
           lastVar[lastPlayer.userId] = vars
           if (playerProfessionData.isOpen) {
             console.log('OPEN')
-            console.log("isOpen", players[players.length - 1].userId)
-            emitData.players[players[players.length - 1].userId] = {[chartName]: playerProfessionData}
+         //   console.log("isOpen", players[zeroPlayer.userId)
+            emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
             console.log('!OPEN')
-            let player = players[players.length - 1]
-            io.to(`user:${player.userId}:${idRoom}}`).emit('setAllGameData',
-              {players: {[players[players.length - 1].userId]: {[chartName]: playerProfessionData}}})
+           // let player = players[players.length - 1]
+            io.to(`user:${zeroPlayer.userId}:${idRoom}}`).emit('setAllGameData',
+              {players: {[zeroPlayer.userId]: {[chartName]: playerProfessionData}}})
           }
-          players[players.length - 1][chartName] = JSON.stringify(playerProfessionData)
-          await players[players.length - 1].save()
+          zeroPlayer[chartName] = JSON.stringify(playerProfessionData)
+          await zeroPlayer.save()
           console.log(players.length)
           for (let i = players.length - 2; i>=0; i--) {
             console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
             console.log(players)
             console.log(players.length)
-            let player = players[i]
+            let player = players.find(item => item.userId===userList[i])
             console.log(player)
             console.log(chartName)
             let data = JSON.parse(player[chartName])
@@ -1850,8 +1815,8 @@ module.exports = function(io) {
                 {players: {[player.userId]: {[chartName]: dataForNextPlayer}}}
               )
             }
-            players[i][chartName] = JSON.stringify(dataForNextPlayer)
-            await players[i].save()
+            player[chartName] = JSON.stringify(dataForNextPlayer)
+            await player.save()
             
             dataForNextPlayer = data
           }

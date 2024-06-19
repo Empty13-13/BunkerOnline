@@ -49,6 +49,11 @@ export const useAuthStore = defineStore('auth', () => {
       
     } catch(e) {
       console.log(e.message)
+      if(e.response.status === 601) {
+        errors.value.message = e.response.data.message
+        errors.value.input = 'nickname'
+        return
+      }
       if(e && e.response && e.response.data) {
         errors.value.message = e.response.data.message
         errors.value.input = e.response.data.errors[0].input
@@ -60,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
-  async function resetPassword(email) {
+  async function resetPassword(email,token) {
     isLoader.value = true
     errors.value = {
       message: '',
@@ -68,7 +73,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
     try {
       await axiosInstance.post('/resetPassword', {
-        email: email
+        email: email,
+        recaptchaToken: token,
       })
     } catch(e) {
       if(e && e.response && e.response.data) {

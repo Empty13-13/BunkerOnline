@@ -7,6 +7,7 @@ const {logger} = require("sequelize/lib/utils/logger");
 const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
 const playerDataService = require('../service/playerData-service')
+const {Op} = require('sequelize')
 
 
 module.exports = function(io) {
@@ -342,6 +343,7 @@ module.exports = function(io) {
     })
     socket.on('voiting:choiseUser', async (choiseId) => {
       let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+
       if (gameRoom.voitingStatus===0) {
         let isPlayer = await UserModel.RoomSession.findOne(
           {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: choiseId, isAlive: 1}})
@@ -359,6 +361,12 @@ module.exports = function(io) {
                 player.votedFor = choiseId
                 await player.save()
                 socket.emit('voiting:choiseUser:good')
+                let allPlayers = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1}})
+                let playerChoise = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1,votedFor:{[Op.ne]:null}}})
+                if(allPlayers.length === playerChoise.length){
+                         await ioUserService.finishedVoiting(idRoom,gameRoom.hostId,io,socket)
+
+                      }
               }
               else {
                 socket.emit("setError",

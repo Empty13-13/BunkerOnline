@@ -35,14 +35,14 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   })
   
   
-  async function generateGameId() {
+  async function generateGameId(token) {
     try {
-      gameId.value = (await axiosInstance.post('/generateRoomId')).data.link
+      gameId.value = (await axiosInstance.post('/generateRoomId', {recaptchaToken: token})).data.link
       isNewGame.value = true
     } catch(e) {
       gameId.value = null
-      console.log(e.message)
-      return 'Error generate Id Room'
+      console.log(e.response.data.message)
+      return e.response
     } finally {
       isStarted.value = false
     }
@@ -322,7 +322,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     maxSurvivor: 0
   })
   const playersData = ref({})
-  const userData = ref({})
+  const userData = ref({
+    sortedPlayers: []
+  })
   const voitingData = ref({})
   const isVoiting = ref(false)
   const userVoitingChoice = ref("")
@@ -336,6 +338,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const showDice20 = ref(false)
   const votedPlayerID = ref(0)
   const showPlayVoiceButton = ref(false)
+  const dateNow = ref(new Date())
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -353,7 +356,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getActivePlayersFromUserData = computed(() => {
     let resultArr = []
     userData.value.sortedPlayers.forEach(id => {
-      if(!!userData.value[id].isPlayer) {
+      if (!!userData.value[id].isPlayer) {
         resultArr.push({id: id, data: userData.value[id]})
       }
     })
@@ -379,6 +382,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     return resultArr
   })
   
+  const getCatastropheEndSeconds = computed(() => {
+    return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000 || 0
+  })
+  let timerCatastrophe = setInterval(() => {
+  }, 1000)
+  clearInterval(timerCatastrophe)
+  
   function setData(data) {
     if (!data || objIsEmpty(data)) {
       return
@@ -386,6 +396,17 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (data.hasOwnProperty('bunkerData')) {
       for (let key in data.bunkerData) {
         bunkerData.value[key] = data.bunkerData[key]
+        if (key==='endOfTime') {
+          if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)>0) {
+            timerCatastrophe = setInterval(() => {
+              dateNow.value = new Date()
+              if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)<=0) {
+                clearInterval(timerCatastrophe)
+                useGlobalPopupStore().activate('Таймер истек', 'Таймер для катаклизма истек', 'red')
+              }
+            }, 1000)
+          }
+        }
       }
     }
     if (data.hasOwnProperty('players')) {
@@ -528,7 +549,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       maxSurvivor: 0
     }
     playersData.value = {}
-    userData.value = {}
+    userData.value = {
+      sortedPlayers: []
+    }
     voitingData.value = {}
     isVoiting.value = false
     userVoitingChoice.value = ''
@@ -542,6 +565,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   
   return {
     showPlayVoiceButton,
+    dateNow,
     votedPlayerID,
     bunkerData,
     playersData,
@@ -564,6 +588,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     diceNum,
     showDice6,
     showDice20,
+    getCatastropheEndSeconds,
     setData,
     getCharForPlayer,
     getDescriptionForChar,

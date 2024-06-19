@@ -33,6 +33,49 @@ class ioUserService {
     return result
     
   }
+
+  async finishedVoiting(idRoom,userId,io,socket){
+     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+            if (gameRoom && gameRoom.isStarted) {
+              if (gameRoom.voitingStatus!==null) {
+                gameRoom.voitingStatus = 1
+                let voitingData = await playerDataService.getAvailableVoitingData(gameRoom, userId)
+                await gameRoom.save()
+                let logs = JSON.stringify(voitingData)
+                await UserModel.Logi.create(
+                  {
+                    idRoom: idRoom, funcName:
+                      'voitingFinished', text:
+                      'Голосование закончилось', step:
+                      0, lastVar:
+                    logs
+                  }
+                )
+                io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
+                  {voitingData: voitingData, logsData: [{type: 'voiting', value: voitingData, date: new Date()}]})
+                // io.in(`watchers:${idRoom}`).emit('setAllGameData', {voitingData: voitingData})
+              }
+              else {
+                socket.emit("setError",
+                  {
+                    message: "Игра не началась, либо комнаты не существует",
+                    status: 603,
+                    functionName: 'voiting:finished'
+                  })
+              }
+
+            }
+            else {
+              socket.emit("setError",
+                {
+                  message: "Игра не началась, либо комнаты не существует",
+                  status: 603,
+                  functionName: 'voiting:finished'
+                })
+            }
+
+  }
+
   async reversLog(log,gameRoom,idRoom){
     let funcName = log.functionName
     let players = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1}})

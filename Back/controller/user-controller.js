@@ -4,11 +4,37 @@ const ApiError = require('../exceptions/api-error')
 const axios = require('axios')
 const uuid = require('uuid')
 const playerDataService = require('../service/playerData-service')
+const systemFunction = require('../systemFunction/systemFunction')
 require('dotenv').config()
 
 class UserController {
   async registration(req, res, next) {
     try {
+      
+      let {recaptchaToken} = req.body
+      
+      const params = new URLSearchParams({
+        secret: process.env.recaptchaKey,
+        response: recaptchaToken
+      })
+      await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('УДАЧНО')
+          }
+          else {
+            console.log('Не удачно')
+            return next(ApiError.CapthaBlock())
+            
+          }
+        })
+        .catch((e) => {
+          console.log('Не удачно CATCH', e)
+          return next(ApiError.CapthaBlock())
+        })
+      
+      
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
@@ -29,6 +55,31 @@ class UserController {
   
   async login(req, res, next) {
     try {
+      
+      let {recaptchaToken} = req.body
+      console.log(recaptchaToken) 
+      
+      const params = new URLSearchParams({
+        secret: process.env.recaptchaKey,
+        response: recaptchaToken
+      })
+      await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('УДАЧНО')
+          }
+          else {
+            console.log('Не удачно')
+            return next(ApiError.CapthaBlock())
+            
+          }
+        })
+        .catch((e) => {
+          console.log('Не удачно CATCH', e)
+          return next(ApiError.CapthaBlock())
+        })
+      
       
       const errors = validationResult(req)
       // console.log(req)
@@ -225,9 +276,9 @@ class UserController {
     try {
       let token = null
       const accessToken = req.headers.authorization
-            if (accessToken && accessToken.toString().includes('Bearer ')) {
-              token = accessToken.split('Bearer ')[1]
-            }
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
+      }
       
       const errors = validationResult(req)
       
@@ -241,7 +292,7 @@ class UserController {
       // console.log(file)
       const userId = req.params.id
       //  console.log(userId)
-      const user = await userService.uploadAvatar(file,userId, token)
+      const user = await userService.uploadAvatar(file, userId, token)
       return res.json({link: user})
       
       
@@ -278,6 +329,31 @@ class UserController {
   
   async resetPassword(req, res, next) {
     try {
+
+       let {recaptchaToken} = req.body
+            console.log(recaptchaToken)
+
+            const params = new URLSearchParams({
+              secret: process.env.recaptchaKey,
+              response: recaptchaToken
+            })
+            await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  console.log('УДАЧНО')
+                }
+                else {
+                  console.log('Не удачно')
+                  return next(ApiError.CapthaBlock())
+
+                }
+              })
+              .catch((e) => {
+                console.log('Не удачно CATCH', e)
+                return next(ApiError.CapthaBlock())
+              })
+
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
@@ -389,6 +465,7 @@ class UserController {
     
     
     try {
+      
       const type = "email"
       const {refreshToken} = req.cookies
       const user = await userService.resetProfile(refreshToken)
@@ -405,16 +482,35 @@ class UserController {
   }
   
   async generateRoomId(req, res, next) {
-    
-    
     try {
+      let {recaptchaToken} = req.body
+      
+      const params = new URLSearchParams({
+        secret: process.env.recaptchaKey,
+        response: recaptchaToken
+      })
+      await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('УДАЧНО')
+          }
+          else {
+            console.log('Не удачно')
+            return next(ApiError.CapthaBlock())
+            
+          }
+        })
+        .catch((e) => {
+          console.log('Не удачно CATCH', e)
+          return next(ApiError.CapthaBlock())
+        })
+      
       const roomLink = await userService.gen_roomLink()
-      // console.log(roomLink)
       return res.json({link: roomLink})
     } catch(e) {
       next(e)
     }
-    
   }
   
   async userGames(req, res, next) {
@@ -451,8 +547,6 @@ class UserController {
   }
   
   async allPacks(req, res, next) {
-    
-    
     try {
       let token = null
       const accessToken = req.headers.authorization
@@ -467,12 +561,9 @@ class UserController {
     } catch(e) {
       next(e)
     }
-    
   }
   
   async changePack(req, res, next) {
-    
-    
     try {
       let {id, isUse} = req.body
       let token = null
@@ -488,7 +579,6 @@ class UserController {
     } catch(e) {
       next(e)
     }
-    
   }
   
   

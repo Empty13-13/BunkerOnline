@@ -285,7 +285,7 @@ class playerDataService {
         player[chartName] = JSON.stringify(lastData)
         player.save()
         if (lastData.isOpen) {
-          data.emitData.players[player.userId] = lastData
+          data.emitData.players[player.userId] = {[chartName]: lastData}
         }
       }
     }
@@ -379,7 +379,9 @@ class playerDataService {
     else if (chartName==='catastrophe') {
       gameRoom[chartName] = data.newChart.id
       gameRoom.imageId = data.imageId
-      data = {[chartName]: data.newChart.text, imageName: data.imageName}
+      gameRoom.population = new Intl.NumberFormat('ru-RU').format(data.population).toString()
+      gameRoom.endOfTime = data.countMin
+      data = {[chartName]: data.newChart.text, imageName: data.imageName, population:gameRoom.population,endOfTime:data.countMin}
       
     }
     await gameRoom.save()
@@ -485,8 +487,10 @@ class playerDataService {
     let imageId = null
     let imageName = null
     let bunkerSize = null
+    let population = null
+    let countMin = null
     bunkerSize = this.getRandomInt(20, 200)
-    
+    population = this.getRandomInt(30000000,1000000000)
     if (players!==null) {
       bunkerSize = this.getRandomInt(20, 200)
       maxSurvivor = Math.floor(+players.length / 2)
@@ -506,6 +510,10 @@ class playerDataService {
     if (!isCatastrophe) {
       catastrophe = this.getRandomDataBunker('catastrophe')
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: catastrophe.id}})
+      let catastropheMin = await UserModel.ChartBunker.findOne({where:{id:catastrophe.id}})
+      if(catastropheMin.countMin!==null){
+        countMin = new Date(+new Date()+(catastropheMin.countMin*60*1000))
+      }
       // console.log('allImageId', allImageId)
       if (allImageId.length===1) {
         imageId = allImageId[0].id
@@ -538,6 +546,8 @@ class playerDataService {
     if (!isCatastrophe) {
       thisGame.catastrophe = catastrophe.id
       thisGame.imageId = imageId
+      thisGame.population = new Intl.NumberFormat('ru-RU').format(population).toString()
+      thisGame.endOfTime = countMin
     }
     thisGame.bunkerItems1 = itemId[0]
     thisGame.bunkerItems2 = itemId[1]
@@ -556,7 +566,9 @@ class playerDataService {
         bunkerBedroom: bunkerBedroom.text,
         bunkerItems: bunkerItems,
         bunkerFood: bunkerFood.text,
+        population: new Intl.NumberFormat('ru-RU').format(population).toString(),
         catastrophe: catastrophe.text,
+        endOfTime: countMin,
         imageName: imageName
       }
     }
@@ -617,7 +629,7 @@ class playerDataService {
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerItemsOthers', 'imageId', 'voitingStatus'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerItemsOthers', 'imageId', 'voitingStatus','population','endOfTime'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -652,9 +664,11 @@ class playerDataService {
     //   console.log(objIsEmpty(logs))
     bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
     bunkerData.maxSurvivor = gameRoom.maxSurvivor
+    bunkerData.population = gameRoom.population
+    bunkerData.endOfTime = gameRoom.endOfTime
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers'&& key.toString()!=='bunkerAge') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers'&& key.toString()!=='bunkerAge'&& key.toString()!=='population'&& key.toString()!=='endOfTime') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
         console.log(gameRoom[key])
         bunkerData[key] = chartBunker.text
@@ -738,22 +752,26 @@ class playerDataService {
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
     let userList = []
-    let arrayPlayer = []
+  //  let arrayPlayer = []
     if(!isJoin){
-    userList = this.indexForRandom(players.length)
-    gameRoomData.userList = JSON.stringify(userList)
+    let list = this.indexForRandom(players.length)
+    for(let i = 0; i<players.length; i++){
+      userList.push(players[list[i]].userId)
+    }
     }else{
       userList = JSON.parse(gameRoomData.userList)
     }
-    await gameRoomData.save()
+
   //  console.log('POTOK',players[0])
     console.log('ABRAKADABRA',userList)
     let data = {}
+    let sortedPlayers =[]
     for (let i = 0; i<players.length; i++) {
       let userData = {}
-      let player = players[userList[i]]
+      let player = players.find(item => item.userId===userList[i])
+      sortedPlayers.push(player.userId)
       console.log('player',player.userId)
-      arrayPlayer.push(player.userId)
+    //  arrayPlayer.push(player.userId)
       if (player.userId>0) {
         let user = await UserModel.User.findOne({where: {id: player.userId}})
 
@@ -784,7 +802,12 @@ class playerDataService {
       console.log('NEWDATA',data)
     }
     console.log('DATA',data)
-    data.sortedPlayers = arrayPlayer
+    if(!isJoin){
+
+        gameRoomData.userList = JSON.stringify(sortedPlayers)
+        await gameRoomData.save()
+        }
+    data.sortedPlayers = sortedPlayers
     return data
     
     
@@ -849,6 +872,12 @@ class playerDataService {
     else if (chartName==='catastrophe') {
       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
+      let population = this.getRandomInt(30000000,1000000000)
+      let countMin = null
+      let catastropheMin = await UserModel.ChartBunker.findOne({where:{id:newChart.id}})
+      if(catastropheMin.countMin!==null){
+      countMin = new Date(+new Date()+(catastropheMin.countMin*60*1000))
+      }
       // console.log('allImageId', allImageId)
       let imageId = null
       let imageName = null
@@ -863,7 +892,7 @@ class playerDataService {
         imageId = image.id
         imageName = image.imageName
       }
-      return {newChart, imageName, imageId}
+      return {newChart, imageName, imageId,population,countMin}
       
     }
     else {

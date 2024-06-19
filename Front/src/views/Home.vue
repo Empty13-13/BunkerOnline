@@ -14,7 +14,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import axiosInstance from "@/api.js";
 import AppLoader from "@/components/AppLoader.vue";
-import { getId, getLocalData } from "@/plugins/functions.js";
+import { getId, getLocalData, recaptchaMaker } from "@/plugins/functions.js";
 import { set, useWindowFocus } from "@vueuse/core";
 
 const authStore = useAuthStore()
@@ -40,18 +40,6 @@ function openGallery(e) {
   const oldStyle = imgDiv.style
 }
 
-async function letsGo() {
-  globalPreloader.activate()
-  const error = await selectedGame.generateGameId()
-  if(error) {
-    globalPopup.activate('Ошибка создания комнаты',error,'red')
-  } else {
-    await router.push(`/game=${selectedGame.gameId}`)
-  }
-
-  globalPreloader.deactivate()
-}
-
 const showPopup = ref(false)
 const roomData = ref([])
 const loadingActiveGame = ref(true)
@@ -66,7 +54,7 @@ onBeforeMount(() => {
   }
 })
 onMounted(async () => {
-  console.log('noregToken',authStore.getLocalData('noregToken'))
+  console.log('noregToken', authStore.getLocalData('noregToken'))
   await updateMyGames()
   // await updateAllGames()
   setIntervalIfPageFocused()
@@ -80,13 +68,14 @@ watch(windowFocus, () => {
   setIntervalIfPageFocused()
 })
 
-function setIntervalIfPageFocused(){
-  if(windowFocus.value) {
+function setIntervalIfPageFocused() {
+  if (windowFocus.value) {
     updateInterval = setInterval(async () => {
       console.log('Обновляем игры')
       await updateMyGames()
-    },30000)
-  } else {
+    }, 30000)
+  }
+  else {
     clearInterval(updateInterval)
   }
 }
@@ -100,8 +89,8 @@ async function updateMyGames() {
     loadingActiveGame.value = true
     loadingAllGames.value = true
     roomData.value = []
-    if(data.data) {
-      roomData.value = data.data.userGame.sort((room1,room2) => {
+    if (data.data) {
+      roomData.value = data.data.userGame.sort((room1, room2) => {
         return new Date(room1.dataCreate) - new Date(room2.dataCreate)
       })
       activeGames.value = data.data.allGames
@@ -113,6 +102,43 @@ async function updateMyGames() {
     loadingAllGames.value = false
   }
 }
+
+async function letsGo() {
+  globalPreloader.activate()
+
+  // grecaptcha.ready(function() {
+  //   grecaptcha.execute('6Lc4kvwpAAAAAKr3ovVCTa7S2aL_4nk8_mV4P1bV', {action: 'submit'})
+  //             .then(async (token) => {
+  //               let error = await selectedGame.generateGameId(token);
+  //               if (error) {
+  //                 globalPopup.activate('Ошибка создания комнаты', error.data.message, 'red')
+  //               }
+  //               else {
+  //                 await router.push(`/game=${selectedGame.gameId}`)
+  //                 clearInterval(updateInterval)
+  //               }
+  //               globalPreloader.deactivate()
+  //             })
+  //             .finally(() => {
+  //
+  //             });
+  // });
+
+  recaptchaMaker(async token => {
+    let error = await selectedGame.generateGameId(token);
+    if (error) {
+      globalPopup.activate('Ошибка создания комнаты', error.data.message, 'red')
+    }
+    else {
+      await router.push(`/game=${selectedGame.gameId}`)
+      clearInterval(updateInterval)
+    }
+    globalPreloader.deactivate()
+  }, () => {
+    globalPreloader.deactivate()
+  })
+}
+
 </script>
 
 <template>
@@ -137,10 +163,10 @@ async function updateMyGames() {
             <div class="create-room__body">
               <input v-if="false" v-model="inputId" type="text"
                      placeholder="Введите ID игры для присоединения">
-              <AppButton @click="letsGo" v-if="false" class="create-room__btn join" color="gold"
-                         :disabled="inputId.length<4">
-                Присоединиться
-              </AppButton>
+              <!--              <AppButton @click="letsGo" v-if="false" class="create-room__btn join" color="gold"-->
+              <!--                         :disabled="inputId.length<4">-->
+              <!--                Присоединиться-->
+              <!--              </AppButton>-->
               <AppButton @click="letsGo" v-else class="create-room__btn create" color="gold">
                 Создать игру
               </AppButton>
@@ -150,8 +176,8 @@ async function updateMyGames() {
               </AppButton>
             </div>
           </div>
-          <AppLoader v-if="loadingActiveGame"/>
-          <div v-else-if="roomData.length"  class="room__list list-room">
+          <AppLoader v-if="loadingActiveGame" />
+          <div v-else-if="roomData.length" class="room__list list-room">
             <TheRoom
                 v-for="room in roomData"
                 :key="room.idRoom"
@@ -168,7 +194,7 @@ async function updateMyGames() {
       <div class="activeGame__container">
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
-          <AppLoader v-if="loadingAllGames"/>
+          <AppLoader v-if="loadingAllGames" />
           <TheList v-else :data="activeGames" title="Активные игры" class="activeGame__game" />
           <!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
@@ -318,6 +344,14 @@ async function updateMyGames() {
       width: 30px;
       height: 30px;
     }
+  }
+
+  &__population {
+    text-align: center;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.8;
+    font-weight: 400;
   }
 }
 

@@ -17,6 +17,10 @@ module.exports = class ApiError extends Error {
     return new ApiError(469, 'User is blocked')
   }
   
+  static CapthaBlock() {
+      return new ApiError(601, 'Ошибка прохождения каптчи. Пожалуйста, перезагрузите страницу и попробуйте снова')
+    }
+  
   static BadRerquest(message, errors = []) {
     return new ApiError(400, message, errors)
   }

@@ -5,7 +5,7 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import { onBeforeMount, ref } from "vue";
-import { objIsEmpty, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
+import { objIsEmpty, recaptchaMaker, slideDown, slideToggle, slideUp } from "@/plugins/functions.js";
 import router from "@/router/index.js";
 import AppLoader from "@/components/AppLoader.vue";
 import AppPopup from "@/components/AppPopup.vue";
@@ -49,14 +49,18 @@ async function registrationHandler(e) {
   }
 
   if (objIsEmpty(errors)) {
-    let message = await useAuthStore().auth(data, 'signUp')
-    if (useAuthStore().errors.message) {
-      setErrorForInput((useAuthStore().errors.input + 'Reg'), useAuthStore().errors.message)
-    }
-    else {
-      showPopup.value = true
-      // await router.push(`/profile=${useAuthStore().userInfo.userId}`)
-    }
+    useAuthStore().isLoader = true
+    recaptchaMaker(async token => {
+      data.recaptchaToken = token
+      let message = await useAuthStore().auth(data, 'signUp')
+      if (useAuthStore().errors.message) {
+        setErrorForInput((useAuthStore().errors.input + 'Reg'), useAuthStore().errors.message)
+      }
+      else {
+        showPopup.value = true
+        // await router.push(`/profile=${useAuthStore().userInfo.userId}`)
+      }
+    })
   }
 }
 
@@ -74,14 +78,17 @@ async function loginHandler(e) {
       return
     }
 
-    await useAuthStore().resetPassword(loginInput.value.value)
-    if (useAuthStore().errors.message) {
-      setErrorForInput('nickname', useAuthStore().errors.message)
-    }
-    else {
-      globalPopup.activate('Успешно!',
-          'Инструкция по восстановлению пароля была отправлена на email ' + loginInput.value.value, 'green')
-    }
+    useAuthStore().isLoader = true
+    recaptchaMaker(async token => {
+      await useAuthStore().resetPassword(loginInput.value.value,token)
+      if (useAuthStore().errors.message) {
+        setErrorForInput('nickname', useAuthStore().errors.message)
+      }
+      else {
+        globalPopup.activate('Успешно!',
+            'Инструкция по восстановлению пароля была отправлена на email ' + loginInput.value.value, 'green')
+      }
+    })
   }
   else {
     clearError(loginInput.value)
@@ -107,17 +114,21 @@ async function loginHandler(e) {
     }
 
     if (objIsEmpty(errors)) {
-      await useAuthStore().auth(data, 'login')
+      useAuthStore().isLoader = true
+      recaptchaMaker(async token => {
+        data.recaptchaToken = token
+        await useAuthStore().auth(data, 'login')
 
-      if (useAuthStore().errors.message) {
-        if (!useAuthStore().errors.input) {
-          useAuthStore().errors.input = 'nickname'
+        if (useAuthStore().errors.message) {
+          if (!useAuthStore().errors.input) {
+            useAuthStore().errors.input = 'nickname'
+          }
+          setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
         }
-        setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
-      }
-      else {
-        await router.push(`/profile=${myProfile.id}`)
-      }
+        else {
+          await router.push(`/profile=${myProfile.id}`)
+        }
+      })
     }
   }
 }

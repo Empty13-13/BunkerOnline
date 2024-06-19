@@ -85,6 +85,8 @@ const GameRooms = sequelize.define('gameRooms', {
   imageId: {type: DataTypes.INTEGER},
   userList: {type: DataTypes.STRING},
   bunkerAge: {type: DataTypes.STRING},
+  population: {type: DataTypes.STRING},
+  endOfTime: {type: DataTypes.DATE},
   voitingStatus: {type: DataTypes.TINYINT}
 })
 
@@ -133,7 +135,8 @@ const Profession = sequelize.define('profession', {
 const ChartBunker = sequelize.define('chartBunker', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   name: {type: DataTypes.STRING},
-  text: {type: DataTypes.STRING(1500)}
+  text: {type: DataTypes.STRING(1500)},
+  countMin: {type: DataTypes.INTEGER}
 })
 
 const ChartPack = sequelize.define('chartPack', {

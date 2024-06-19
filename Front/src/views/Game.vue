@@ -309,6 +309,21 @@ function getRandomNumToDice() {
           <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
         </div>
       </div>
+      <div class="timerBlock _catastrophe" v-if="selectedGameData.getCatastropheEndSeconds>0">
+        <div class="timerBlock__body btn gold border">
+          <span class="text">
+            {{
+              Math.floor(selectedGameData.getCatastropheEndSeconds / 60 / 60)>0? Math.floor(
+                  selectedGameData.getCatastropheEndSeconds / 60 / 60) + 'Ч.':''
+            }}
+            {{
+              Math.floor(selectedGameData.getCatastropheEndSeconds / 60 % 60)>0? Math.floor(
+                  selectedGameData.getCatastropheEndSeconds / 60 % 60) + 'М.':''
+            }}
+            {{ Math.floor(selectedGameData.getCatastropheEndSeconds % 60) + 'С.' }}
+          </span>
+        </div>
+      </div>
       <TheAdminPanel v-if="myProfile.isAdmin" />
     </Teleport>
     <div id="welcome" class="welcome">
@@ -321,6 +336,9 @@ function getRandomNumToDice() {
           <div slideBody class="welcome__block">
             <p class="welcome__subtitle">
               {{ selectedGameData.bunkerData.catastrophe }}
+            </p>
+            <p v-if="selectedGameData.bunkerData.population" class="welcome__population">
+              Остаток населения - {{ selectedGameData.bunkerData.population }} человек
             </p>
             <button v-if="selectedGameData.showPlayVoiceButton" class="welcome__playVoice" type="button">
               Озвучить текст
@@ -355,7 +373,8 @@ function getRandomNumToDice() {
                     <li class="items-bunker__item"
                         v-for="bunkerItem in selectedGameData.bunkerData.bunkerItems"
                         :key="bunkerItem"
-                    >{{ bunkerItem }}</li>
+                    >{{ bunkerItem }}
+                    </li>
                   </ul>
                 </div>
                 <p class="bunker__capacity">
@@ -2105,7 +2124,7 @@ function getRandomNumToDice() {
     transform: translate(0);
   }
 
-  &._host,&._admin {
+  &._host, &._admin {
     @media (max-width: $mobile) {
       bottom: 70px;
     }
@@ -2125,6 +2144,21 @@ function getRandomNumToDice() {
       font-size: 14px;
       padding: 13px 14px;
       width: 83px;
+    }
+  }
+
+  &._catastrophe {
+    left: 15px;
+    top: 105px;
+    height: 40px;
+    transform: none;
+
+    @media (max-width: $tablet) {
+      top: 75px;
+    }
+
+    .timerBlock__body {
+      width: auto;
     }
   }
 }

@@ -123,3 +123,7 @@
 .selectBlock.profile .select__input:hover {
     color: white;
 }
+
+.grecaptcha-badge {
+    display: none !important;
+}

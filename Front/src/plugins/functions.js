@@ -218,3 +218,13 @@ export function getRandomInt(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min); // Максимум не включается, минимум включается
 }
+
+export function recaptchaMaker(goodFunction, errorFunction = new Function()) {
+  grecaptcha.ready(function() {
+    grecaptcha.execute('6Lc4kvwpAAAAAKr3ovVCTa7S2aL_4nk8_mV4P1bV', {action: 'submit'})
+              .then(async (token) => {
+                await goodFunction(token)
+              })
+              .catch(errorFunction)
+  });
+}
