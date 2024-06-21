@@ -4,10 +4,13 @@ import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { ref } from "vue";
 import { useMyProfileStore } from "@/stores/profile.js";
+import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
+import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 
 const selectedGameData = useSelectedGameData()
 const myProfile = useMyProfileStore()
 const hostFunctional = useHostFunctionalStore()
+const adminSocket = useAdminSocketStore()
 
 const funcData = ref({
   sendMessage: {
@@ -18,6 +21,7 @@ const funcData = ref({
 })
 const showPanel = ref(false)
 
+adminSocket.setConnect()
 
 //========================================================================================================================================================
 
@@ -26,11 +30,24 @@ function toggleShow() {
 }
 
 function sendMessage(e) {
-  e.preventDefault()
-  console.log(funcData.value.sendMessage)
-
+  showConfirmBlock(e.target, () => {
+        console.log('Отсылаем', funcData.value.sendMessage.select.value)
+        adminSocket.emit(
+            'sendMessage',
+            funcData.value.sendMessage.select.value,
+            funcData.value.sendMessage.title,
+            funcData.value.sendMessage.text,
+        )
+        console.log('отослали')
+      },
+      `Вы уверены что хотите отправить сообщение ${funcData.value.sendMessage.select.value===0? 'всем пользователям':'данному пользователю'}?`)
 }
 
+function closeRoom(e) {
+  showConfirmBlock(e.target, () => {
+    adminSocket.emit('closeRoom')
+  }, 'Вы уверены что хотите закрыть комнату?')
+}
 </script>
 
 <template>
@@ -44,15 +61,18 @@ function sendMessage(e) {
       <div class="adminPanel__block block-adminPanel">
         <div v-slide class="block-adminPanel__title">Отправить сообщение игроку</div>
         <div slidebody class="block-adminPanel__body" hidden="hidden">
-          <form @submit="sendMessage" class="block-adminPanel__form">
-            <AppSelect v-model="funcData.sendMessage.select" :options="selectedGameData.getPlayerForSelectAndAll" />
+          <form class="block-adminPanel__form">
+            <AppSelect v-model="funcData.sendMessage.select" :options="selectedGameData.getAllPlayersSelectToChangeAdminAndAll" />
             <input v-model="funcData.sendMessage.title" type="text" placeholder="Заголовок сообщения">
             <input v-model="funcData.sendMessage.text" type="text" placeholder="Текст сообщения">
-            <AppButton border="true" class="adminPanel__actionBtn"
+            <AppButton @click.prevent="sendMessage" border="true" class="adminPanel__actionBtn"
                        color="gold">Отправить сообщение
             </AppButton>
           </form>
         </div>
+      </div>
+      <div class="adminPanel__mainButtons mainButtons-adminPanel">
+        <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
       </div>
     </div>
   </div>
@@ -210,6 +230,17 @@ function sendMessage(e) {
     button {
       height: 40px;
     }
+  }
+}
+
+.mainButtons-adminPanel {
+  display: flex;
+  flex-direction: column;
+  margin-top: 25px;
+
+  button {
+    height: 40px;
+    font-weight: 700;
   }
 }
 </style>

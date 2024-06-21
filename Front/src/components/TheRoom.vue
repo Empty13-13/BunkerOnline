@@ -10,6 +10,7 @@ defineProps([
   'isStarted',
   'datetime',
   'link',
+  'isHost',
 ])
 
 function letsGo(isStarted) {
@@ -20,7 +21,7 @@ function letsGo(isStarted) {
 </script>
 
 <template>
-  <div class="roomCreated linear-border boldBorder" :class="isStarted?'green':'red'">
+  <div class="roomCreated linear-border boldBorder" :class="isStarted?isHost?'gold':'green':'red'">
     <div class="roomCreated__body">
       <div class="roomCreated__block">
         <div class="roomCreated__column">
@@ -34,19 +35,14 @@ function letsGo(isStarted) {
         <div class="roomCreated__column">
           <div class="roomCreated__title">Время создания</div>
           <div class="roomCreated__value">
-            {{
-              new Intl.DateTimeFormat('nu', {hour: '2-digit', minute: '2-digit'}).format(datetime)
-            }}
-            ({{
-              new Intl.DateTimeFormat('nu', {day: '2-digit', month: '2-digit'}).format(datetime)
-            }})
+            {{ new Intl.DateTimeFormat('nu', {hour: '2-digit', minute: '2-digit'}).format(datetime) }}
+            ({{ new Intl.DateTimeFormat('nu', {day: '2-digit', month: '2-digit'}).format(datetime) }})
           </div>
         </div>
       </div>
       <div class="roomCreated__block">
-        <AppButton @click="router.push(`/game=${link}`)" class="roomCreated__btn" :color="isStarted?'green':'red'">{{
-            isStarted? 'Перейти к игре':'Присоединиться'
-                                                                                                        }}
+        <AppButton @click="router.push(`/game=${link}`)" class="roomCreated__btn" :color="isStarted?'green':'red'">
+          {{ isStarted? 'Перейти к игре':'Присоединиться' }}
         </AppButton>
       </div>
     </div>

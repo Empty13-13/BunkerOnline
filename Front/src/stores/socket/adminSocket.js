@@ -5,7 +5,7 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
-import { adminSocket } from "@/socket/sockets.js";
+import { adminSocket, userSocket } from "@/socket/sockets.js";
 import router from "@/router/index.js";
 import { switchError } from "@/logics/socketLogic.js";
 
@@ -23,6 +23,18 @@ export const useAdminSocketStore = defineStore('adminSocket', () => {
       await switchError(data,adminSocket)
       globalPreloader.deactivate()
     })
+    adminSocket.on('sendMessage', data => {
+      const title = data.title
+      const message = data.message
+      const color = data.color
+      globalPopup.activate(title || 'Сообщение от сервера', message || '', color)
+    })
+    adminSocket.on('sendMessage:timer', data => {
+      const title = data.title
+      const message = data.message
+      const color = data.color
+      globalPopup.activate(title || 'Сообщение от сервера', message || '', color,true)
+    })
   }
   
   function _connect() {
@@ -33,6 +45,7 @@ export const useAdminSocketStore = defineStore('adminSocket', () => {
     }
     adminSocket.connect()
     connected.value = adminSocket.connected
+    console.log('Подключились к функционалу админа')
   }
   
   function close() {

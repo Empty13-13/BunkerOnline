@@ -30,8 +30,9 @@ export function validationRegistration({email, nickname, password, passwordRepea
     }
     let errorsInput = forbiddenInputNickname(nickname)
     if (errorsInput.forbiddenCharArray.length) {
-      errors['nickname'] = `В поле содержатся недопустимые символы`
-      errors['nickname'] += ' ( ' + errorsInput.forbiddenCharArray.join(' ') + ' )'
+      errors['nickname'] = `В поле содержатся недопустимые символы\r\n`
+      errors['nickname'] += 'Недопустимые символы: ' + forbiddenCharacters.join(' ').replace('   ',' Двойной пробел') + ''
+      // errors['nickname'] += ' ( ' + errorsInput.forbiddenCharArray.join(' ') + ' )'
     }
     
     if(errorsInput.lettersLength) {

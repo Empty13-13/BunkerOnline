@@ -185,6 +185,7 @@ async function letsGo() {
                 :isStarted="room.isStarted"
                 :datetime="new Date(room.dataCreate)"
                 :link="room.idRoom"
+                :isHost="room.isHost"
             />
           </div>
         </div>

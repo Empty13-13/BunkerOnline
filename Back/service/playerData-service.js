@@ -178,7 +178,7 @@ class playerDataService {
     let emitData = {}
     //  console.log('player1', playerId1, 'player2', playerId2)
     let player1 = await UserModel.RoomSession.findOne({
-      attributes: ['userId', `${chartName}`, 'usePack', 'id', 'sex'],
+      attributes: ['userId', `${chartName}`, 'usePack', 'id'],
       where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
     })
     let player2 = await UserModel.RoomSession.findOne({
@@ -694,8 +694,12 @@ class playerDataService {
     //  result.text = result.text.replace('[year]', bunkerAge)
     let userData = await this.getAvailablePlayerData2(idRoom,true)
     let voitingData = null
-    if (!isWatcher || gameRoom.voitingStatus===1) {
+    let thisPlayer = await UserModel.RoomSession.findOne({where:{gameRoomId: gameRoom.id,userId:playerId}})
+    if (!isWatcher || gameRoom.voitingStatus===1 ) {
       voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
+    }
+    if(gameRoom.voitingStatus===0 && !thisPlayer.isAlive){
+      voitingData = null
     }
     let players = {}
     let allPlayers = await UserModel.RoomSession.findAll({

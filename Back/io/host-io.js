@@ -297,6 +297,12 @@ module.exports = function(io) {
             userData: sendData.userData,
             bunkerData: data.bunkerData
           })
+          io.in(idRoom).emit('sendMessage:timer', {
+              title: 'Сообщение от ведущего',
+              message: 'Игра началась',
+              color: 'green'
+            }
+          )
         } catch(e) {
           io.in(idRoom).emit("setError",
             {
@@ -313,11 +319,32 @@ module.exports = function(io) {
         console.log(io.sockets.adapter.rooms)
         if (gameRoom && gameRoom.isStarted) {
           gameRoom.voitingStatus = 0
-          let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+          let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
+          let banishPlayer = await UserModel.RoomSession.findAll({where:{gameRoomId: gameRoom.id, isPlayer: 1}})
+          if(banishPlayer){
+            for(let player of banishPlayer){
+               player.votedFor = null
+               await player.save()
+            }
+          }
+          console.log('PLAYYERRSSS', players.length, players)
           for (let player of players) {
-            player.votedFor = null
-            await player.save()
-            
+            // player.votedFor = null
+            // await player.save()
+            io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {
+              voitingData: {status: gameRoom.voitingStatus, userChoise: null},
+              logsData: [{type: 'text', value: 'Голосование началось', date: new Date()}]
+            })
+            io.to(`user:${player.userId}:${idRoom}`).emit('voiting:start')
           }
           await gameRoom.save()
           await UserModel.Logi.create({
@@ -326,11 +353,12 @@ module.exports = function(io) {
             text: 'Голосование началось',
             step: 0
           })
-          io.in(idRoom).emit('setAllGameData', {
-            voitingData: {status: gameRoom.voitingStatus, userChoise: null},
-            logsData: [{type: 'text', value: 'Голосование началось', date: new Date()}]
-          })
-          io.in(idRoom).emit('voiting:start')
+          io.in(idRoom).emit('sendMessage:timer', {
+              title: 'Сообщение от ведущего',
+              message: 'Голосование началось',
+              color: 'green'
+            }
+          )
         }
         else {
           socket.emit("setError",
@@ -342,19 +370,43 @@ module.exports = function(io) {
         }
       })
       socket.on('voiting:finished', async () => {
-       await ioUserService.finishedVoiting(idRoom,userId,io,socket)
+        await ioUserService.finishedVoiting(idRoom, userId, io, socket)
       })
       socket.on('timer:start', async (seconds) => {
         io.in(idRoom).emit('timer:start', seconds)
+        io.in(idRoom).emit('sendMessage:timer', {
+                                        title: 'Сообщение от ведущего',
+                                        message: `Ведущий поставил таймер на ${seconds} секунд`,
+                                        color: 'green'
+                                      }
+                                    )
       })
       socket.on('timer:pause', async (value) => {
         io.in(idRoom).emit('timer:pause')
+        io.in(idRoom).emit('sendMessage:timer', {
+                                                title: 'Сообщение от ведущего',
+                                                message: `Ведущий поставил таймер на паузу`,
+                                                color: 'green'
+                                              }
+                                            )
       })
       socket.on('timer:resume', async (value) => {
         io.in(idRoom).emit('timer:resume')
+        io.in(idRoom).emit('sendMessage:timer', {
+                                                title: 'Сообщение от ведущего',
+                                                message: `Ведущий возобновил таймер`,
+                                                color: 'green'
+                                              }
+                                            )
       })
       socket.on('timer:stop', async (value) => {
         io.in(idRoom).emit('timer:stop')
+        io.in(idRoom).emit('sendMessage:timer', {
+                                                title: 'Сообщение от ведущего',
+                                                message: `Ведущий остановил таймер`,
+                                                color: 'green'
+                                              }
+                                            )
       })
       socket.on('refresh:bunkerData', async (chartId) => {
         let arrayBunkerChart = ['allChart', 'bunkerCreated', 'bunkerSize', 'bunkerTime', 'bunkerFood', 'catastrophe']
@@ -428,6 +480,15 @@ module.exports = function(io) {
       socket.on('refresh:maxSurvivor', async (value) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        if (players.length<1) {
+          socket.emit("setError",
+            {
+              message: "Выживших игроков нет",
+              status: 400,
+              functionName: 'ByHour'
+            })
+          return
+        }
         let textForLog = ''
         if (value) {
           if ((gameRoom.maxSurvivor + 1)<=players.length) {
@@ -443,6 +504,7 @@ module.exports = function(io) {
             gameRoom.maxSurvivor += 1
             await gameRoom.save()
             console.log(gameRoom.maxSurvivor)
+
           }
           else {
             socket.emit("setError",
@@ -479,7 +541,16 @@ module.exports = function(io) {
           
         }
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
-          {bunkerData: {maxSurvivor: gameRoom.maxSurvivor}, logsData: [{type: 'text', value: textForLog, date: new Date()}]})
+          {
+            bunkerData: {maxSurvivor: gameRoom.maxSurvivor},
+            logsData: [{type: 'text', value: textForLog, date: new Date()}]
+          })
+          io.in(idRoom).emit('sendMessage:timer', {
+                                                              title: 'Сообщение от ведущего',
+                                                              message: textForLog,
+                                                              color: 'green'
+                                                            }
+                                                          )
       })
       socket.on('refresh:professionExp', async (playersId, expId) => {
         console.log('id', playersId)
@@ -508,6 +579,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -521,6 +601,15 @@ module.exports = function(io) {
             textForLog = `Ведущий изменил стаж специальности игроку Гость#${Math.abs(playersId)}`
           }
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
           players = [players]
         }
         console.log(players)
@@ -583,6 +672,12 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+                                                            title: 'Сообщение от ведущего',
+                                                            message: textForLog,
+                                                            color: 'green'
+                                                          }
+                                                        )
         
       })
       socket.on('rollTheDice', async (value) => {
@@ -673,6 +768,15 @@ module.exports = function(io) {
       socket.on('refresh:professionSetNull', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        if (players.length<1) {
+          socket.emit("setError",
+            {
+              message: "Выживших игроков нет",
+              status: 400,
+              functionName: 'ByHour'
+            })
+          return
+        }
         let lastVar = {}
         
         let emitData = {players: {}, logsData: {}}
@@ -727,6 +831,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playerId>0) {
@@ -737,6 +850,15 @@ module.exports = function(io) {
             textForLog = `Ведущий изменил пол игроку Гость#${Math.abs(playerId)} на противоположный`
           }
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playerId}})
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
           players = [players]
         }
         console.log(players)
@@ -801,6 +923,12 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+                    title: 'Сообщение от ведущего',
+                    message: textForLog,
+                    color: 'green'
+                  }
+                )
       })
       socket.on('banishOrReturn', async (userId) => {
           // console.log(userId)
@@ -812,6 +940,7 @@ module.exports = function(io) {
           if (gameRoom.isStarted) {
             let player = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
             if (player && player.isPlayer) {
+              
               if (userId>0) {
                 let user = await UserModel.User.findOne({where: {id: userId}})
                 nickname = user.nickname
@@ -841,13 +970,16 @@ module.exports = function(io) {
               })
               //  console.log(emitStatus)
               io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
-                {userData: {[userId]: {isAlive: emitStatus}}, logsData: {type: 'text', value: textForLog, date: new Date()}})
-                io.in(idRoom).emit('sendMessage:timer', {
-                            title: 'Сообщение от ведущего',
-                            message: textForLog,
-                            color: color
-                          }
-                        )
+                {
+                  userData: {[userId]: {isAlive: emitStatus}},
+                  logsData: {type: 'text', value: textForLog, date: new Date()}
+                })
+              io.in(idRoom).emit('sendMessage:timer', {
+                  title: 'Сообщение от ведущего',
+                  message: textForLog,
+                  color: color
+                }
+              )
             }
             else {
               socket.emit("setError",
@@ -926,6 +1058,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -939,6 +1080,15 @@ module.exports = function(io) {
             textForLog = `Ведущий изменил степень болезни игроку Гость#${Math.abs(playersId)}`
           }
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
           players = [players]
         }
         console.log(players)
@@ -1032,6 +1182,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -1045,6 +1204,15 @@ module.exports = function(io) {
             textForLog = `Ведущий применил функцию ${make} к игроку Гость#${Math.abs(playersId)}`
           }
           players = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playersId}})
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
           players = [players]
         }
         // console.log(players)
@@ -1080,6 +1248,12 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+                    title: 'Сообщение от ведущего',
+                    message: textForLog,
+                    color: 'green'
+                  }
+                )
       })
       socket.on('refresh:chartName', async (playersId, chartId, chartText = null) => {
         
@@ -1129,6 +1303,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -1149,7 +1332,13 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
-          if (!players) {
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
             return
           }
           players = [players]
@@ -1166,9 +1355,8 @@ module.exports = function(io) {
           step: await playerDataService.howStepLog(idRoom),
           lastVar: JSON.stringify(data.lastVar)
         })
-        
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', data.emitData,
-          {logsData: {type: `text`, value: textForLog, date: new Date()}})
+        data.emitData.logsData = {type: `text`, value: textForLog, date: new Date()}
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', data.emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: textForLog,
@@ -1201,15 +1389,13 @@ module.exports = function(io) {
         let chartName = chartArray[chartId]
         let player1 = await UserModel.RoomSession.findOne({
           attributes: ['userId', `${chartName}`, 'usePack'],
-          where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1},
-          raw: true
+          where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1, isAlive: 1}
         })
         let player2 = await UserModel.RoomSession.findOne({
           attributes: ['userId', `${chartName}`],
-          where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId2},
-          raw: true
+          where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId2, isAlive: 1}
         })
-        if (!player1 && !player2) {
+        if (!player1 || !player2) {
           socket.emit("setError",
             {
               message: "Ошибка с пользователями!",
@@ -1274,7 +1460,7 @@ module.exports = function(io) {
         }
         let chartArray = ['trait', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
         let nameChartArray = ['Человеческая черта', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. информация']
-        console.log('chartId',chartId)
+        console.log('chartId', chartId)
         if (chartId>7 || chartId<0) {
           socket.emit("setError",
             {
@@ -1302,6 +1488,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -1322,7 +1517,13 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
-          if (!players) {
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
             return
           }
           players = [players]
@@ -1372,9 +1573,9 @@ module.exports = function(io) {
         
       })
       socket.on('deleteRelocate', async (playersId, makeId) => {
-        let arrayMake = ['Удалить инвентарь', 'Перенести инвентарь','Удалить рюкзак', 'Перенести рюкзак']
+        let arrayMake = ['Удалить инвентарь', 'Перенести инвентарь', 'Удалить рюкзак', 'Перенести рюкзак']
         console.log(makeId)
-        if ((playersId===0 && makeId===1)||(playersId===0 && makeId===3)) {
+        if ((playersId===0 && makeId===1) || (playersId===0 && makeId===3)) {
           socket.emit("setError",
             {
               message: "Нельзя перенести инвентарь/рюкзак в бункер всем игрокам",
@@ -1392,9 +1593,10 @@ module.exports = function(io) {
             })
           return
         }
-        if(makeId === 0 || makeId === 1){
+        if (makeId===0 || makeId===1) {
           chartName = 'inventory'
-        }else{
+        }
+        else {
           chartName = 'backpack'
         }
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -1411,6 +1613,15 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
         }
         else {
           if (playersId>0) {
@@ -1431,14 +1642,20 @@ module.exports = function(io) {
               isAlive: 1
             }
           })
-          if (!players) {
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
             return
           }
           players = [players]
         }
         let emitData = {players: {}, bunkerData: {}, logsData: {}}
         for (let player of players) {
-          if (makeId===0 || makeId ===2) {
+          if (makeId===0 || makeId===2) {
             
             let data = JSON.parse(player[chartName])
             lastVar[player.userId] = data
@@ -1465,7 +1682,7 @@ module.exports = function(io) {
                 })
               return
             }
-            console.log(chartName,data.text)
+            console.log(chartName, data.text)
             gameRoom.bunkerItemsOthers = `${gameRoom.bunkerItemsOthers},${data.text}`
             console.log(gameRoom.bunkerItemsOthers)
             data.text = 'Пусто'
@@ -1482,33 +1699,42 @@ module.exports = function(io) {
             }
             let bunkerChart = await UserModel.ChartBunker.findAll(
               {where: {id: [gameRoom.bunkerItems1, gameRoom.bunkerItems2, gameRoom.bunkerItems3]}})
-            console.log('BUNKER',bunkerChart)
+            console.log('BUNKER', bunkerChart)
             let bunkerItems = []
             for (let chart of bunkerChart) {
               bunkerItems.push(chart.text)
             }
-            console.log('ПРОВЕРКА НА ИТЕМЫ',bunkerItems, gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0))
+            console.log('ПРОВЕРКА НА ИТЕМЫ', bunkerItems,
+              gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0))
             bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
-
+            
             
             emitData.bunkerData = {bunkerItems: bunkerItems}
           }
-          emitData.logsData.value = textForLog
-          emitData.logsData.type = 'text'
-          emitData.logsData.date = new Date()
-          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-          io.in(idRoom).emit('sendMessage:timer', {
-              title: 'Сообщение от ведущего',
-              message: emitData.logsData.value,
-              color: 'green'
-            }
-          )
+
         }
+        await UserModel.Logi.create({
+                  idRoom: idRoom,
+                  funcName: `deleteRelocate`,
+                  text: textForLog,
+                  step: await playerDataService.howStepLog(idRoom),
+                  lastVar: JSON.stringify(lastVar)
+                })
+        emitData.logsData.value = textForLog
+                  emitData.logsData.type = 'text'
+                  emitData.logsData.date = new Date()
+                  io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+                  io.in(idRoom).emit('sendMessage:timer', {
+                      title: 'Сообщение от ведущего',
+                      message: emitData.logsData.value,
+                      color: 'green'
+                    }
+                  )
         
       })
       socket.on('exchangeChart', async (playerId1, playerId2, chartId) => {
         let chartArray = ['sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
-        let nameChartArray = ['Пол','Телосложение','Человеческая черта','Профессия', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. сведение']
+        let nameChartArray = ['Пол', 'Телосложение', 'Человеческая черта', 'Профессия', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. сведение']
         if (chartId>10 || chartId<0) {
           socket.emit("setError",
             {
@@ -1529,7 +1755,17 @@ module.exports = function(io) {
           let players = await UserModel.RoomSession.findAll({
             attributes: ['userId', `${chartName}`, 'id'],
             where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1}
+            
           })
+          if (players.length<1) {
+            socket.emit("setError",
+              {
+                message: "Выживших игроков нет",
+                status: 400,
+                functionName: 'ByHour'
+              })
+            return
+          }
           let data = await playerDataService.exchangeChart(players, chartName)
           for (let player of players) {
             if (data.players[player.userId]) {
@@ -1560,7 +1796,7 @@ module.exports = function(io) {
             attributes: ['id', `${chartName}`],
             where: {gameRoomId: gameRoom.id, isAlive: 1, isPlayer: 1, userId: playerId2}
           })
-          if (!player1 && !player2) {
+          if (!player1 || !player2) {
             socket.emit("setError",
               {
                 message: "Ошибка с пользователями!",
@@ -1609,6 +1845,12 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+                    title: 'Сообщение от ведущего',
+                    message: textForLog,
+                    color: 'green'
+                  }
+                )
         
       })
       socket.on('transferHost', async (playerId) => {
@@ -1642,7 +1884,7 @@ module.exports = function(io) {
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {
           logsData: {
             type:
-              'text', value: textForLog
+              'text', value: textForLog, date: new Date()
           }
         })
         io.in(idRoom).emit('sendMessage:timer', {
@@ -1654,7 +1896,7 @@ module.exports = function(io) {
         
       })
       socket.on('refresh:ByHour', async (chartId, makeId) => {
-       // console.log('MAKE', makeId, chartId)
+        // console.log('MAKE', makeId, chartId)
         let makeArray = ['по часовой стрелке', 'против часовой стрелке']
         if (makeId>1 || makeId<0) {
           socket.emit("setError",
@@ -1674,7 +1916,7 @@ module.exports = function(io) {
             {
               message: "Такой характеристики не существует",
               status: 400,
-              functionName: 'exchangeChart'
+              functionName: 'ByHour'
             })
           return
         }
@@ -1688,6 +1930,29 @@ module.exports = function(io) {
             isAlive: 1
           }
         })
+        if (players.length<1) {
+          socket.emit("setError",
+            {
+              message: "Выживших игроков нет",
+              status: 400,
+              functionName: 'ByHour'
+            })
+          return
+        }
+        let notAlivePlayer = await UserModel.RoomSession.findAll({
+          where: {
+            gameRoomId: gameRoom.id,
+            isPlayer: 1,
+            isAlive: 0
+          }
+        })
+        console.log(notAlivePlayer)
+        if (notAlivePlayer) {
+          for (let player of notAlivePlayer) {
+            let index = userList.indexOf(player.userId)
+            userList.splice(index, 1)
+          }
+        }
         console.log(players)
         let lastVar = {}
         lastVar.chartName = chartName
@@ -1697,7 +1962,7 @@ module.exports = function(io) {
           
           let vars = {}
           let zeroPlayer = players.find(item => item.userId===userList[0])
-          let lastPlayer = players.find(item => item.userId===userList[userList.length-1])    //players[players.length - 1]
+          let lastPlayer = players.find(item => item.userId===userList[userList.length - 1])    //players[players.length - 1]
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
           dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
           playerProfessionData.isOpen = dataForNextPlayer.isOpen
@@ -1715,7 +1980,7 @@ module.exports = function(io) {
           }
           lastVar[lastPlayer.userId] = vars
           if (playerProfessionData.isOpen) {
-          //  console.log("isOpen", players[0].userId)
+            //  console.log("isOpen", players[0].userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
@@ -1737,11 +2002,11 @@ module.exports = function(io) {
             lastVar[player.userId] = vars
             
             if (data.isOpen) {
-           //   console.log("isOpen", player.userId)
+              //   console.log("isOpen", player.userId)
               emitData.players[player.userId] = {[chartName]: dataForNextPlayer}
             }
             else {
-             // console.log('!open')
+              // console.log('!open')
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
                 {players: {[player.userId]: {[chartName]: dataForNextPlayer}}}
               )
@@ -1757,7 +2022,7 @@ module.exports = function(io) {
           let dataForNextPlayer = {}
           let userList = JSON.parse(gameRoom.userList)
           let vars = {}
-          let zeroPlayer = players.find(item => item.userId===userList[userList.length-1])
+          let zeroPlayer = players.find(item => item.userId===userList[userList.length - 1])
           let lastPlayer = players.find(item => item.userId===userList[0])
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
           dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
@@ -1777,12 +2042,12 @@ module.exports = function(io) {
           lastVar[lastPlayer.userId] = vars
           if (playerProfessionData.isOpen) {
             console.log('OPEN')
-         //   console.log("isOpen", players[zeroPlayer.userId)
+            //   console.log("isOpen", players[zeroPlayer.userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
             console.log('!OPEN')
-           // let player = players[players.length - 1]
+            // let player = players[players.length - 1]
             io.to(`user:${zeroPlayer.userId}:${idRoom}}`).emit('setAllGameData',
               {players: {[zeroPlayer.userId]: {[chartName]: playerProfessionData}}})
           }
@@ -1852,7 +2117,16 @@ module.exports = function(io) {
         }
         let makeName = arrayMake[makeId]
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+        if (players.length<1) {
+          socket.emit("setError",
+            {
+              message: "Выживших игроков нет",
+              status: 400,
+              functionName: 'ByHour'
+            })
+          return
+        }
         let lastVar = {}
         let chartName = ''
         let varText = ''
@@ -1886,12 +2160,12 @@ module.exports = function(io) {
           await player.save()
           console.log(data)
           if (data.isOpen) {
-          //  console.log("player.userId", player.userId)
+            //  console.log("player.userId", player.userId)
             
             emitData.players[player.userId] = {[chartName]: data}
           }
           else {
-          //  cosnole.log('NOTOPEN', data)
+            //  cosnole.log('NOTOPEN', data)
             io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
               {players: {[player.userId]: {[chartName]: data}}})
           }

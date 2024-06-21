@@ -964,12 +964,18 @@ async function getGamesData(userId, noregUserId) {
       
       
       if (idUserGame.includes(gameRoom.id)) {
-        const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id}})
+        const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id,isPlayer:1}})
+        let isHost = false
+        if(gameRoom.hostId===userId || gameRoom.hostId===noregUserId){
+          isHost = true
+        
+        }
         data.push({
           idRoom: gameRoom.idRoom,
           countPlayers: countPlayers.count,
           isStarted: !!+gameRoom.isStarted,
-          dataCreate: gameRoom.createdAt
+          dataCreate: gameRoom.createdAt,
+          isHost: isHost
         })
       }
       else {

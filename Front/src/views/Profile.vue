@@ -147,12 +147,15 @@ async function changeName(e) {
   }
   else {
     if (!(myProfile.isMVP || myProfile.isAdmin)) {
-      showConfirmBlock(e.target, () => {
-
+      showConfirmBlock(e.target, async () => {
+        await changeNameHandler()
       }, 'С уровнем подписки "Пользователь" и VIP изменить никнейм можно только один раз. Вы подтверждаете действие?')
     }
     else {
-      console.log(data.name)
+      await changeNameHandler()
+    }
+
+    async function changeNameHandler() {
       if (oldNickname===data.name) {
         isChangingName.value = false
         return
@@ -175,7 +178,7 @@ async function keyDownNickname(e) {
   if (myProfile.isAdmin) {
     return
   }
-  if (!testNicknameKey(e.key)) {
+  if (testNicknameKey(e.key)) {
     e.preventDefault()
   }
 }

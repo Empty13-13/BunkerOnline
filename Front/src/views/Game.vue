@@ -836,15 +836,15 @@ function getRandomNumToDice() {
                 <AppButton @click="closeRoom" class="info-awaitRoom__btn closeBtn" color="red">Закрыть комнату
                 </AppButton>
                 <button :disabled="!mayStartGame"
-                        class="info-awaitRoom__btn startBtn"
-                        :class="mayStartGame?'btn green':''"
+                        class="info-awaitRoom__btn startBtn btn"
+                        :class="mayStartGame?'green':''"
                         @click="startGame"
                 >
                   Начать игру
                 </button>
                 <button v-if="myProfile.isMVP || myProfile.isAdmin" :disabled="!mayStartGame"
-                        class="info-awaitRoom__btn startBtn"
-                        :class="mayStartGame?'btn gold':''"
+                        class="info-awaitRoom__btn startBtn btn"
+                        :class="mayStartGame?'gold':''"
                         @click="createCustomGame"
                 >
                   <span class="text">Создать кастомную игру</span>
@@ -1723,6 +1723,8 @@ function getRandomNumToDice() {
     color: $fontColor;
     margin-bottom: 15px;
     resize: vertical;
+    max-height: 400px;
+    min-height: 100px;
 
     &::placeholder {
       color: #b7b7b7;

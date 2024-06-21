@@ -50,6 +50,7 @@ import AppLoader from "@/components/AppLoader.vue";
       justify-content: center;
       align-items: center;
       margin-bottom: 30px;
+      pointer-events: none;
 
       img {
         height: 100%;

@@ -14,6 +14,7 @@ module.exports = function(io) {
     console.log('ADMIN IO')
     let adminId = null
     let token = socket.handshake.auth.token
+    let idRoom = socket.handshake.auth.idRoom
     if (token) {
       console.log('Join to Token trigger')
       console.log(token)
@@ -47,6 +48,8 @@ module.exports = function(io) {
   
   admin.on('connection', async socket => {
       let adminId = socket.data.adminId
+      let idRoom = socket.handshake.auth.idRoom
+      console.log('Коннект есть')
       socket.on('banUser', async (userId) => {
         console.log(userId)
         console.log('ADMINNNN')
@@ -68,8 +71,54 @@ module.exports = function(io) {
         
         console.log('ADMINNNNNN3', io.sockets.adapter.rooms)
       })
-      
-      
+      socket.on('sendMessage', async (userId, title, textMessage) => {
+        console.log('ПРИШЛО1')
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        
+        console.log('ПРИШЛО')
+        if (+userId===0) {
+          let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id}})
+          if (!players) {
+            socket.emit("setError",
+              {message: "В этой игре нет игроков", status: 400, functionName: 'sendMessage'})
+            return
+          }
+          io.in(idRoom).emit('sendMessage', {
+              title: title,
+              message: textMessage,
+              color: 'gold'
+            }
+          )
+        }
+        else {
+          let player = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
+          if (!player) {
+            socket.emit("setError",
+              {message: "Такого игрока нет в игре", status: 400, functionName: 'sendMessage'})
+            return
+          }
+          io.in(`user:${userId}:${idRoom}`).emit('sendMessage', {
+              title: title,
+              message: textMessage,
+              color: 'gold'
+            }
+          )
+        }
+        socket.emit('sendMessage:timer', {
+            title: 'Сообщение от разработчиков',
+            message: 'Сообщение успешно отправлено',
+            color: 'green'
+          }
+        )
+        
+      })
+      socket.on('closeRoom', async () => {
+        await ioUserService.deleteRoomFromDB(idRoom)
+        
+        console.log('RoomClose делаем')
+        io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
+        io.in(idRoom).disconnectSockets(true);
+      })
     }
   )
 }

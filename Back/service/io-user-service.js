@@ -53,6 +53,12 @@ class ioUserService {
                 )
                 io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
                   {voitingData: voitingData, logsData: [{type: 'voiting', value: voitingData, date: new Date()}]})
+                  io.in(idRoom).emit('sendMessage:timer', {
+                                                  title: 'Сообщение от ведущего',
+                                                  message: 'Голосование закончилось',
+                                                  color: 'green'
+                                                }
+                                              )
                 // io.in(`watchers:${idRoom}`).emit('setAllGameData', {voitingData: voitingData})
               }
               else {
@@ -108,7 +114,7 @@ class ioUserService {
         name = 'Локация бункера'
         break
       case 'bunkerCreated':
-        name = 'Создание бункера'
+        name = 'Когда был построен бункер'
         break
       case 'bunkerBedroom':
         name = 'Состояние о комнатах в бункере'

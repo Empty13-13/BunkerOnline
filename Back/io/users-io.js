@@ -288,7 +288,7 @@ module.exports = function(io) {
                   socket.emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                 }
                 io.in(idRoom).emit('setAllGameData',
-                  {logsData: [{type: 'text', value: `Пользователь MVP ${user.nickname} изменил характеристику`}]})
+                  {logsData: [{type: 'text', value: `Пользователь MVP ${user.nickname} изменил характеристику`,date: new Date()}]})
                 socket.emit('refreshChartMVP:good', chartName)
               }
               else {

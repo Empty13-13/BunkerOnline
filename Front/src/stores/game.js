@@ -374,11 +374,29 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }))
     return players
   })
-  const getAllPlayersSelect = computed(() => {
+  const getAllPlayersSelectToChangeAdmin = computed(() => {
     let resultArr = []
-    for (let id in userData.value) {
-      resultArr.push({value: id, text: userData.value[id].nickname})
-    }
+    userData.value.sortedPlayers.forEach(id => {
+      if (userData.value[id] && id!==selectedGame.hostId) {
+        resultArr.push({value: id, text: userData.value[id].nickname})
+      }
+    })
+    // getAlivePlayers.value.forEach(player => {
+    //   if (player.id!==selectedGame.hostId) {
+    //     resultArr.push({value: player.id, text: player.data.nickname})
+    //   }
+    // })
+    return resultArr
+    
+    // let resultArr = []
+    // for (let id in userData.value) {
+    //   resultArr.push({value: id, text: userData.value[id].nickname})
+    // }
+    // return resultArr
+  })
+  const getAllPlayersSelectToChangeAdminAndAll = computed(() => {
+    let resultArr = getAllPlayersSelectToChangeAdmin.value
+    resultArr.unshift({value: 0, text: 'Для всех'})
     return resultArr
   })
   
@@ -573,7 +591,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     voitingData,
     isVoiting,
     userVoitingChoice,
-    getAllPlayersSelect,
+    getAllPlayersSelectToChangeAdmin,
     getAlivePlayers,
     getMyPlayerData,
     getMyUserData,
@@ -589,6 +607,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     showDice6,
     showDice20,
     getCatastropheEndSeconds,
+    getAllPlayersSelectToChangeAdminAndAll,
     setData,
     getCharForPlayer,
     getDescriptionForChar,

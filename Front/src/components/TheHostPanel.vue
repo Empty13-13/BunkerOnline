@@ -413,14 +413,14 @@ function restartGame(e) {
             </div>
           </AppSpoiler>
           <AppSpoiler title="Сменить ведущего">
-            <AppSelect :options="selectedGameData.getAllPlayersSelect" v-model="funcData.changeHost.id" />
+            <AppSelect :options="selectedGameData.getAllPlayersSelectToChangeAdmin" v-model="funcData.changeHost.id" />
             <button class="hostButton btn grayGold border"
                     @click.prevent="hostFunctional.transferHost($event,funcData.changeHost.id.value)">
               <span class="text">Сменить ведущего</span>
             </button>
           </AppSpoiler>
         </div>
-        <div class="hostPanel__mainButton mainButton-hostPanel">
+        <div class="hostPanel__mainButton mainButton-hostPanel"> 
           <AppButton color="green" @click="restartGame">Начать игру заново</AppButton>
           <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
         </div>
@@ -438,6 +438,7 @@ function restartGame(e) {
     </span>
   </button>
 </template>
+
 
 <style scoped lang="scss">
 @import "@/assets/scss/style";
