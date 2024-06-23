@@ -178,6 +178,11 @@ const CatastropheImage = sequelize.define('catastropheImage', {
   catastropheId: {type: DataTypes.INTEGER}
 })
 
+const OtherTexts = sequelize.define('otherTexts', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  name:{type: DataTypes.STRING,allowNull:false},
+  text:{type: DataTypes.STRING(15000),allowNull:false},
+})
 
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
@@ -219,5 +224,6 @@ module.exports = {
   UserUsePack,
   SystemSettings,
   CatastropheImage,
-  Logi
+  Logi,
+  OtherTexts,
 }

@@ -106,6 +106,10 @@ router.post('/userGames',blockedUserCheck, userController.userGames);
 router.post('/allPacks',blockedUserCheck, userController.allPacks);
 router.post('/changePack',blockedUserCheck,priorityUserMiddleware('default'),limiterPack, userController.changePack);
 router.get('/test', userController.test);
+router.get('/staticPage/:id', userController.loadStaticPage);
+router.get('/otherText/:id', userController.loadOtherText);
+router.get('/wikiList', userController.loadWikiList);
+
 
 
 //router.get('/loginVK',userController.loginVK);

@@ -918,7 +918,10 @@ class UserService {
     
     
     return data
-    
+  }
+  
+  async getOtherText(name) {
+    return await UserModel.OtherTexts.findOne({where: {name}})
   }
 }
 

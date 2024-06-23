@@ -1,4 +1,22 @@
 <script setup="">
+import { onMounted, ref } from "vue";
+import axiosInstance from "@/api.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
+
+const globalPreloader = usePreloaderStore()
+
+const links = ref([])
+
+onMounted(async () => {
+  globalPreloader.activate()
+  try {
+    let linksData = await axiosInstance.get('/wikiList')
+    links.value = linksData.data
+  } catch(e) {
+
+  }
+  globalPreloader.deactivate()
+})
 
 </script>
 
@@ -18,16 +36,13 @@
         </p>
         <ul>
           <li>
-            <router-link to="?wiki=123" class="wiki__link colorGold">Катастрофы</router-link>
+            <router-link to="/wiki/professions" class="wiki__link colorGold">Профессиональные возможности</router-link>
           </li>
-          <li>
-            <router-link to="?wiki=123" class="wiki__link colorGold">Бункер</router-link>
-          </li>
-          <li>
-            <router-link to="?wiki=123" class="wiki__link colorGold">Характеристики персонажа</router-link>
-          </li>
-          <li>
-            <router-link to="?wiki=123" class="wiki__link colorGold">Профессиональные возможности</router-link>
+          <li
+              v-for="link in links"
+              :key="link.link"
+          >
+            <router-link :to="`/wiki/${link.link}`" class="wiki__link colorGold">{{ link.title }}</router-link>
           </li>
         </ul>
       </div>

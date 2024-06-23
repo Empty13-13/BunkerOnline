@@ -381,21 +381,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         resultArr.push({value: id, text: userData.value[id].nickname})
       }
     })
-    // getAlivePlayers.value.forEach(player => {
-    //   if (player.id!==selectedGame.hostId) {
-    //     resultArr.push({value: player.id, text: player.data.nickname})
-    //   }
-    // })
     return resultArr
-    
-    // let resultArr = []
-    // for (let id in userData.value) {
-    //   resultArr.push({value: id, text: userData.value[id].nickname})
-    // }
-    // return resultArr
   })
   const getAllPlayersSelectToChangeAdminAndAll = computed(() => {
-    let resultArr = getAllPlayersSelectToChangeAdmin.value
+    let resultArr = [...getAllPlayersSelectToChangeAdmin.value]
     resultArr.unshift({value: 0, text: 'Для всех'})
     return resultArr
   })

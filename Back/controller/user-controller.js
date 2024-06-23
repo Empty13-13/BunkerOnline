@@ -5,6 +5,9 @@ const axios = require('axios')
 const uuid = require('uuid')
 const playerDataService = require('../service/playerData-service')
 const systemFunction = require('../systemFunction/systemFunction')
+const fs = require("fs");
+const {F_OK} = require("constants");
+const jsdom = require("jsdom");
 require('dotenv').config()
 
 class UserController {
@@ -57,7 +60,7 @@ class UserController {
     try {
       
       let {recaptchaToken} = req.body
-      console.log(recaptchaToken) 
+      console.log(recaptchaToken)
       
       const params = new URLSearchParams({
         secret: process.env.recaptchaKey,
@@ -329,31 +332,31 @@ class UserController {
   
   async resetPassword(req, res, next) {
     try {
-
-       let {recaptchaToken} = req.body
-            console.log(recaptchaToken)
-
-            const params = new URLSearchParams({
-              secret: process.env.recaptchaKey,
-              response: recaptchaToken
-            })
-            await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
-              .then(res => res.json())
-              .then(data => {
-                if (data.success) {
-                  console.log('УДАЧНО')
-                }
-                else {
-                  console.log('Не удачно')
-                  return next(ApiError.CapthaBlock())
-
-                }
-              })
-              .catch((e) => {
-                console.log('Не удачно CATCH', e)
-                return next(ApiError.CapthaBlock())
-              })
-
+      
+      let {recaptchaToken} = req.body
+      console.log(recaptchaToken)
+      
+      const params = new URLSearchParams({
+        secret: process.env.recaptchaKey,
+        response: recaptchaToken
+      })
+      await fetch('https://www.google.com/recaptcha/api/siteverify', {method: "POST", body: params})
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('УДАЧНО')
+          }
+          else {
+            console.log('Не удачно')
+            return next(ApiError.CapthaBlock())
+            
+          }
+        })
+        .catch((e) => {
+          console.log('Не удачно CATCH', e)
+          return next(ApiError.CapthaBlock())
+        })
+      
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
@@ -581,7 +584,88 @@ class UserController {
     }
   }
   
+  async loadStaticPage(req, res, next) {
+    try {
+      let fs = require('fs')
+      let name = `${process.env.STATIC_PAGE_LINK + req.params.id.toString()}.txt`
+      let _name = `${process.env.STATIC_PAGE_LINK + '_' + req.params.id.toString()}.txt`
+      const jsdom = require("jsdom");
+      const {JSDOM} = jsdom;
+      
+      fs.readFile(name, 'utf8', (e, data) => {
+        console.log(name)
+        if (!e) {
+          console.log('Прочитали файл')
+          const dom = new JSDOM(data);
+          let title = dom.window.document.querySelector('h1').textContent
+          console.log(title)
+          res.json({html: data, title})
+        }
+        else {
+          fs.readFile(_name, 'utf8', (e, data) => {
+            console.log(name)
+            if (!e) {
+              console.log('Прочитали файл2')
+              const dom = new JSDOM(data);
+              let title = dom.window.document.querySelector('h1').textContent
+              console.log(title)
+              res.json({html: data, title})
+            }
+            else {
+              console.log('Ошибка чтения файла')
+              next(e)
+            }
+          })
+        }
+      })
+    } catch(e) {
+      next(e)
+    }
+  }
   
+  async loadOtherText(req, res, next) {
+    try {
+      const textData = await userService.getOtherText(req.params.id.toString())
+      if (textData) {
+        res.json(textData.text)
+        console.log('Нашли текст')
+      }
+      else {
+        next({message: 'Текст не найден'})
+      }
+    } catch(e) {
+      next(e)
+    }
+  }
+  
+  async loadWikiList(req, res, next) {
+    try {
+      const fs = require('fs');
+      let resultArr = []
+      
+      await fs.readdir(process.env.STATIC_PAGE_LINK, (err, files) => {
+        if (err) throw err;
+        
+        files.forEach(filename => {
+          if (filename[0]!=='_') {
+            let result = fs.readFileSync(process.env.STATIC_PAGE_LINK + filename, {encoding: "utf-8"})
+            console.log('Прочитали файл3',filename)
+            const jsdom = require("jsdom");
+            const {JSDOM} = jsdom;
+            const dom = new JSDOM(result);
+            let title = dom.window.document.querySelector('h1').textContent
+            resultArr.push({title,link:filename.replace('.txt','')})
+            console.log(resultArr)
+          }
+        })
+        
+        res.json(resultArr)
+        console.log('asdasdas')
+      });
+    } catch(e) {
+      next(e)
+    }
+  }
 }
 
 

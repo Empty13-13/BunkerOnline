@@ -1154,6 +1154,12 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+         io.in(idRoom).emit('sendMessage:timer', {
+                            title: 'Сообщение от ведущего',
+                            message: textForLog,
+                            color: 'green'
+                          }
+                        )
         // io.in(idRoom).emit()
       })
       socket.on('refresh:cureMake', async (playersId, makeId) => {

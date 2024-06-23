@@ -1,4 +1,52 @@
 <script setup="">
+import { onBeforeMount, ref } from "vue";
+import axiosInstance from "@/api.js";
+import router from "@/router/index.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
+
+const globalPreloader = usePreloaderStore()
+
+const title = ref('Игра «Бункер Онлайн»')
+const text = ref(`Игра «Бункер Онлайн!» - невероятно атмосферная игра с великолепной нарративной частью. Это уникальная
+          возможность испытать на себе наступление апокалипсиса и проверить свои переговорные и дедуктивные навыки,
+          чтобы выжить! Игра сразу же погружает вас и вашу компанию в игру "с головой".<br>
+          Интересные катаклизмы и характеристики персонажей делают игровой процесс еще более насыщенным. Игра также
+          производит определенный терапевтический эффект, ведь обсуждая как пережить катастрофу, мир за окном будет
+          казаться относительно прекрасным. Игра способна тревожить душу, заставляя переживать и сочувствовать. Пройдя в
+          бункер игроки получат невероятное удовольствие. Выжившие от того, что смогли проникнуть в бункер, а другие от
+          общего процесса игры.<br>
+          <br>
+          С помощью нашего сайта вы можете играть в «Бункер Онлайн!» не выходя из дома, или же с друзьями за чашкой кофе
+          в небольшом уютном кафе своего города! Наша цель — сделать игру еще более атмосферной, и максимально
+          интересной для каждого игрока!`)
+const copyRight = ref('© 2020-2023 Все права защищены. Копирование материалов сайта запрещено')
+
+onBeforeMount(async () => {
+  globalPreloader.activate()
+  try {
+    let textData = await axiosInstance.get(`/otherText/footer:text`)
+    text.value = textData.data
+    console.log(textData)
+  } catch(e) {
+    console.log('Не нашли текст для футера')
+  }
+  try {
+    let copyRightData = await axiosInstance.get(`/otherText/footer:copyright`)
+    copyRight.value = copyRightData.data
+    console.log(copyRightData)
+  } catch(e) {
+    console.log('Не нашли copyRight для футера')
+  }
+  try {
+    let titleData = await axiosInstance.get(`/otherText/footer:title`)
+    title.value = titleData.data
+    console.log(titleData)
+  } catch(e) {
+    console.log('Не нашли title для футера')
+  }
+
+  globalPreloader.deactivate()
+})
 
 </script>
 
@@ -11,29 +59,16 @@
     <div class="footer__upShadow">
     </div>
     <div class="footer__container">
-      <h2 class="footer__title titleH2">Игра «Бункер Онлайн!»</h2>
+      <h2 class="footer__title titleH2" v-html="title"></h2>
       <div class="footer__body">
-        <p class="footer__text">
-          Игра «Бункер Онлайн!» - невероятно атмосферная игра с великолепной нарративной частью. Это уникальная
-          возможность испытать на себе наступление апокалипсиса и проверить свои переговорные и дедуктивные навыки,
-          чтобы выжить! Игра сразу же погружает вас и вашу компанию в игру "с головой".<br>
-          Интересные катаклизмы и характеристики персонажей делают игровой процесс еще более насыщенным. Игра также
-          производит определенный терапевтический эффект, ведь обсуждая как пережить катастрофу, мир за окном будет
-          казаться относительно прекрасным. Игра способна тревожить душу, заставляя переживать и сочувствовать. Пройдя в
-          бункер игроки получат невероятное удовольствие. Выжившие от того, что смогли проникнуть в бункер, а другие от
-          общего процесса игры.<br>
-          <br>
-          С помощью нашего сайта вы можете играть в «Бункер Онлайн!» не выходя из дома, или же с друзьями за чашкой кофе
-          в небольшом уютном кафе своего города! Наша цель — сделать игру еще более атмосферной, и максимально
-          интересной для каждого игрока!
-        </p>
+        <p class="footer__text" v-html="text"></p>
         <div class="footer__images">
           <img src="/img/footer/12.jpg" alt="">
           <img src="/img/footer/online.jpg" alt="">
         </div>
       </div>
       <div class="footer__down down-footer ">
-        <p class="down-footer__copy">© 2020-2023 Все права защищены. Копирование материалов сайта запрещено</p>
+        <p class="down-footer__copy" v-html="copyRight"></p>
         <router-link class="down-footer__cookie" to="/cookie">Соглашение о cookie</router-link>
       </div>
     </div>
