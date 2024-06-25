@@ -187,7 +187,7 @@ class playerDataService {
     })
     let dataPlayer1 = JSON.parse(player1[chartName])
     let dataPlayer2 = JSON.parse(player2[chartName])
-    let lastVar = {[chartName]: {[playerId1]: dataPlayer1, [playerId2]: dataPlayer2}}
+    let lastVar = {chartName:chartName, [playerId1]: JSON.parse(player1[chartName]), [playerId2]: JSON.parse(player2[chartName])}
     dataPlayer2.id = dataPlayer1.id
     dataPlayer2.text = dataPlayer1.text
     if (chartName==='profession') {
@@ -244,7 +244,7 @@ class playerDataService {
         //console.log(resultPlayerData)
         //
         data.players = Object.assign(data.players, resultPlayerData)
-        //  data.lastVar = Object.assign(data.lastVar, lastVar)
+        data.lastVar = Object.assign(data.lastVar, lastVar)
       }
       let allPlayers = await UserModel.RoomSession.findAll({
         attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'isMVPRefresh'],
@@ -670,7 +670,7 @@ class playerDataService {
     for (let key in gameRoom) {
       if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers'&& key.toString()!=='bunkerAge'&& key.toString()!=='population'&& key.toString()!=='endOfTime') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
-        console.log(gameRoom[key])
+       // console.log(gameRoom[key])
         bunkerData[key] = chartBunker.text
         
       }
@@ -767,14 +767,14 @@ class playerDataService {
     }
 
   //  console.log('POTOK',players[0])
-    console.log('ABRAKADABRA',userList)
+   // console.log('ABRAKADABRA',userList)
     let data = {}
     let sortedPlayers =[]
     for (let i = 0; i<players.length; i++) {
       let userData = {}
       let player = players.find(item => item.userId===userList[i])
       sortedPlayers.push(player.userId)
-      console.log('player',player.userId)
+     // console.log('player',player.userId)
     //  arrayPlayer.push(player.userId)
       if (player.userId>0) {
         let user = await UserModel.User.findOne({where: {id: player.userId}})
@@ -803,9 +803,9 @@ class playerDataService {
         userData.isAlive = false
       }
       data[player.userId] = userData
-      console.log('NEWDATA',data)
+     // console.log('NEWDATA',data)
     }
-    console.log('DATA',data)
+   // console.log('DATA',data)
     if(!isJoin){
 
         gameRoomData.userList = JSON.stringify(sortedPlayers)
@@ -1068,7 +1068,7 @@ class playerDataService {
       if (player) {
         sexIsOpen = JSON.parse(player['sex']).isOpen
         healthIsOpen = JSON.parse(player['health']).isOpen
-        console.log('1111', JSON.parse(player['health']).isOpen)
+     //   console.log('1111', JSON.parse(player['health']).isOpen)
       }
       
     }
@@ -1249,13 +1249,13 @@ class playerDataService {
     if (name==='spec1' || name==='spec2') {
       name = 'card'
     }
-    console.log('00000000000000000')
+   // console.log('00000000000000000')
     while (!result.text) {
       if (countWhile>10) {
         throw ('Loop throw')
       }
       this.getRandomPack(isUsedSystemAdvancePack, name)
-      console.log('111111111111111111')
+     // console.log('111111111111111111')
       let playerData = null
       if (player) {
         playerData = JSON.parse(player[name])
@@ -1292,7 +1292,7 @@ class playerDataService {
           else {
             result.isOpen = false
           }
-          console.log(result)
+        //  console.log(result)
           if (name!=='health') {
             delete result.dontAddLevelInfo
           }
@@ -1309,7 +1309,7 @@ class playerDataService {
           this.systemSettings.maxHeight)} см.)`
         break;
       case 'health':
-        console.log(result.text, result.dontAddLevelInfo)
+      //  console.log(result.text, result.dontAddLevelInfo)
         if (result.text!=='Идеально здоров' && result.dontAddLevelInfo===0) {
           
           

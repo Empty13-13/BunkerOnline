@@ -33,7 +33,7 @@ module.exports = function(io) {
     // console.log('DICKPICK',socket)
     
     
-    console.log(`${socket.id} user connected with userId ${isValidateId}`)
+   // console.log(`${socket.id} user connected with userId ${isValidateId}`)
     socket.on('createRoom', async () => {
       // let isReg = false
       
@@ -47,7 +47,7 @@ module.exports = function(io) {
             functionName: 'createRoom'
           })
         io.in(socket.id).disconnectSockets(true);
-        console.log('inValid idRoom')
+     //   console.log('inValid idRoom')
         return
       }
       let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId})
@@ -187,7 +187,7 @@ module.exports = function(io) {
             let emitData = {}
             let data = JSON.parse(player[chartName])
             let usePack = JSON.parse(player.usePack)
-            console.log(usePack, usePack[0], usePack.includes(1))
+          //  console.log(usePack, usePack[0], usePack.includes(1))
             if (!data.isOpen) {
               data.isOpen = true
               emitData = data
@@ -281,7 +281,7 @@ module.exports = function(io) {
                 })
                 
                 if (data.isOpen) {
-                  console.log(chartName)
+                //  console.log(chartName)
                   io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                 }
                 else {
@@ -353,11 +353,11 @@ module.exports = function(io) {
               where:
                 {gameRoomId: gameRoom.id, isPlayer: 1, userId: isValidateId}
             })
-          console.log('usersIO:isValidateId', isValidateId)
+        //  console.log('usersIO:isValidateId', isValidateId)
           if (player) {
             if (player.isAlive) {
               if (choiseId!==isValidateId) {
-                console.log(choiseId, isValidateId)
+               // console.log(choiseId, isValidateId)
                 player.votedFor = choiseId
                 await player.save()
                 socket.emit('voiting:choiseUser:good')
@@ -421,7 +421,7 @@ module.exports = function(io) {
       }
     })
     
-    console.log(io.sockets.adapter.rooms)
+   // console.log(io.sockets.adapter.rooms)
   })
 }
 

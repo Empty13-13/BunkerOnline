@@ -214,6 +214,18 @@ class UserService {
     
     return users
   }
+
+  async getPrice(){
+    console.log('1')
+    try{
+      const resp = await axios.get('https://a.ggsel.com/partner/paginate/goods?token=$2y$10$xB37cm37yDYUcQXFC.mtie2sAa.xArJbvq56tVMr97/b8SBEKfFiq&filter[id_goods]=3726124')
+      console.log(resp.data.links)
+    }catch (e) {
+      console.log(e)
+    }
+
+
+  }
   
   async connectionDiscord(code, res) {
     const resp = await axios.post('https://discord.com/api/oauth2/token',

@@ -11,7 +11,7 @@ module.exports = function(io) {
   const host = io.of("/host")
   
   host.use(async (socket, next) => {
-    console.log('HOST IO')
+   // console.log('HOST IO')
     let tokenData = await ioUserService.validateToken(socket)
     let isValidateId = null
     let idRoom = null
@@ -26,7 +26,7 @@ module.exports = function(io) {
     
     // console.log('TOKEN DATA:',tokenData,socket)
     if (!isValidateId || !idRoom) {
-      console.log("io.of('/host') invalid token")
+    //  console.log("io.of('/host') invalid token")
       next(new Error("invalid token"))
       return
     }
@@ -36,7 +36,7 @@ module.exports = function(io) {
     //console.log(isHost)
     
     if (!isHost || isValidateId!==isHost.hostId) {
-      console.log("io.of('/host') invalid host")
+  //    console.log("io.of('/host') invalid host")
       next(new Error("invalid host"))
       return
     }
@@ -57,11 +57,11 @@ module.exports = function(io) {
       }
       const gameRoomId = gameRoom.id
       let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
-      console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
+    //  console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
       socket.on('closeRoom', async () => {
         await ioUserService.deleteRoomFromDB(idRoom)
         
-        console.log('RoomClose делаем')
+     //   console.log('RoomClose делаем')
         io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
         io.in(idRoom).disconnectSockets(true);
       })
@@ -84,7 +84,7 @@ module.exports = function(io) {
               status: 400,
               functionName: 'kickOutUser'
             })
-          console.log('Игра уже началась, невозможно выгнать')
+     //     console.log('Игра уже началась, невозможно выгнать')
           return
         }
         console.log(`Delete Users ${Id}`)
@@ -1148,6 +1148,13 @@ module.exports = function(io) {
             step: await playerDataService.howStepLog(idRoom),
             lastVar: JSON.stringify(lastVar)
           })
+        }else{
+            await UserModel.Logi.create({
+                idRoom: idRoom,
+                funcName: `degreeOfSick`,
+                text: textForLog,
+                step: await playerDataService.howStepLog(idRoom)
+            })
         }
         console.log(emitData)
         emitData.logsData.type = 'text'
@@ -1952,14 +1959,14 @@ module.exports = function(io) {
             isAlive: 0
           }
         })
-        console.log(notAlivePlayer)
+      //  console.log(notAlivePlayer)
         if (notAlivePlayer) {
           for (let player of notAlivePlayer) {
             let index = userList.indexOf(player.userId)
             userList.splice(index, 1)
           }
         }
-        console.log(players)
+      //  console.log(players)
         let lastVar = {}
         lastVar.chartName = chartName
         let emitData = {players: {}, logsData: {}}
@@ -1967,6 +1974,7 @@ module.exports = function(io) {
           let dataForNextPlayer = {}
           
           let vars = {}
+            let vars2 ={}
           let zeroPlayer = players.find(item => item.userId===userList[0])
           let lastPlayer = players.find(item => item.userId===userList[userList.length - 1])    //players[players.length - 1]
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
@@ -1977,14 +1985,17 @@ module.exports = function(io) {
           if (chartName==='profession') {
             vars.description = dataForNextPlayer.description
           }
-          
+        //  console.log(vars)
           lastVar[zeroPlayer.userId] = vars
-          vars.id = playerProfessionData.id
-          vars.text = playerProfessionData.text
+          //  console.log(lastVar)
+            vars2.id = playerProfessionData.id
+            vars2.text = playerProfessionData.text
           if (chartName==='profession') {
-            vars.description = playerProfessionData.description
+              vars2.description = playerProfessionData.description
           }
-          lastVar[lastPlayer.userId] = vars
+           // console.log(vars)
+          lastVar[lastPlayer.userId] = vars2
+           // console.log(lastVar)
           if (playerProfessionData.isOpen) {
             //  console.log("isOpen", players[0].userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
@@ -2024,7 +2035,7 @@ module.exports = function(io) {
           }
         }
         else {
-          console.log(makeId, 'PRISHLO')
+      //    console.log(makeId, 'PRISHLO')
           let dataForNextPlayer = {}
           let userList = JSON.parse(gameRoom.userList)
           let vars = {}
@@ -2047,19 +2058,19 @@ module.exports = function(io) {
           }
           lastVar[lastPlayer.userId] = vars
           if (playerProfessionData.isOpen) {
-            console.log('OPEN')
+         //   console.log('OPEN')
             //   console.log("isOpen", players[zeroPlayer.userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
-            console.log('!OPEN')
+         //   console.log('!OPEN')
             // let player = players[players.length - 1]
             io.to(`user:${zeroPlayer.userId}:${idRoom}}`).emit('setAllGameData',
               {players: {[zeroPlayer.userId]: {[chartName]: playerProfessionData}}})
           }
           zeroPlayer[chartName] = JSON.stringify(playerProfessionData)
           await zeroPlayer.save()
-          console.log(players.length)
+        //  console.log(players.length)
           for (let i = players.length - 2; i>=0; i--) {
            // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
            // console.log(players)
@@ -2075,13 +2086,13 @@ module.exports = function(io) {
               vars.description = data.description
             }
             lastVar[player.userId] = vars
-            console.log(data)
+          //  console.log(data)
             if (data.isOpen) {
-              console.log("isOpen", player.userId)
+            //  console.log("isOpen", player.userId)
               emitData.players[player.userId] = {[chartName]: dataForNextPlayer}
             }
             else {
-              console.log('NOTOPEN')
+             // console.log('NOTOPEN')
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
                 {players: {[player.userId]: {[chartName]: dataForNextPlayer}}}
               )
@@ -2092,6 +2103,7 @@ module.exports = function(io) {
             dataForNextPlayer = data
           }
         }
+        console.log(lastVar)
         await UserModel.Logi.create({
           idRoom: idRoom,
           funcName: `ByHour`,
@@ -2197,9 +2209,10 @@ module.exports = function(io) {
       socket.on('reverseLog', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let log = await UserModel.Logi.findOne(
-          {where: {idRoom: idRoom, step: await playerDataService.howStepLog(idRoom) - 1}, raw: true})
+          {where: {idRoom: idRoom, step: await playerDataService.howStepLog(idRoom) - 1}})
         let textForLog = `Ведущий отменил последнее действие |${log.text}|`
-        
+          await ioUserService.reversLog(log, gameRoom, idRoom, io)
+
         
       })
     }

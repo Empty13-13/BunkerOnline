@@ -17,6 +17,8 @@ const buffer = require("buffer");
 const path = require('path')
 const fs = require('fs')
 const gameKey = require('./service/gameKey-service')
+const userService = require('./service/user-service')
+const ioUserService = require('./service/io-user-service')
 const UserModel = require('./model/models')
 
 
@@ -97,18 +99,20 @@ const start = async () => {
    // await  gameKey.updateSubscription()
    // await gameKey.getKeyId('C509-3D69-929D-2864')
     // console.log(s.endDate)
+        // await ioUserService.testFunc(io)
   } catch(e) {
     console.log(e);
   }
 }
 start()
 
-  cron.schedule('58 23 * * *', async () => {
-   console.log('Запущена обновление подписки');
-   await  gameKey.updateSubscription()
-  })
+  //cron.schedule('58 23 * * *', async () => {
+ //  console.log('Запущена обновление подписки');
+ //  await  gameKey.updateSubscription()
+ // })
 
-//   cron.schedule("*/8000 * * * * *", async function() {
+    // cron.schedule("*/1000000 * * * * *", async function() {
+ //  await userService.getPrice()
 //     let user = await UserModel.User.findOne({where: {id: 6}})
 //     console.log(user.accsessLevel)
 //     let dateNow = new Date(new Date().setUTCHours(0, 0, 0, 0))
@@ -142,7 +146,7 @@ start()
 //   //  console.log('Запущена обновление подписки');
 //   //  await  gameKey.updateSubscription()
 //
- // });
+// });
 
 
 module.exports = {io}
