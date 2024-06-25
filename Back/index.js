@@ -9,6 +9,14 @@ const fileUpload = require("express-fileupload")
 const errorMiddleware = require('./middlewares/error-middleware')
 const {rateLimit} = require('express-rate-limit')
 const {Server} = require("socket.io");
+const cron = require("node-cron")
+let mer = require("mersennetwister")
+const bcrypt = require('bcrypt')
+const  crypto = require('crypto')
+const buffer = require("buffer");
+const path = require('path')
+const fs = require('fs')
+const gameKey = require('./service/gameKey-service')
 
 
 const limiter = rateLimit({
@@ -83,12 +91,44 @@ const start = async () => {
     await sequelize.authenticate()
     await sequelize.sync()
     http.listen(PORT, () => console.log(`Server started on PORT = ${PORT}`))
+        //await gameKey.generateKey('Новые ключи','vip',30,40)
+   //let s = await gameKey.activateKey('C509-3D69-929D-2864',1)
+   // await  gameKey.updateSubscription()
+   // await gameKey.getKeyId('C509-3D69-929D-2864')
+    // console.log(s.endDate)
   } catch(e) {
     console.log(e);
   }
 }
 start()
 
+
+//   cron.schedule("*/10 * * * * *", async function() {
+   //  let newTitle = path.join('../gameKey/','lol2.txt')
+   //   fs.open(newTitle, 'w' ,(err)=>{})
+     //   if(err) throw err;
+     //   console.log('File created');
+     // })
+  //    let mr = new mer()
+  //  //  let cryptKey = await bcrypt.hash('$2b$04$4VuaUHebHuTRjOFKc8Zxgu3uzeKdJa0elIECUl0/ycsiEHUwFyGqu', 3)
+  //    let key1 = 'XXXX-XXXX-XXXX-XXXX'
+  //    const algorithm = 'aes-256-cbc'; // Алгоритм шифрования
+  //    //const key = (crypto.randomBytes(32)).toString('base64'); // Генерация случайного ключа (256 бит)
+  //   // const iv = crypto.randomBytes(16).toString('base64'); // Генерация случайного вектора инициализации (IV)
+  //    //let key ='<Buffer 30 2d 66 c2 6f 9e 7a 2d e1 2f 4c 75 34 ea 9d e5 49 9d 89 d1 d5 e2 ba 6d 71 38 cd 35 d0 92 53 c4>'
+  //   // let iv = '<Buffer 9f 3f 31 05 25 9e 1c f7 74 15 03 bc aa 09 2b f9>'
+  //    let key ='xB4bfGriY3eauHJnHpbtGTwf4CTY+KhP8i19zBhBRzQ='
+  //    let iv ='vDG22SHsTGenEkBRTIP6bQ=='
+  //    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key.toString('utf8'),"base64"),Buffer.from(iv.toString('utf8'),"base64"));
+  //    let encrypted = cipher.update(key1, 'utf8', 'hex');
+  //    encrypted += cipher.final('hex');
+  //
+  //
+  // //        //    let date = new Date(new Date().setHours(0,0,0,0)+30*24*60*60*1000)
+  // //  //   let date2 = new Date(new Date().setHours(0,0,0,0)+90*24*60*60*1000)
+  // // //   let result = new Date(date2-date)/ (1000 * 60 * 60 * 24)
+ //   console.log(newTitle);
+  //  });
 
 
 module.exports = {io}

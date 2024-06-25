@@ -2061,12 +2061,12 @@ module.exports = function(io) {
           await zeroPlayer.save()
           console.log(players.length)
           for (let i = players.length - 2; i>=0; i--) {
-            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
-            console.log(players)
-            console.log(players.length)
+           // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
+           // console.log(players)
+          //  console.log(players.length)
             let player = players.find(item => item.userId===userList[i])
-            console.log(player)
-            console.log(chartName)
+          //  console.log(player)
+          //  console.log(chartName)
             let data = JSON.parse(player[chartName])
             dataForNextPlayer.isOpen = data.isOpen
             vars.id = data.id

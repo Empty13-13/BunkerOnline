@@ -17,7 +17,9 @@ const User = sequelize.define('user', {
   numWinGame: {type: DataTypes.INTEGER, defaultValue: 0},
   hiddenBirthday: {type: DataTypes.TINYINT, defaultValue: 0},
   isUsedSystemBasePack: {type: DataTypes.TINYINT, defaultValue: 1},
-  isUsedSystemAdvancePack: {type: DataTypes.TINYINT, defaultValue: 0}
+  isUsedSystemAdvancePack: {type: DataTypes.TINYINT, defaultValue: 0},
+  updateDate: {type: DataTypes.DATE},
+  endDate: {type: DataTypes.DATE}
 })
 
 const Token = sequelize.define('token', {
@@ -184,6 +186,14 @@ const OtherTexts = sequelize.define('otherTexts', {
   text:{type: DataTypes.STRING(15000),allowNull:false},
 })
 
+const gameKey = sequelize.define('gameKey', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  key:{type: DataTypes.STRING(1000)},
+  period:{type: DataTypes.INTEGER},
+  type:{type: DataTypes.STRING()},
+  isActivate:{type: DataTypes.TINYINT, defaultValue: 0}
+})
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
@@ -226,4 +236,5 @@ module.exports = {
   CatastropheImage,
   Logi,
   OtherTexts,
+  gameKey,
 }
