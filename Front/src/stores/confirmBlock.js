@@ -8,12 +8,14 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
   const showBlock = ref(false)
   const width = ref(0)
   const currentWidth = ref(0)
-  const action = ref(() => {})
+  const action = ref(() => {
+  })
   const text = ref('Вы подтверждаете действие?')
   const showLoader = ref(false)
-  const timeout = ref(setTimeout(() => {},5000))
+  const timeout = ref(setTimeout(() => {
+  }, 5000))
   
-  function activate(topX,leftY,actionConfirm,textConfirm = 'Вы подтверждаете действие?',widthConfirm=0) {
+  function activate(topX, leftY, actionConfirm, textConfirm = 'Вы подтверждаете действие?', widthConfirm = 0) {
     clearInterval(timeout.value)
     top.value = topX
     left.value = leftY
@@ -25,7 +27,7 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
     
     timeout.value = setTimeout(() => {
       deactivate()
-    },5000)
+    }, 5000)
   }
   
   function deactivate() {
@@ -37,7 +39,13 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
   async function _yesHandler() {
     showLoader.value = true
     if (isAsync(action.value)) {
-      await action.value()
+      try {
+        await action.value()
+      } catch(e) {
+        console.log(e)
+      } finally {
+        deactivate()
+      }
     }
     else {
       action.value()
@@ -48,7 +56,7 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
   
   async function _enterHandler() {
     console.log('enterHandler')
-    if(showBlock.value) {
+    if (showBlock.value) {
       await _yesHandler()
     }
   }
@@ -56,8 +64,9 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
   function activateTimer() {
     timeout.value = setTimeout(() => {
       deactivate()
-    },5000)
+    }, 5000)
   }
+  
   function deactivateTimer() {
     clearInterval(timeout.value)
   }

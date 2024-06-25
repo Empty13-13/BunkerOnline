@@ -102,7 +102,7 @@ function deleteAvatar(e) {
   <div class="avatar" :class="color">
     <div class="avatar__img" :class="color">
       <AppLoader v-if="showLoader"/>
-      <img v-else-if="color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
+      <img v-else-if="color==='default' || color!=='noreg' && !href" src="/img/icons/defaultPhoto.png" alt="">
       <img v-else-if="color==='noreg'" src="/img/icons/noregPhoto.svg" alt="">
       <img ref="ownImage" v-else :src="globalLink+href" alt="">
       <div v-if="blockEdit" class="profileEdit-avatar">

@@ -16,6 +16,9 @@ module.exports = class ApiError extends Error {
   static BlockedUser() {
     return new ApiError(469, 'User is blocked')
   }
+  static keyExp(message) {
+      return new ApiError(300, message)
+    }
   
   static CapthaBlock() {
       return new ApiError(601, 'Ошибка прохождения каптчи. Пожалуйста, перезагрузите страницу и попробуйте снова')

@@ -49,6 +49,10 @@ module.exports = function(accsessLevel) {
           return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
         }
                                                 
+      }else if(user.dataValues.accsessLevel.toString()==='vip'){
+        if(!user.dataValues.refreshNickname){
+          return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
+        }
       }
       
       

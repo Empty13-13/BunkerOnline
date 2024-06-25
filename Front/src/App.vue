@@ -13,12 +13,15 @@ import AppConfirm from "@/components/AppConfirm.vue";
 import AppPopup from "@/components/AppPopup.vue";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
+import { useStaticPagesStore } from "@/stores/static.js";
+import axiosInstance from "@/api.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 const confirmStore = useConfirmBlockStore()
+const staticPages = useStaticPagesStore()
 
 const checkUser = () => {
   const tokens = authStore.getLocalData('userTokens')
@@ -53,6 +56,15 @@ onBeforeMount(async () => {
         localStorage.removeItem(key)
       }
     }
+  }
+
+
+  try {
+    let pageHTMLData = await axiosInstance.get('/staticPage/rules')
+    console.log('RULES',pageHTMLData)
+    staticPages.rulesPagesHTML = pageHTMLData.data.html
+  } catch(e) {
+
   }
 })
 

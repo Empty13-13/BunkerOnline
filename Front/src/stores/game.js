@@ -392,9 +392,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getCatastropheEndSeconds = computed(() => {
     return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000 || 0
   })
-  let timerCatastrophe = setInterval(() => {
-  }, 1000)
-  clearInterval(timerCatastrophe)
+  let timerCatastrophe = null
   
   function setData(data) {
     if (!data || objIsEmpty(data)) {
@@ -405,6 +403,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         bunkerData.value[key] = data.bunkerData[key]
         if (key==='endOfTime') {
           if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)>0) {
+            clearInterval(timerCatastrophe)
             timerCatastrophe = setInterval(() => {
               dateNow.value = new Date()
               if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)<=0) {
@@ -461,7 +460,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
   }
   
-  
   function getNonVoitingUsersNicknames(voitingData) {
     let votedData = {}
     let votedList = []
@@ -482,7 +480,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     
     for (let dataKey in userData.value) {
-      if (userData.value[dataKey].isPlayer && !votedPlayerIds.includes(+dataKey)) {
+      if (userData.value[dataKey].isPlayer && userData.value[dataKey].isAlive && !votedPlayerIds.includes(+dataKey)) {
         abstainedList.push(userData.value[dataKey].nickname)
       }
     }

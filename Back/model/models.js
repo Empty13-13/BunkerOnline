@@ -19,7 +19,8 @@ const User = sequelize.define('user', {
   isUsedSystemBasePack: {type: DataTypes.TINYINT, defaultValue: 1},
   isUsedSystemAdvancePack: {type: DataTypes.TINYINT, defaultValue: 0},
   updateDate: {type: DataTypes.DATE},
-  endDate: {type: DataTypes.DATE}
+  endDate: {type: DataTypes.DATE},
+  refreshNickname: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
 const Token = sequelize.define('token', {

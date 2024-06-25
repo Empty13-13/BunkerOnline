@@ -28,6 +28,7 @@ import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
+import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -126,7 +127,7 @@ function banUser(e) {
       if (data.isBlocked) {
         globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
         adminSocket.setConnect()
-        adminSocket.emit('banUser',data.id)
+        adminSocket.emit('banUser', data.id)
         // adminSocket.close()
       }
       else {
@@ -284,11 +285,11 @@ async function updateProfileInfo() {
   if (data.isBlocked) {
     data.access.title = 'banned'
   }
-  data.access.date = new Date(userInfo.data.accsessDate) || '∞'
+  data.access.date = new Date(userInfo.data.endDate) || '∞'
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
   data.avatar = userInfo.data.avatar
-  console.log('typeof data.birthday:: ',typeof  userInfo.data.birthday, userInfo.data.birthday)
+  console.log('typeof data.birthday:: ', typeof userInfo.data.birthday, userInfo.data.birthday)
   data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
   data.birthday.isHidden = userInfo.data.hiddenBirthday || false
   if (data.birthday.date) {
@@ -296,9 +297,10 @@ async function updateProfileInfo() {
       birthdayInput.value.valueAsDate = data.birthday.date
     }
     let date = ''
-    date = `${data.birthday.date.getDate().toString().padStart(2,'0')}.${(data.birthday.date.getMonth()+1).toString().padStart(2,'0')}`
+    date = `${data.birthday.date.getDate().toString().padStart(2,
+        '0')}.${(data.birthday.date.getMonth() + 1).toString().padStart(2, '0')}`
 
-    if(!data.birthday.isHidden) {
+    if (!data.birthday.isHidden) {
       date += `.${data.birthday.date.getFullYear()}`
     }
     data.birthday.date = date
@@ -308,12 +310,14 @@ async function updateProfileInfo() {
   }
   console.log('userInfo.data.sex', userInfo.data.sex)
   if (!(userInfo.data.sex===null || userInfo.data.sex===undefined)) {
-    if(+userInfo.data.sex===0) {
+    if (+userInfo.data.sex===0) {
       data.isMale = {text: 'Женский', value: +userInfo.data.sex}
-    } else {
+    }
+    else {
       data.isMale = {text: 'Мужской', value: +userInfo.data.sex}
     }
-  } else {
+  }
+  else {
     data.isMale = {text: 'Не выбран', value: -1}
   }
 
@@ -363,6 +367,81 @@ function changeEmailHandler(e) {
     }
   })
 }
+
+
+//========================================================================================================================================================
+const showGeneratePopup = ref(false)
+const fileNameGenerateKeys = ref('Название файла')
+const keyDateNum = ref(30)
+const typeKeyOptions = [
+  {value: 0, text: 'VIP'},
+  {value: 1, text: 'MVP'},
+]
+const typeKeyModel = ref(0)
+const keysNum = ref(500)
+
+function generateHandler(e) {
+  showConfirmBlock(e.target, async () => {
+    let data = {
+      filename: fileNameGenerateKeys.value,
+      days: keyDateNum.value,
+      type: typeKeyModel.value.value,
+      count: keysNum.value
+    }
+    try {
+      let result = await axiosInstance.post('/generateKeys', data, {
+        withCredentials: true
+      })
+      console.log(result)
+    } catch(e) {
+      console.log(e)
+      globalPopup.activate('Ошибка создание ключей', '')
+    }
+    console.log(data)
+  }, 'Вы уверены что всё вписали правильно? В случае если файл с таким названием уже есть, то он будет перезаписан')
+}
+
+const activationKey = ref('')
+const activationKeyLabel = ref('')
+const activationKeyLabelShow = ref(false)
+
+function activateKeyHandler(e) {
+  showConfirmBlock(e.target, async () => {
+    try {
+      await updateAccess(e)
+    } catch(e) {
+      console.log(e)
+      // globalPopup.activate('Ошибка',e.response.data.message,'red')
+      activationKeyLabelShow.value = true
+      activationKeyLabel.value = e.response.data.message
+    }
+  }, '')
+
+  async function updateAccess(e, question = false) {
+    let result = await axiosInstance.post('/activateKey', {key: activationKey.value,question}, {withCredentials: true})
+    if (result.data.question && question===false) {
+      setTimeout(() => {
+        showConfirmBlock(e.target, async () => {
+              await updateAccess(e, true)
+            },
+            `Если вы сейчас примените ключ, то у вас сгорит активная подписка. На данный момент до конца подписки осталось ${result.data.days} дней. Вы уверены?`)
+      },300)
+    }
+    else {
+      activationKeyLabelShow.value = false
+      myProfile.access = result.data.accessLevel || myProfile.access
+      data.access.title = result.data.accessLevel || data.access.title
+      data.access.date = new Date(result.data.endDate)
+      data.isChange = result.data.isChange || data.isChange
+      await myProfile.setMyPacks()
+      activationKey.value = ''
+      globalPopup.activate('Успешно!',
+          `Ключ активирован. Доступ ${result.data.accessLevel? result.data.accessLevel.toUpperCase():''} будет действовать до ${new Date(
+              result.data.endDate).toLocaleDateString()}`, 'green')
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -384,7 +463,7 @@ function changeEmailHandler(e) {
                 <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
                   {{ data.name }}
                   <button
-                      v-if="((isMyProfile && myProfile.isHigherThanDefault) || myProfile.isAdmin || (isMyProfile && data.isChange)) && !isChangingName"
+                      v-if="((isMyProfile && myProfile.isHigherThanDefault && !myProfile.isVIP) || myProfile.isAdmin || (isMyProfile && myProfile.isVIP && data.isChange)) && !isChangingName"
                       class="naming-profileBlock__blockBtn btn"
                       ref="changeNameBtn"
                       @click="changeName"
@@ -475,7 +554,7 @@ function changeEmailHandler(e) {
                                  @change="myProfile.changePacks(pack)"
                           >
                           <label :for="'advanced'+pack.id" class="checkbox__label"
-                                 >
+                          >
                             <span class="checkbox__text">{{ pack.namePack }}</span>
                           </label>
                         </div>
@@ -531,7 +610,8 @@ function changeEmailHandler(e) {
             <div v-if="isMyProfile" class="middle-profileBlock__column _column">
               <label for="about">О себе</label>
               <textarea maxlength="254" ref="aboutInput" name="about" id="about" placeholder="Текст о себе">{{data.about}}</textarea>
-              <input v-if="!myProfile.isStreamer" type="text" class="middle-profileBlock__streamInput" placeholder="Вставьте ссылку на стрим">
+              <input v-if="myProfile.isStreamer" type="text" class="middle-profileBlock__streamInput"
+                     placeholder="Вставьте ссылку на стрим">
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <AppLoader v-if="isSaveLoader" />
@@ -544,7 +624,12 @@ function changeEmailHandler(e) {
                 Сменить пароль
               </AppButton>
               <AppButton @click="changeEmailHandler" color="gold" border="true" class="change-profileBlock__btn">
-                Сменить  почту
+                Сменить почту
+              </AppButton>
+              <AppButton v-if="myProfile.isAdmin" @click.prevent="()=>showGeneratePopup=!showGeneratePopup" color="gold"
+                         border="true"
+                         class="change-profileBlock__btn">
+                Сгенерировать ключи
               </AppButton>
             </div>
           </div>
@@ -585,7 +670,7 @@ function changeEmailHandler(e) {
                      class="subscribe-bottom__column _right">
                   <div class="subscribe-bottom__date">Действует до<br>{{ data.access.date.toLocaleDateString() }}</div>
                   <div class="subscribe-bottom__extend">
-                    <AppButton color="gold">Продлить</AppButton>
+                    <AppButton @click="isPopupOpen=true" color="gold">Продлить</AppButton>
                   </div>
                 </div>
 
@@ -604,7 +689,7 @@ function changeEmailHandler(e) {
       </div>
     </div>
     <teleport to="#app">
-      <AppPopup v-model="isPopupOpen">
+      <AppPopup v-model="isPopupOpen" style="z-index: 998 !important;">
         <template v-slot:title>
           Оплата подписки
         </template>
@@ -654,18 +739,52 @@ function changeEmailHandler(e) {
             </div>
           </div>
         </div>
+        <div class="keyBlock">
+          <div class="keyBlock__input">
+            <label v-if="activationKeyLabelShow" for="activationKey">{{ activationKeyLabel }}</label>
+            <input @focus="activationKeyLabelShow = false" id="activationKey" type="text" placeholder="Вставьте ключ"
+                   v-model="activationKey">
+          </div>
+          <AppButton color="gold" @click.prevent="activateKeyHandler">Активировать</AppButton>
+        </div>
       </AppPopup>
-      <AppPopup v-model="showPasswordChangePopup" color="gold">
+      <AppPopup v-model="showPasswordChangePopup" color="gold" style="z-index: 998 !important;">
         <template v-slot:title>
           Подтверждение смены пароля отправлено на почту
         </template>
         Для изменения пароля следуйте инструкции в почте
       </AppPopup>
-      <AppPopup v-model="showEmailChangePopup" color="gold">
+      <AppPopup v-model="showEmailChangePopup" color="gold" style="z-index: 998 !important;">
         <template v-slot:title>
           Подтверждение смены Email отправлено на почту
         </template>
         Для изменения Email следуйте инструкции в почте
+      </AppPopup>
+      <AppPopup v-model="showGeneratePopup" color="gold" style="z-index: 998 !important;">
+        <template v-slot:title>
+          Генерация ключей
+        </template>
+        <div class="generateKey">
+          <div class="generateKey__inputBlock">
+            <label for="filename">Название файла</label>
+            <input id="filename" type="text" class="middle-profileBlock__streamInput" v-model="fileNameGenerateKeys">
+          </div>
+          <div class="generateKey__inputBlock">
+            <label for="keyDateNum">Срок действия (в днях)</label>
+            <input id="keyDateNum" type="text" class="middle-profileBlock__streamInput" v-model="keyDateNum">
+          </div>
+          <div class="generateKey__inputBlock">
+            <label for="typeKey">Тип ключа</label>
+            <AppSelect v-model="typeKeyModel" :options="typeKeyOptions" id="typeKey" class="selectBlock profile" />
+          </div>
+          <div class="generateKey__inputBlock">
+            <label for="keysNum">Кол-во ключей</label>
+            <input id="keysNum" type="text" class="middle-profileBlock__streamInput" v-model="keysNum">
+          </div>
+          <div class="generateKey__inputBlock">
+            <AppButton color="gold" @click.prevent="generateHandler">Сгенерировать</AppButton>
+          </div>
+        </div>
       </AppPopup>
     </teleport>
   </main>
@@ -1396,6 +1515,96 @@ function changeEmailHandler(e) {
     background: #328925;
     border-radius: 15px;
     padding: 5px 8px;
+  }
+}
+
+.keyBlock {
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+  padding: 30px 20px;
+
+  @media (max-width: $mobileSmall) {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  button {
+    max-width: 150px;
+    height: 40px;
+    font-weight: 400;
+    padding: 20px;
+
+    @media (max-width: $mobileSmall) {
+      font-size: 12px;
+      width: 100%;
+    }
+  }
+
+  &__input {
+    flex: 1 1 auto;
+    position: relative;
+
+    @media (max-width: $mobileSmall) {
+      width: 100%;
+    }
+
+    input {
+      width: 100%;
+    }
+
+    label {
+      font-size: 11px;
+      color: red;
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 5px);
+    }
+  }
+
+
+}
+</style>
+
+<style lang="scss">
+.generateKey {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+
+  &__inputBlock {
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+
+    input {
+      height: 50px;
+      font-size: 12px !important;
+      margin-top: 5px;
+    }
+
+    button {
+      height: 50px;
+      margin-top: 20px;
+      font-weight: 700;
+    }
+
+    .select {
+      margin-top: 5px;
+    }
+
+    label {
+      font-size: 11px;
+    }
+  }
+}
+
+.middle-profileBlock {
+  &__streamInput {
   }
 }
 </style>

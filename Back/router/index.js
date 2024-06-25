@@ -109,7 +109,8 @@ router.get('/test', userController.test);
 router.get('/staticPage/:id', userController.loadStaticPage);
 router.get('/otherText/:id', userController.loadOtherText);
 router.get('/wikiList', userController.loadWikiList);
-
+router.post('/generateKeys', adminMiddleware('admin'), adminController.generateKeys);
+router.post('/activateKey', authMiddleware, userController.activateKey);
 
 
 //router.get('/loginVK',userController.loginVK);

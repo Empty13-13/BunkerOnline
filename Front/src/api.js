@@ -8,7 +8,7 @@ import router from "@/router/index.js";
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const axiosInstance = axios.create({
   baseURL: apiLink,
-  timeout: 3500,
+  timeout: 15000,
   maxRedirects: 3,
 })
 

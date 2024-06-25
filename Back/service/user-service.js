@@ -180,6 +180,10 @@ class UserService {
     if (users.hiddenBirthday===1) {
       isBdayHidden = true
     }
+    if(users.refreshNickname){
+      isChange = true
+      users.dataValues.isChange = isChange
+    }
     const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: userId}})
     const userIsDiscord = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})
     if (userIsDiscord) {
@@ -206,6 +210,7 @@ class UserService {
     delete users.dataValues.updatedAt
     delete users.dataValues.isUsedSystemAdvancePack
     delete users.dataValues.isUsedSystemBasePack
+    delete users.dataValues.refreshNickname
     
     return users
   }
@@ -539,7 +544,10 @@ class UserService {
       
       
     }
-    const newUser = await user.save()
+    if(user.accsessLevel==='vip'){
+      user.refreshNickname=0
+    }
+    await user.save()
     //  console.log(newUser.nickname)
     
     const isChange = await UserModel.DiscordAuthId.findOne({where: {userId: userId}})

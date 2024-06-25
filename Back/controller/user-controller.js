@@ -9,6 +9,8 @@ const fs = require("fs");
 const {F_OK} = require("constants");
 const jsdom = require("jsdom");
 require('dotenv').config()
+const gameKey = require('../service/gameKey-service')
+const tokenService = require('../service/token-service')
 
 class UserController {
   async registration(req, res, next) {
@@ -565,6 +567,29 @@ class UserController {
       next(e)
     }
   }
+  
+    async activateKey(req, res, next) {
+      try {
+        let {key,question} = req.body
+        let token = null
+        const accessToken = req.headers.authorization
+        //  console.log(accessToken)
+        if (accessToken && accessToken.toString().includes('Bearer ')) {
+          token = accessToken.split('Bearer ')[1]
+        }else{
+          return  next( ApiError.UnauthorizedError())
+        }
+        const userData = tokenService.validateAccessToken(token)
+            if (!userData) {
+              return  next( ApiError.UnauthorizedError())
+            }
+        const data = await gameKey.activateKey(key,userData.id,question)
+        //console.log(data)
+        res.json(data)
+      } catch(e) {
+        next(e)
+      }
+    }
   
   async changePack(req, res, next) {
     try {
