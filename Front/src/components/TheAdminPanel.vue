@@ -2,7 +2,7 @@
 import AppButton from "@/components/AppButton.vue";
 import { useHostFunctionalStore, useSelectedGameData } from "@/stores/game.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 import { useMyProfileStore } from "@/stores/profile.js";
 import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
@@ -17,11 +17,22 @@ const funcData = ref({
     select: {},
     title: '',
     text: '',
+    colorSelect: {},
   }
 })
 const showPanel = ref(false)
+const colorSelectOptions = [
+  {value:'gold',text:'Золотой'},
+  {value:'green',text:'Зеленый'},
+  {value:'red',text:'Красный'},
+  {value:'white',text:'Белый'},
+]
 
 adminSocket.setConnect()
+
+onUnmounted(() => {
+  adminSocket.close()
+})
 
 //========================================================================================================================================================
 
@@ -30,6 +41,8 @@ function toggleShow() {
 }
 
 function sendMessage(e) {
+
+
   showConfirmBlock(e.target, () => {
         console.log('Отсылаем', funcData.value.sendMessage.select.value)
         adminSocket.emit(
@@ -37,6 +50,7 @@ function sendMessage(e) {
             funcData.value.sendMessage.select.value,
             funcData.value.sendMessage.title,
             funcData.value.sendMessage.text,
+            funcData.value.sendMessage.colorSelect.value,
         )
         console.log('отослали')
       },
@@ -65,6 +79,7 @@ function closeRoom(e) {
             <AppSelect v-model="funcData.sendMessage.select" :options="selectedGameData.getAllPlayersSelectToChangeAdminAndAll" />
             <input v-model="funcData.sendMessage.title" type="text" placeholder="Заголовок сообщения">
             <input v-model="funcData.sendMessage.text" type="text" placeholder="Текст сообщения">
+            <AppSelect v-model="funcData.sendMessage.colorSelect" :options="colorSelectOptions" />
             <AppButton @click.prevent="sendMessage" border="true" class="adminPanel__actionBtn"
                        color="gold">Отправить сообщение
             </AppButton>

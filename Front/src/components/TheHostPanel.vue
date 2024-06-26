@@ -427,7 +427,7 @@ function cancelPreviousAction(e) {
           </AppSpoiler>
         </div>
         <div class="hostPanel__mainButton mainButton-hostPanel">
-          <AppButton color="gold" @click="cancelPreviousAction">Отменить предыдущее действие</AppButton>
+          <AppButton color="gold" @click="cancelPreviousAction" :disabled="!selectedGameData.showCancelButton">Отменить предыдущее действие</AppButton>
           <AppButton color="green" @click="restartGame">Начать игру заново</AppButton>
           <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
         </div>

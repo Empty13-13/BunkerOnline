@@ -325,6 +325,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const userData = ref({
     sortedPlayers: []
   })
+  const showCancelButton = ref(false)
   const voitingData = ref({})
   const isVoiting = ref(false)
   const userVoitingChoice = ref("")
@@ -458,6 +459,12 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (data.hasOwnProperty('logsData')) {
       logs.value = logs.value.concat(data.logsData)
     }
+    if (data.hasOwnProperty('showPlayVoiceButton')) {
+      showPlayVoiceButton.value = data.showPlayVoiceButton
+    }
+    if (data.hasOwnProperty('showCancelButton')) {
+      showCancelButton.value = data.showCancelButton
+    }
   }
   
   function getNonVoitingUsersNicknames(voitingData) {
@@ -566,10 +573,17 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     activeTimers.value = [false, false, false]
     logs.value = []
     diceNum.value = 0
+    showDice6.value = false
+    showDice20.value = false
+    votedPlayerID.value = 0
+    showPlayVoiceButton.value = false
+    dateNow.value = new Date()
+    showCancelButton.value = false
   }
   
   return {
     showPlayVoiceButton,
+    showCancelButton,
     dateNow,
     votedPlayerID,
     bunkerData,

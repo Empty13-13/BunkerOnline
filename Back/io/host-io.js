@@ -11,7 +11,7 @@ module.exports = function(io) {
   const host = io.of("/host")
   
   host.use(async (socket, next) => {
-   // console.log('HOST IO')
+    // console.log('HOST IO')
     let tokenData = await ioUserService.validateToken(socket)
     let isValidateId = null
     let idRoom = null
@@ -26,7 +26,7 @@ module.exports = function(io) {
     
     // console.log('TOKEN DATA:',tokenData,socket)
     if (!isValidateId || !idRoom) {
-    //  console.log("io.of('/host') invalid token")
+      //  console.log("io.of('/host') invalid token")
       next(new Error("invalid token"))
       return
     }
@@ -36,7 +36,7 @@ module.exports = function(io) {
     //console.log(isHost)
     
     if (!isHost || isValidateId!==isHost.hostId) {
-  //    console.log("io.of('/host') invalid host")
+      //    console.log("io.of('/host') invalid host")
       next(new Error("invalid host"))
       return
     }
@@ -57,11 +57,14 @@ module.exports = function(io) {
       }
       const gameRoomId = gameRoom.id
       let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, userId)
-    //  console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
+
+
+      
+      //  console.log(`${socket.id} HOST connected in room ${idRoom} with userId ${userId}`)
       socket.on('closeRoom', async () => {
         await ioUserService.deleteRoomFromDB(idRoom)
         
-     //   console.log('RoomClose делаем')
+        //   console.log('RoomClose делаем')
         io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
         io.in(idRoom).disconnectSockets(true);
       })
@@ -84,7 +87,7 @@ module.exports = function(io) {
               status: 400,
               functionName: 'kickOutUser'
             })
-     //     console.log('Игра уже началась, невозможно выгнать')
+          //     console.log('Игра уже началась, невозможно выгнать')
           return
         }
         console.log(`Delete Users ${Id}`)
@@ -329,11 +332,11 @@ module.exports = function(io) {
               })
             return
           }
-          let banishPlayer = await UserModel.RoomSession.findAll({where:{gameRoomId: gameRoom.id, isPlayer: 1}})
-          if(banishPlayer){
-            for(let player of banishPlayer){
-               player.votedFor = null
-               await player.save()
+          let banishPlayer = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+          if (banishPlayer) {
+            for (let player of banishPlayer) {
+              player.votedFor = null
+              await player.save()
             }
           }
           console.log('PLAYYERRSSS', players.length, players)
@@ -375,38 +378,38 @@ module.exports = function(io) {
       socket.on('timer:start', async (seconds) => {
         io.in(idRoom).emit('timer:start', seconds)
         io.in(idRoom).emit('sendMessage:timer', {
-                                        title: 'Сообщение от ведущего',
-                                        message: `Ведущий поставил таймер на ${seconds} секунд`,
-                                        color: 'green'
-                                      }
-                                    )
+            title: 'Сообщение от ведущего',
+            message: `Ведущий поставил таймер на ${seconds} секунд`,
+            color: 'green'
+          }
+        )
       })
       socket.on('timer:pause', async (value) => {
         io.in(idRoom).emit('timer:pause')
         io.in(idRoom).emit('sendMessage:timer', {
-                                                title: 'Сообщение от ведущего',
-                                                message: `Ведущий поставил таймер на паузу`,
-                                                color: 'green'
-                                              }
-                                            )
+            title: 'Сообщение от ведущего',
+            message: `Ведущий поставил таймер на паузу`,
+            color: 'green'
+          }
+        )
       })
       socket.on('timer:resume', async (value) => {
         io.in(idRoom).emit('timer:resume')
         io.in(idRoom).emit('sendMessage:timer', {
-                                                title: 'Сообщение от ведущего',
-                                                message: `Ведущий возобновил таймер`,
-                                                color: 'green'
-                                              }
-                                            )
+            title: 'Сообщение от ведущего',
+            message: `Ведущий возобновил таймер`,
+            color: 'green'
+          }
+        )
       })
       socket.on('timer:stop', async (value) => {
         io.in(idRoom).emit('timer:stop')
         io.in(idRoom).emit('sendMessage:timer', {
-                                                title: 'Сообщение от ведущего',
-                                                message: `Ведущий остановил таймер`,
-                                                color: 'green'
-                                              }
-                                            )
+            title: 'Сообщение от ведущего',
+            message: `Ведущий остановил таймер`,
+            color: 'green'
+          }
+        )
       })
       socket.on('refresh:bunkerData', async (chartId) => {
         let arrayBunkerChart = ['allChart', 'bunkerCreated', 'bunkerSize', 'bunkerTime', 'bunkerFood', 'catastrophe']
@@ -415,7 +418,7 @@ module.exports = function(io) {
           chartName = null
         }
         let gameRoom = await UserModel.GameRooms.findOne({
-          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted','population'],
+          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted', 'population'],
           where: {idRoom: idRoom},
           raw: true
         })
@@ -457,13 +460,18 @@ module.exports = function(io) {
           else if (gameRoom[chartName]) {
             let name = ioUserService.howThisChartNameBunker(chartName)
             textForLog = `Ведущий изменил ${name}`
-              let vars = {}
-              if(chartName==='catastrophe'){
-                  vars ={chartName: chartName, lastVar: gameRoom[chartName],otherVar:{imageId:gameRoom.imageId,population:gameRoom.population}}
-                  console.log(gameRoom.population)
-              }else{
-                  vars = {chartName: chartName, lastVar: gameRoom[chartName]}
+            let vars = {}
+            if (chartName==='catastrophe') {
+              vars = {
+                chartName: chartName,
+                lastVar: gameRoom[chartName],
+                otherVar: {imageId: gameRoom.imageId, population: gameRoom.population}
               }
+              console.log(gameRoom.population)
+            }
+            else {
+              vars = {chartName: chartName, lastVar: gameRoom[chartName]}
+            }
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: `bunkerData:${chartName}`,
@@ -474,7 +482,7 @@ module.exports = function(io) {
             
           }
           io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData',
-            {bunkerData: data, logsData: {type: 'text', value: textForLog, date: new Date()}})
+            {bunkerData: data, logsData: {type: 'text', value: textForLog, date: new Date()},showCancelButton:true})
           io.in(idRoom).emit('sendMessage:timer', {
               title: 'Сообщение от ведущего',
               message: textForLog,
@@ -511,7 +519,7 @@ module.exports = function(io) {
             gameRoom.maxSurvivor += 1
             await gameRoom.save()
             console.log(gameRoom.maxSurvivor)
-
+            
           }
           else {
             socket.emit("setError",
@@ -552,12 +560,12 @@ module.exports = function(io) {
             bunkerData: {maxSurvivor: gameRoom.maxSurvivor},
             logsData: [{type: 'text', value: textForLog, date: new Date()}]
           })
-          io.in(idRoom).emit('sendMessage:timer', {
-                                                              title: 'Сообщение от ведущего',
-                                                              message: textForLog,
-                                                              color: 'green'
-                                                            }
-                                                          )
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
       })
       socket.on('refresh:professionExp', async (playersId, expId) => {
         console.log('id', playersId)
@@ -678,13 +686,14 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
-                                                            title: 'Сообщение от ведущего',
-                                                            message: textForLog,
-                                                            color: 'green'
-                                                          }
-                                                        )
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('rollTheDice', async (value) => {
@@ -929,13 +938,14 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
-                    title: 'Сообщение от ведущего',
-                    message: textForLog,
-                    color: 'green'
-                  }
-                )
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
       })
       socket.on('banishOrReturn', async (userId) => {
           // console.log(userId)
@@ -1155,25 +1165,27 @@ module.exports = function(io) {
             step: await playerDataService.howStepLog(idRoom),
             lastVar: JSON.stringify(lastVar)
           })
-        }else{
-            await UserModel.Logi.create({
-                idRoom: idRoom,
-                funcName: `degreeOfSick`,
-                text: textForLog,
-                step: await playerDataService.howStepLog(idRoom)
-            })
+        }
+        else {
+          await UserModel.Logi.create({
+            idRoom: idRoom,
+            funcName: `degreeOfSick`,
+            text: textForLog,
+            step: await playerDataService.howStepLog(idRoom)
+          })
         }
         console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-         io.in(idRoom).emit('sendMessage:timer', {
-                            title: 'Сообщение от ведущего',
-                            message: textForLog,
-                            color: 'green'
-                          }
-                        )
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         // io.in(idRoom).emit()
       })
       socket.on('refresh:cureMake', async (playersId, makeId) => {
@@ -1267,13 +1279,14 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
-                    title: 'Сообщение от ведущего',
-                    message: textForLog,
-                    color: 'green'
-                  }
-                )
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
       })
       socket.on('refresh:chartName', async (playersId, chartId, chartText = null) => {
         
@@ -1376,6 +1389,7 @@ module.exports = function(io) {
           lastVar: JSON.stringify(data.lastVar)
         })
         data.emitData.logsData = {type: `text`, value: textForLog, date: new Date()}
+        data.emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', data.emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
@@ -1432,10 +1446,10 @@ module.exports = function(io) {
         let data = await playerDataService.stealChart(playerId1, playerId2, gameRoom, chartName)
         console.log(playerId2)
         if (!data.isOpenPlayer1) {
-          io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: {[playerId1]:data.players[playerId1]}})
+          io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: {[playerId1]: data.players[playerId1]}})
         }
         if (!data.isOpenPlayer2) {
-          io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players: {[playerId2]:data.players[playerId2]}})
+          io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players: {[playerId2]: data.players[playerId2]}})
         }
         await UserModel.Logi.create({
           idRoom: idRoom,
@@ -1446,7 +1460,7 @@ module.exports = function(io) {
         })
         
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {players: data.emitData},
-          {logsData: {type: `text`, value: textForLog, date: new Date()}})
+          {logsData: {type: `text`, value: textForLog, date: new Date()},showCancelButton :true})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: textForLog,
@@ -1582,6 +1596,7 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
@@ -1734,25 +1749,26 @@ module.exports = function(io) {
             
             emitData.bunkerData = {bunkerItems: bunkerItems}
           }
-
+          
         }
         await UserModel.Logi.create({
-                  idRoom: idRoom,
-                  funcName: `deleteRelocate`,
-                  text: textForLog,
-                  step: await playerDataService.howStepLog(idRoom),
-                  lastVar: JSON.stringify(lastVar)
-                })
+          idRoom: idRoom,
+          funcName: `deleteRelocate`,
+          text: textForLog,
+          step: await playerDataService.howStepLog(idRoom),
+          lastVar: JSON.stringify(lastVar)
+        })
         emitData.logsData.value = textForLog
-                  emitData.logsData.type = 'text'
-                  emitData.logsData.date = new Date()
-                  io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-                  io.in(idRoom).emit('sendMessage:timer', {
-                      title: 'Сообщение от ведущего',
-                      message: emitData.logsData.value,
-                      color: 'green'
-                    }
-                  )
+        emitData.logsData.type = 'text'
+        emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: emitData.logsData.value,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('exchangeChart', async (playerId1, playerId2, chartId) => {
@@ -1867,13 +1883,14 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
-                    title: 'Сообщение от ведущего',
-                    message: textForLog,
-                    color: 'green'
-                  }
-                )
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
+          }
+        )
         
       })
       socket.on('transferHost', async (playerId) => {
@@ -1969,14 +1986,14 @@ module.exports = function(io) {
             isAlive: 0
           }
         })
-      //  console.log(notAlivePlayer)
+        //  console.log(notAlivePlayer)
         if (notAlivePlayer) {
           for (let player of notAlivePlayer) {
             let index = userList.indexOf(player.userId)
             userList.splice(index, 1)
           }
         }
-      //  console.log(players)
+        //  console.log(players)
         let lastVar = {}
         lastVar.chartName = chartName
         let emitData = {players: {}, logsData: {}}
@@ -1994,17 +2011,17 @@ module.exports = function(io) {
           if (chartName==='profession') {
             vars.description = dataForNextPlayer.description
           }
-        //  console.log(vars)
+          //  console.log(vars)
           lastVar[zeroPlayer.userId] = structuredClone(vars)
           //  console.log(lastVar)
-            vars.id = playerProfessionData.id
-            vars.text = playerProfessionData.text
+          vars.id = playerProfessionData.id
+          vars.text = playerProfessionData.text
           if (chartName==='profession') {
-              vars.description = playerProfessionData.description
+            vars.description = playerProfessionData.description
           }
-           // console.log(vars)
+          // console.log(vars)
           lastVar[lastPlayer.userId] = structuredClone(vars)
-           // console.log(lastVar)
+          // console.log(lastVar)
           if (playerProfessionData.isOpen) {
             //  console.log("isOpen", players[0].userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
@@ -2044,7 +2061,7 @@ module.exports = function(io) {
           }
         }
         else {
-      //    console.log(makeId, 'PRISHLO')
+          //    console.log(makeId, 'PRISHLO')
           let dataForNextPlayer = {}
           let userList = JSON.parse(gameRoom.userList)
           let vars = {}
@@ -2067,26 +2084,26 @@ module.exports = function(io) {
           }
           lastVar[lastPlayer.userId] = structuredClone(vars)
           if (playerProfessionData.isOpen) {
-         //   console.log('OPEN')
+            //   console.log('OPEN')
             //   console.log("isOpen", players[zeroPlayer.userId)
             emitData.players[zeroPlayer.userId] = {[chartName]: playerProfessionData}
           }
           else {
-         //   console.log('!OPEN')
+            //   console.log('!OPEN')
             // let player = players[players.length - 1]
             io.to(`user:${zeroPlayer.userId}:${idRoom}}`).emit('setAllGameData',
               {players: {[zeroPlayer.userId]: {[chartName]: playerProfessionData}}})
           }
           zeroPlayer[chartName] = JSON.stringify(playerProfessionData)
           await zeroPlayer.save()
-        //  console.log(players.length)
-          for (let i = players.length - 2; i>=0; i--) {
-           // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
-           // console.log(players)
           //  console.log(players.length)
+          for (let i = players.length - 2; i>=0; i--) {
+            // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!')
+            // console.log(players)
+            //  console.log(players.length)
             let player = players.find(item => item.userId===userList[i])
-          //  console.log(player)
-          //  console.log(chartName)
+            //  console.log(player)
+            //  console.log(chartName)
             let data = JSON.parse(player[chartName])
             dataForNextPlayer.isOpen = data.isOpen
             vars.id = data.id
@@ -2095,13 +2112,13 @@ module.exports = function(io) {
               vars.description = data.description
             }
             lastVar[player.userId] = structuredClone(vars)
-          //  console.log(data)
+            //  console.log(data)
             if (data.isOpen) {
-            //  console.log("isOpen", player.userId)
+              //  console.log("isOpen", player.userId)
               emitData.players[player.userId] = {[chartName]: dataForNextPlayer}
             }
             else {
-             // console.log('NOTOPEN')
+              // console.log('NOTOPEN')
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
                 {players: {[player.userId]: {[chartName]: dataForNextPlayer}}}
               )
@@ -2123,6 +2140,7 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = `Ведущий изменил ${nameChart} ${makeName}`
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
@@ -2207,6 +2225,7 @@ module.exports = function(io) {
         emitData.logsData.type = 'text'
         emitData.logsData.value = `Ведущий применил функцию ${makeName}`
         emitData.logsData.date = new Date()
+        emitData.showCancelButton = true
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
@@ -2219,30 +2238,31 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let log = await UserModel.Logi.findOne(
           {where: {idRoom: idRoom, step: await playerDataService.howStepLog(idRoom) - 1}})
-          if(log.isBack){
-              socket.emit("setError",
-                  {
-                      message: "Нельзя отменить действие, тк вы его еще не совершили",
-                      status: 400,
-                      functionName: 'reverseLog'
-                  })
-              return
+        if (log.isBack) {
+          socket.emit("setError",
+            {
+              message: "Нельзя отменить действие, тк вы его еще не совершили",
+              status: 400,
+              functionName: 'reverseLog'
+            })
+          return
+        }
+        let textForLog = `Ведущий отменил последнее действие "${log.text}"`
+        let emitData = await ioUserService.reversLog(log, gameRoom, idRoom, io)
+        console.log('Socket', emitData)
+        log.isBack = 1
+        await log.save()
+        emitData.logsData.type = 'text'
+        emitData.logsData.value = textForLog
+        emitData.logsData.date = new Date()
+        emitData.showCancelButton = false
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+        io.in(idRoom).emit('sendMessage:timer', {
+            title: 'Сообщение от ведущего',
+            message: textForLog,
+            color: 'green'
           }
-        let textForLog = `Ведущий отменил последнее действие $|${log.text}|$`
-          let emitData = await ioUserService.reversLog(log, gameRoom, idRoom, io)
-          console.log('Socket',emitData)
-          log.isBack = 1
-          await log.save()
-          emitData.logsData.type = 'text'
-          emitData.logsData.value = textForLog
-          emitData.logsData.date = new Date()
-          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-          io.in(idRoom).emit('sendMessage:timer', {
-                      title: 'Сообщение от ведущего',
-                      message: textForLog,
-                      color: 'green'
-                    }
-                  )
+        )
       })
     }
   )

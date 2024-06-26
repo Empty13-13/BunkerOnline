@@ -71,11 +71,12 @@ module.exports = function(io) {
         
         console.log('ADMINNNNNN3', io.sockets.adapter.rooms)
       })
-      socket.on('sendMessage', async (userId, title, textMessage) => {
+      socket.on('sendMessage', async (userId, title, textMessage,color) => {
         console.log('ПРИШЛО1')
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        
+        console.log(idRoom)
         console.log('ПРИШЛО')
+        console.log('color',color)
         if (+userId===0) {
           let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id}})
           if (!players) {
@@ -86,7 +87,7 @@ module.exports = function(io) {
           io.in(idRoom).emit('sendMessage', {
               title: title,
               message: textMessage,
-              color: 'gold'
+              color: color || 'white'
             }
           )
         }
@@ -100,7 +101,7 @@ module.exports = function(io) {
           io.in(`user:${userId}:${idRoom}`).emit('sendMessage', {
               title: title,
               message: textMessage,
-              color: 'gold'
+              color: color || 'white'
             }
           )
         }
@@ -116,7 +117,7 @@ module.exports = function(io) {
         await ioUserService.deleteRoomFromDB(idRoom)
         
         console.log('RoomClose делаем')
-        io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
+        io.in(idRoom).emit('roomClosed', {message: 'Комната закрыта администратором', status: 200})
         io.in(idRoom).disconnectSockets(true);
       })
     }

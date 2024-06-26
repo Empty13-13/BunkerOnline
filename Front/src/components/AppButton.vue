@@ -20,7 +20,6 @@ defineProps([
       ]"
       :disabled="disabled"
   >
-
     <!--Если есть и иконка и текст-->
     <span v-if="iconName && $slots.default" class="body">
       <span class="img">
