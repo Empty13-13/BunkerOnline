@@ -121,6 +121,7 @@ class playerDataService {
     lastVar[player.userId] = {
       sex: JSON.parse(player.sex),
       trait: JSON.parse(player.trait),
+      body: JSON.parse(player.body),
       profession: JSON.parse(player.profession),
       health: JSON.parse(player.health),
       hobbies: JSON.parse(player.hobbies),
@@ -221,6 +222,7 @@ class playerDataService {
     //  console.log('PLAYERS', player1, player2)
     await player1.save()
     await player2.save()
+    console.log(players)
     return {
       players: players,
       lastVar: lastVar,
@@ -272,7 +274,7 @@ class playerDataService {
     else {
       for (let player of players) {
         let lastData = JSON.parse(player[chartName])
-        data.lastVar[player.userId] = {[chartName]: lastData}
+        data.lastVar[player.userId] = {[chartName]: structuredClone(lastData)}
         if (chartText && (chartName==='inventory' || chartName==='backpack' || chartName==='addInfo')) {
           lastData.text = chartText
         }
@@ -319,7 +321,7 @@ class playerDataService {
     for (let player of players) {
       //  console.log('!!!!!!!!!!!!!!!!',player[chartName])
       let data = JSON.parse(player[chartName])
-      lastVar[player.userId] = data
+      lastVar[player.userId] = structuredClone(data)
       //  console.log('RANDOM LIST',arrayList, arrayData[i])
       data.text = arrayData[arrayList[i]].text
       data.id = arrayData[arrayList[i]].id

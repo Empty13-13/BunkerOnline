@@ -157,6 +157,12 @@ function restartGame(e) {
   }, 'Вы уверены что хотите создать новую игру? Весь прогресс текущей игры будет утрачен')
 }
 
+function cancelPreviousAction(e) {
+  showConfirmBlock(e.target,() => {
+    hostSocket.emit('reverseLog')
+  },'Вы уверены что хотите отменить предыдущее действие?')
+}
+
 </script>
 
 <template>
@@ -420,7 +426,8 @@ function restartGame(e) {
             </button>
           </AppSpoiler>
         </div>
-        <div class="hostPanel__mainButton mainButton-hostPanel"> 
+        <div class="hostPanel__mainButton mainButton-hostPanel">
+          <AppButton color="gold" @click="cancelPreviousAction">Отменить предыдущее действие</AppButton>
           <AppButton color="green" @click="restartGame">Начать игру заново</AppButton>
           <AppButton @click="closeRoom" color="red">Закрыть комнату</AppButton>
         </div>

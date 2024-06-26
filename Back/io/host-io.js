@@ -1425,10 +1425,10 @@ module.exports = function(io) {
         let data = await playerDataService.stealChart(playerId1, playerId2, gameRoom, chartName)
         console.log(playerId2)
         if (!data.isOpenPlayer1) {
-          io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: data.players[playerId1]})
+          io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: {[playerId1]:data.players[playerId1]}})
         }
         if (!data.isOpenPlayer2) {
-          io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players: data.players[playerId2]})
+          io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData', {players: {[playerId2]:data.players[playerId2]}})
         }
         await UserModel.Logi.create({
           idRoom: idRoom,
@@ -1606,6 +1606,7 @@ module.exports = function(io) {
             })
           return
         }
+        let chartName
         if (makeId===0 || makeId===1) {
           chartName = 'inventory'
         }
@@ -1617,6 +1618,7 @@ module.exports = function(io) {
         let players = null
         let textForLog = ''
         let lastVar = {}
+        lastVar.chartName = chartName
         if (playersId===0) {
           textForLog = `Ведущий применил функцию ${makeName} ко всем игрокам`
           players = await UserModel.RoomSession.findAll({
@@ -1671,7 +1673,7 @@ module.exports = function(io) {
           if (makeId===0 || makeId===2) {
             
             let data = JSON.parse(player[chartName])
-            lastVar[player.userId] = data
+            lastVar[player.userId] = structuredClone(data)
             data.text = 'Пусто'
             data.id = 0
             player[chartName] = JSON.stringify(data)
@@ -1686,6 +1688,7 @@ module.exports = function(io) {
           }
           else {
             let data = JSON.parse(player[chartName])
+            lastVar[player.userId] = structuredClone(data)
             if (data.text==='Пусто') {
               socket.emit("setError",
                 {
@@ -1783,7 +1786,7 @@ module.exports = function(io) {
           for (let player of players) {
             if (data.players[player.userId]) {
               io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData',
-                {players: {[player.userId]: {[chartName]: data.players[player.userId]}}})
+                {players: {[player.userId]: data.players[player.userId]}})
             }
           }
           emitData.players = data.emitData
@@ -2211,9 +2214,15 @@ module.exports = function(io) {
         let log = await UserModel.Logi.findOne(
           {where: {idRoom: idRoom, step: await playerDataService.howStepLog(idRoom) - 1}})
         let textForLog = `Ведущий отменил последнее действие |${log.text}|`
-          await ioUserService.reversLog(log, gameRoom, idRoom, io)
-
-        
+          let emitData = await ioUserService.reversLog(log, gameRoom, idRoom, io)
+          console.log('Socket',emitData)
+          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+          io.in(idRoom).emit('sendMessage:timer', {
+                      title: 'Сообщение от ведущего',
+                      message: textForLog,
+                      color: 'green'
+                    }
+                  )
       })
     }
   )
