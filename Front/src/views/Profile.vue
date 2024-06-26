@@ -381,6 +381,19 @@ const typeKeyModel = ref(0)
 const keysNum = ref(500)
 
 function generateHandler(e) {
+  if(!fileNameGenerateKeys.value.length>0) {
+    globalPopup.activate('Ошибка заполнения','Поле "Название файла" должно быть заполнено','red')
+    return
+  }
+  if((typeof keyDateNum.value!=='number') || +keyDateNum.value < 1) {
+    globalPopup.activate('Ошибка заполнения','Поле "Срок действия" должно быть цифрой и быть больше 1','red')
+    return
+  }
+  if((typeof keysNum.value!=='number') || +keysNum.value < 1) {
+    globalPopup.activate('Ошибка заполнения','Поле "Тип ключа" должно быть цифрой и быть больше 1','red')
+    return
+  }
+
   showConfirmBlock(e.target, async () => {
     let data = {
       filename: fileNameGenerateKeys.value,
@@ -767,11 +780,11 @@ function activateKeyHandler(e) {
         <div class="generateKey">
           <div class="generateKey__inputBlock">
             <label for="filename">Название файла</label>
-            <input id="filename" type="text" class="middle-profileBlock__streamInput" v-model="fileNameGenerateKeys">
+            <input id="filename" type="text" class="middle-profileBlock__streamInput" v-model.trim="fileNameGenerateKeys">
           </div>
           <div class="generateKey__inputBlock">
             <label for="keyDateNum">Срок действия (в днях)</label>
-            <input id="keyDateNum" type="text" class="middle-profileBlock__streamInput" v-model="keyDateNum">
+            <input id="keyDateNum" type="text" class="middle-profileBlock__streamInput" v-model.trim.number="keyDateNum">
           </div>
           <div class="generateKey__inputBlock">
             <label for="typeKey">Тип ключа</label>
@@ -779,7 +792,7 @@ function activateKeyHandler(e) {
           </div>
           <div class="generateKey__inputBlock">
             <label for="keysNum">Кол-во ключей</label>
-            <input id="keysNum" type="text" class="middle-profileBlock__streamInput" v-model="keysNum">
+            <input id="keysNum" type="text" class="middle-profileBlock__streamInput" v-model.trim.number="keysNum">
           </div>
           <div class="generateKey__inputBlock">
             <AppButton color="gold" @click.prevent="generateHandler">Сгенерировать</AppButton>
