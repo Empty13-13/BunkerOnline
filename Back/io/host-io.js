@@ -415,7 +415,7 @@ module.exports = function(io) {
           chartName = null
         }
         let gameRoom = await UserModel.GameRooms.findOne({
-          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted'],
+          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted','population'],
           where: {idRoom: idRoom},
           raw: true
         })
@@ -430,7 +430,7 @@ module.exports = function(io) {
             
             
             for (let key in gameRoom) {
-              if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
+              if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='population') {
                 console.log('KEY', key)
                 bunkerData[key] = gameRoom[key]
                 
@@ -457,12 +457,19 @@ module.exports = function(io) {
           else if (gameRoom[chartName]) {
             let name = ioUserService.howThisChartNameBunker(chartName)
             textForLog = `Ведущий изменил ${name}`
+              let vars = {}
+              if(chartName==='catastrophe'){
+                  vars ={chartName: chartName, lastVar: gameRoom[chartName],otherVar:{imageId:gameRoom.imageId,population:gameRoom.population}}
+                  console.log(gameRoom.population)
+              }else{
+                  vars = {chartName: chartName, lastVar: gameRoom[chartName]}
+              }
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: `bunkerData:${chartName}`,
               text: textForLog,
               step: await playerDataService.howStepLog(idRoom),
-              lastVar: JSON.stringify({chartName: chartName, lastVar: gameRoom[chartName]})
+              lastVar: JSON.stringify(vars)
             })
             
           }
@@ -1826,10 +1833,10 @@ module.exports = function(io) {
           let playerData1 = JSON.parse(player1[chartName])
           let playerData2 = JSON.parse(player2[chartName])
           lastVar.chartName = chartName
-          lastVar[playerId1] = playerData1
-          lastVar[playerId2] = playerData2
-          playerData1 = lastVar[playerId2]
-          playerData2 = lastVar[playerId1]
+          lastVar[playerId1] = structuredClone(playerData1)
+          lastVar[playerId2] = structuredClone(playerData2)
+          playerData1 = structuredClone(lastVar[playerId2])
+          playerData2 = structuredClone(lastVar[playerId1])
           player1[chartName] = JSON.stringify(playerData1)
           player2[chartName] = JSON.stringify(playerData2)
           await player1.save()
@@ -1977,7 +1984,6 @@ module.exports = function(io) {
           let dataForNextPlayer = {}
           
           let vars = {}
-            let vars2 ={}
           let zeroPlayer = players.find(item => item.userId===userList[0])
           let lastPlayer = players.find(item => item.userId===userList[userList.length - 1])    //players[players.length - 1]
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
@@ -1989,15 +1995,15 @@ module.exports = function(io) {
             vars.description = dataForNextPlayer.description
           }
         //  console.log(vars)
-          lastVar[zeroPlayer.userId] = vars
+          lastVar[zeroPlayer.userId] = structuredClone(vars)
           //  console.log(lastVar)
-            vars2.id = playerProfessionData.id
-            vars2.text = playerProfessionData.text
+            vars.id = playerProfessionData.id
+            vars.text = playerProfessionData.text
           if (chartName==='profession') {
-              vars2.description = playerProfessionData.description
+              vars.description = playerProfessionData.description
           }
            // console.log(vars)
-          lastVar[lastPlayer.userId] = vars2
+          lastVar[lastPlayer.userId] = structuredClone(vars)
            // console.log(lastVar)
           if (playerProfessionData.isOpen) {
             //  console.log("isOpen", players[0].userId)
@@ -2019,7 +2025,7 @@ module.exports = function(io) {
             if (chartName==='profession') {
               vars.description = data.description
             }
-            lastVar[player.userId] = vars
+            lastVar[player.userId] = structuredClone(vars)
             
             if (data.isOpen) {
               //   console.log("isOpen", player.userId)
@@ -2034,7 +2040,7 @@ module.exports = function(io) {
             player[chartName] = JSON.stringify(dataForNextPlayer)
             await player.save()
             
-            dataForNextPlayer = data
+            dataForNextPlayer = structuredClone(data)
           }
         }
         else {
@@ -2053,13 +2059,13 @@ module.exports = function(io) {
             vars.description = dataForNextPlayer.description
           }
           
-          lastVar[zeroPlayer.userId] = vars
+          lastVar[zeroPlayer.userId] = structuredClone(vars)
           vars.id = playerProfessionData.id
           vars.text = playerProfessionData.text
           if (chartName==='profession') {
             vars.description = playerProfessionData.description
           }
-          lastVar[lastPlayer.userId] = vars
+          lastVar[lastPlayer.userId] = structuredClone(vars)
           if (playerProfessionData.isOpen) {
          //   console.log('OPEN')
             //   console.log("isOpen", players[zeroPlayer.userId)
@@ -2088,7 +2094,7 @@ module.exports = function(io) {
             if (chartName==='profession') {
               vars.description = data.description
             }
-            lastVar[player.userId] = vars
+            lastVar[player.userId] = structuredClone(vars)
           //  console.log(data)
             if (data.isOpen) {
             //  console.log("isOpen", player.userId)
@@ -2103,7 +2109,7 @@ module.exports = function(io) {
             player[chartName] = JSON.stringify(dataForNextPlayer)
             await player.save()
             
-            dataForNextPlayer = data
+            dataForNextPlayer = structuredClone(data)
           }
         }
         console.log(lastVar)
@@ -2213,9 +2219,23 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let log = await UserModel.Logi.findOne(
           {where: {idRoom: idRoom, step: await playerDataService.howStepLog(idRoom) - 1}})
-        let textForLog = `Ведущий отменил последнее действие |${log.text}|`
+          if(log.isBack){
+              socket.emit("setError",
+                  {
+                      message: "Нельзя отменить действие, тк вы его еще не совершили",
+                      status: 400,
+                      functionName: 'reverseLog'
+                  })
+              return
+          }
+        let textForLog = `Ведущий отменил последнее действие $|${log.text}|$`
           let emitData = await ioUserService.reversLog(log, gameRoom, idRoom, io)
           console.log('Socket',emitData)
+          log.isBack = 1
+          await log.save()
+          emitData.logsData.type = 'text'
+          emitData.logsData.value = textForLog
+          emitData.logsData.date = new Date()
           io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
           io.in(idRoom).emit('sendMessage:timer', {
                       title: 'Сообщение от ведущего',

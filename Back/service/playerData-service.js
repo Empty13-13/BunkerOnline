@@ -178,21 +178,36 @@ class playerDataService {
     let players = {}
     let emitData = {}
     //  console.log('player1', playerId1, 'player2', playerId2)
-    let player1 = await UserModel.RoomSession.findOne({
-      attributes: ['userId', `${chartName}`, 'usePack', 'id'],
-      where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
-    })
+    let player1
+    if(chartName==='profession'){
+      player1 = await UserModel.RoomSession.findOne({
+        attributes: ['userId', `${chartName}`, 'usePack', 'id','sex'],
+        where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
+      })
+    }else {
+      player1 = await UserModel.RoomSession.findOne({
+        attributes: ['userId', `${chartName}`, 'usePack', 'id'],
+        where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId1}
+      })
+    }
     let player2 = await UserModel.RoomSession.findOne({
       attributes: ['userId', `${chartName}`, 'id'],
       where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: playerId2}
     })
     let dataPlayer1 = JSON.parse(player1[chartName])
     let dataPlayer2 = JSON.parse(player2[chartName])
+   // console.log(dataPlayer1,dataPlayer2)
     let lastVar = {chartName:chartName, [playerId1]: JSON.parse(player1[chartName]), [playerId2]: JSON.parse(player2[chartName])}
-    dataPlayer2.id = dataPlayer1.id
-    dataPlayer2.text = dataPlayer1.text
-    if (chartName==='profession') {
-      dataPlayer2.description = dataPlayer1.description
+    if(chartName==='sex'||chartName==='body') {
+      dataPlayer2.id = dataPlayer1.id
+      dataPlayer2.text = dataPlayer1.text
+//s
+    }else{
+      dataPlayer2.id = [dataPlayer2.id,dataPlayer1.id]
+      dataPlayer2.text = `${dataPlayer2.text},${dataPlayer1.text}`
+      if (chartName === 'profession') {
+        dataPlayer2.description = `${dataPlayer2.description,dataPlayer1.description}`
+      }
     }
     let isOpenPlayer1 = false
     let isOpenPlayer2 = false
@@ -206,7 +221,7 @@ class playerDataService {
       dataPlayer1.text = 'Пусто'
     }
     else {
-      
+      console.log(dataPlayer1)
       this.systemSettings = await this.getSystemSettingsData()
       let usePack = JSON.parse(player1.usePack)
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
@@ -984,6 +999,7 @@ class playerDataService {
         }
       }
       else if (chartName==='profession') {
+        console.log(user)
         let datas = JSON.parse(user.sex).text
         let newAge = parseInt(datas.match(/\d+/))
         if (newAge) {

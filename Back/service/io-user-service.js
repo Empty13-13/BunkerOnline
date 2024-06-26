@@ -138,7 +138,7 @@ class ioUserService {
       }
       return await ioHostRevFunc.cureMakeRev(playerIds, lastVar, gameRoom.id, idRoom, io)
     }
-    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour1' || funcName==='stealChart' || funcName==='deleteRelocate') {
+    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour' || funcName==='stealChart' || funcName==='deleteRelocate') {
       //console.log(lasstVar)sssssssss
       let playerIds = []
       let chartName
@@ -157,6 +157,7 @@ class ioUserService {
       let lst = structuredClone(lastVar)
       let chartName
       let id
+      let otherVar = null
       let emitData = {bunkerData: {}, logsData: {}}
       console.log(lastVar)
       for (let key in lst) {
@@ -164,14 +165,22 @@ class ioUserService {
         if (key==='chartName') {
           chartName = lst[key]
         }
-        else {
+        else if(key!=='otherVar') {
           id = lst[key]
+        }else{
+          otherVar = lst[key]
         }
+      }
+      if(otherVar){
+        gameRoom.imageId = otherVar.imageId
+        gameRoom.population = otherVar.population
+        let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
+        emitData.bunkerData = {population:otherVar.population,imageName:image.imageName}
       }
       console.log(id, chartName)
       gameRoom[chartName] = id
       let newChart = await UserModel.ChartBunker.findOne({where: {id: id}})
-      emitData.bunkerData = {[chartName]: newChart.text}
+      emitData.bunkerData [chartName] = newChart.text
       await gameRoom.save()
       return emitData
 
@@ -235,8 +244,7 @@ howThisChartNameBunker(chartName)
   return name
 }
 
-async
-validateToken(socket)
+async validateToken(socket)
 {
   try {
     let token = socket.handshake.auth.token
@@ -363,8 +371,7 @@ validateToken(socket)
   }
 }
 
-async
-getValidateGameData(idRoom, socket, io, isValidateId)
+async getValidateGameData(idRoom, socket, io, isValidateId)
 {
   let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
   if (!gameRoom) {
@@ -395,8 +402,7 @@ getValidateGameData(idRoom, socket, io, isValidateId)
   }
 }
 
-async
-getPlayingUsers(idRoom)
+async getPlayingUsers(idRoom)
 {
   let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
   let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
@@ -411,8 +417,7 @@ getPlayingUsers(idRoom)
   return data
 }
 
-async
-getIdAndNicknameFromUser(userId)
+async getIdAndNicknameFromUser(userId)
 {
   let data = null
   if (userId>0) {
@@ -458,8 +463,7 @@ disconnectAndSetTimer(io, socket, idRoom)
   }
 }
 
-async
-deleteRoomFromDB(idRoom)
+async deleteRoomFromDB(idRoom)
 {
   let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
 
@@ -475,9 +479,7 @@ deleteRoomFromDB(idRoom)
 
 /////////////////////////////////////////////
 
-async function
-
-getNoregUserId(noRegToken, socket) {
+async function getNoregUserId(noRegToken, socket) {
   const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
   if (!isValidNoRegToken) {
 
