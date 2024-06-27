@@ -943,6 +943,10 @@ class UserService {
   async getOtherText(name) {
     return await UserModel.OtherTexts.findOne({where: {name}})
   }
+  
+  async getPriceInfo() {
+    return await UserModel.prices.findAll()
+  }
 }
 
 async function getNickName(user) {

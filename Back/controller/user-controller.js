@@ -691,6 +691,17 @@ class UserController {
       next(e)
     }
   }
+  
+  async getPriceInfo(req,res,next) {
+    try {
+      const priceInfo = await userService.getPriceInfo()
+      res.json(priceInfo)
+      console.log('priceInfo',priceInfo)
+    } catch(e) {
+      console.log(e)
+      next(e)
+    }
+  }
 }
 
 

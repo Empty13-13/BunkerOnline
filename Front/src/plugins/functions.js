@@ -228,3 +228,28 @@ export function recaptchaMaker(goodFunction, errorFunction = new Function()) {
               .catch(errorFunction)
   });
 }
+
+export function monthsNameForNum(num) {
+  let lastNum = num
+  
+  if(lastNum>10 && lastNum<19) {
+    return 'месяцев'
+  }
+  if (!num % 10<1) {
+    lastNum = num % 10
+  }
+  console.log(lastNum)
+  if (lastNum===1) {
+    return 'месяц'
+  }
+  else if (lastNum>1 && lastNum<5) {
+    return 'месяца'
+  }
+  else {
+    return 'месяцев'
+  }
+}
+
+export function openWindow(link) {
+  window.open(link)
+}

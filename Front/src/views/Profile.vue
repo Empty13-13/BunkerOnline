@@ -15,7 +15,13 @@ import { destroyAll, fieldsInit } from "@/plugins/select.js";
 import router from "@/router/index.js";
 import AppPopup from "@/components/AppPopup.vue";
 import AppAvatar from "@/components/AppAvatar.vue";
-import { getClassForAccess, getDisplayNameForAccess, getLinkParams } from "@/plugins/functions.js";
+import {
+  getClassForAccess,
+  getDisplayNameForAccess,
+  getLinkParams,
+  monthsNameForNum,
+  objIsEmpty, openWindow
+} from "@/plugins/functions.js";
 import { useAuthStore } from "@/stores/auth.js"
 import { usePreloaderStore } from "@/stores/preloader.js";
 import AppLoader from "@/components/AppLoader.vue";
@@ -101,6 +107,28 @@ let isHiddenBirthdayInput = ref()
 let isMaleSelect = ref()
 let aboutInput = ref()
 let saveBtnText = ref('Сохранить')
+const allPrices = ref([])
+const priceVIPSelectOptions = ref([])
+const priceMVPSelectOptions = ref([])
+const priceVIPSelectModel = ref({})
+const priceMVPSelectModel = ref({})
+const getValueFromPriceVip = computed(() => {
+  if (allPrices.value.length && !objIsEmpty(priceVIPSelectModel.value)) {
+    return allPrices.value.find(item => item.id===priceVIPSelectModel.value.value)
+  }
+  else {
+    return null
+  }
+})
+const getValueFromPriceMVP = computed(() => {
+  if (allPrices.value.length && !objIsEmpty(priceMVPSelectModel.value)) {
+    return allPrices.value.find(item => item.id===priceMVPSelectModel.value.value)
+  }
+  else {
+    return null
+  }
+})
+
 
 let isChangingName = ref(false)
 let oldNickname = null
@@ -203,6 +231,38 @@ onBeforeMount(async () => {
 })
 onMounted(async () => {
   await updateProfileInfo()
+
+  try {
+    let priceInfo = await axiosInstance.get('pricesInfo')
+    allPrices.value = priceInfo.data
+    priceVIPSelectOptions.value = priceInfo.data
+                                           .filter(item => item.levelAccess==='vip')
+                                           .sort((item1, item2) => {
+                                             return item1.months - item2.months
+                                           })
+                                           .map(item => {
+                                             return {
+                                               value: item.id,
+                                               text: item.months + ' ' + monthsNameForNum(item.months)
+                                             }
+                                           })
+
+    priceMVPSelectOptions.value = priceInfo.data
+                                           .filter(item => item.levelAccess==='mvp')
+                                           .sort((item1, item2) => {
+                                             return item1.months - item2.months
+                                           })
+                                           .map(item => {
+                                             return {
+                                               value: item.id,
+                                               text: item.months + ' ' + monthsNameForNum(item.months)
+                                             }
+                                           })
+    console.log('priceInfo', priceInfo)
+  } catch(e) {
+    console.log(e)
+  }
+
   fieldsInit()
 
   globalPreloader.deactivate()
@@ -381,16 +441,16 @@ const typeKeyModel = ref(0)
 const keysNum = ref(500)
 
 function generateHandler(e) {
-  if(!fileNameGenerateKeys.value.length>0) {
-    globalPopup.activate('Ошибка заполнения','Поле "Название файла" должно быть заполнено','red')
+  if (!fileNameGenerateKeys.value.length>0) {
+    globalPopup.activate('Ошибка заполнения', 'Поле "Название файла" должно быть заполнено', 'red')
     return
   }
-  if((typeof keyDateNum.value!=='number') || +keyDateNum.value < 1) {
-    globalPopup.activate('Ошибка заполнения','Поле "Срок действия" должно быть цифрой и быть больше 1','red')
+  if ((typeof keyDateNum.value!=='number') || +keyDateNum.value<1) {
+    globalPopup.activate('Ошибка заполнения', 'Поле "Срок действия" должно быть цифрой и быть больше 1', 'red')
     return
   }
-  if((typeof keysNum.value!=='number') || +keysNum.value < 1) {
-    globalPopup.activate('Ошибка заполнения','Поле "Тип ключа" должно быть цифрой и быть больше 1','red')
+  if ((typeof keysNum.value!=='number') || +keysNum.value<1) {
+    globalPopup.activate('Ошибка заполнения', 'Поле "Тип ключа" должно быть цифрой и быть больше 1', 'red')
     return
   }
 
@@ -431,14 +491,14 @@ function activateKeyHandler(e) {
   }, '')
 
   async function updateAccess(e, question = false) {
-    let result = await axiosInstance.post('/activateKey', {key: activationKey.value,question}, {withCredentials: true})
+    let result = await axiosInstance.post('/activateKey', {key: activationKey.value, question}, {withCredentials: true})
     if (result.data.question && question===false) {
       setTimeout(() => {
         showConfirmBlock(e.target, async () => {
               await updateAccess(e, true)
             },
             `Если вы сейчас примените ключ, то у вас сгорит активная подписка. На данный момент до конца подписки осталось ${result.data.days} дней. Вы уверены?`)
-      },300)
+      }, 300)
     }
     else {
       activationKeyLabelShow.value = false
@@ -715,19 +775,24 @@ function activateKeyHandler(e) {
             </p>
             <div class="subscribeBlock__days">
               <label for="dayVip">Срок действия</label>
-              <select v-model="vipValueInput" name="dayVip" id="dayVip" class="profile">
-                <option value="500">1 месяц</option>
-                <option value="3000">6 месяцев</option>
-                <option value="6000">12 месяцев</option>
-              </select>
+              <AppSelect v-model="priceVIPSelectModel" :options="priceVIPSelectOptions" class="selectBlock profile" />
             </div>
-            <div class="price-subscribeBlock">
-              <div class="price-subscribeBlock__price silverTextColor">{{ vipValueInput }} ₽</div>
-              <div class="price-subscribeBlock__oldPrice silverTextColor">{{ +vipValueInput + 209 }} ₽</div>
-              <div class="price-subscribeBlock__discount">Скидка 33%</div>
+            <div v-if="getValueFromPriceVip" class="price-subscribeBlock">
+              <div class="price-subscribeBlock__price silverTextColor">
+                {{ getValueFromPriceVip.price }} ₽
+              </div>
+              <div v-if="getValueFromPriceVip.oldPrice" class="price-subscribeBlock__oldPrice silverTextColor">
+                {{ getValueFromPriceVip.oldPrice }} ₽
+              </div>
+              <div v-if="getValueFromPriceVip.oldPrice && getValueFromPriceVip.price"
+                   class="price-subscribeBlock__discount">
+                Скидка {{ Math.floor(+getValueFromPriceVip.price / +getValueFromPriceVip.oldPrice * 100) }}%
+              </div>
             </div>
-            <div class="">
-              <AppButton class="subscribeBlock__btn" color="whiteGray">Перейти к оплате</AppButton>
+            <div v-if="getValueFromPriceVip" class="">
+              <AppButton @click.prevent="openWindow(getValueFromPriceVip.link)" class="subscribeBlock__btn" color="whiteGray">
+                Перейти к оплате
+              </AppButton>
             </div>
           </div>
           <div class="subscribeBlock__block linear-border gold">
@@ -738,17 +803,24 @@ function activateKeyHandler(e) {
             </p>
             <div class="subscribeBlock__days">
               <label for="dayMvp">Срок действия</label>
-              <select v-model="mvpValueInput" name="dayMvp" id="dayMvp" class="profile">
-                <option value="1000">1 месяц</option>
-                <option value="6000">6 месяцев</option>
-                <option value="12000">12 месяцев</option>
-              </select>
+              <AppSelect v-model="priceMVPSelectModel" :options="priceMVPSelectOptions" class="selectBlock profile" />
             </div>
-            <div class="price-subscribeBlock">
-              <div class="price-subscribeBlock__price goldTextColor">{{ mvpValueInput }} ₽</div>
+            <div v-if="getValueFromPriceMVP" class="price-subscribeBlock">
+              <div class="price-subscribeBlock__price goldTextColor">
+                {{ getValueFromPriceMVP.price }} ₽
+              </div>
+              <div v-if="getValueFromPriceMVP.oldPrice" class="price-subscribeBlock__oldPrice goldTextColor">
+                {{ getValueFromPriceMVP.oldPrice }} ₽
+              </div>
+              <div v-if="getValueFromPriceMVP.oldPrice && getValueFromPriceMVP.price"
+                   class="price-subscribeBlock__discount">
+                Скидка {{ Math.floor(+getValueFromPriceMVP.price / +getValueFromPriceMVP.oldPrice * 100) }}%
+              </div>
             </div>
-            <div class="">
-              <AppButton class="subscribeBlock__btn" color="gold">Перейти к оплате</AppButton>
+            <div v-if="getValueFromPriceMVP" class="">
+              <AppButton @click.prevent="openWindow(getValueFromPriceMVP.link)" class="subscribeBlock__btn" color="gold">
+                Перейти к оплате
+              </AppButton>
             </div>
           </div>
         </div>
@@ -780,11 +852,13 @@ function activateKeyHandler(e) {
         <div class="generateKey">
           <div class="generateKey__inputBlock">
             <label for="filename">Название файла</label>
-            <input id="filename" type="text" class="middle-profileBlock__streamInput" v-model.trim="fileNameGenerateKeys">
+            <input id="filename" type="text" class="middle-profileBlock__streamInput"
+                   v-model.trim="fileNameGenerateKeys">
           </div>
           <div class="generateKey__inputBlock">
             <label for="keyDateNum">Срок действия (в днях)</label>
-            <input id="keyDateNum" type="text" class="middle-profileBlock__streamInput" v-model.trim.number="keyDateNum">
+            <input id="keyDateNum" type="text" class="middle-profileBlock__streamInput"
+                   v-model.trim.number="keyDateNum">
           </div>
           <div class="generateKey__inputBlock">
             <label for="typeKey">Тип ключа</label>
@@ -1505,6 +1579,7 @@ function activateKeyHandler(e) {
   justify-content: space-around;
   align-items: center;
   margin-bottom: 20px;
+  min-height: 35px;
 
   @media (max-width: $mobile) {
 

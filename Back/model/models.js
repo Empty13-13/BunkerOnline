@@ -195,6 +195,15 @@ const gameKey = sequelize.define('gameKey', {
   isActivate:{type: DataTypes.TINYINT, defaultValue: 0}
 })
 
+const prices = sequelize.define('prices',{
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  price:{type: DataTypes.STRING()},
+  oldPrice:{type: DataTypes.STRING()},
+  levelAccess:{type: DataTypes.STRING()},
+  months:{type: DataTypes.INTEGER},
+  link:{type: DataTypes.STRING()},
+})
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
@@ -238,4 +247,5 @@ module.exports = {
   Logi,
   OtherTexts,
   gameKey,
+  prices
 }
