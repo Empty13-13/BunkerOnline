@@ -568,28 +568,29 @@ class UserController {
     }
   }
   
-    async activateKey(req, res, next) {
-      try {
-        let {key,question} = req.body
-        let token = null
-        const accessToken = req.headers.authorization
-        //  console.log(accessToken)
-        if (accessToken && accessToken.toString().includes('Bearer ')) {
-          token = accessToken.split('Bearer ')[1]
-        }else{
-          return  next( ApiError.UnauthorizedError())
-        }
-        const userData = tokenService.validateAccessToken(token)
-            if (!userData) {
-              return  next( ApiError.UnauthorizedError())
-            }
-        const data = await gameKey.activateKey(key,userData.id,question)
-        //console.log(data)
-        res.json(data)
-      } catch(e) {
-        next(e)
+  async activateKey(req, res, next) {
+    try {
+      let {key, question} = req.body
+      let token = null
+      const accessToken = req.headers.authorization
+      //  console.log(accessToken)
+      if (accessToken && accessToken.toString().includes('Bearer ')) {
+        token = accessToken.split('Bearer ')[1]
       }
+      else {
+        return next(ApiError.UnauthorizedError())
+      }
+      const userData = tokenService.validateAccessToken(token)
+      if (!userData) {
+        return next(ApiError.UnauthorizedError())
+      }
+      const data = await gameKey.activateKey(key, userData.id, question)
+      //console.log(data)
+      res.json(data)
+    } catch(e) {
+      next(e)
     }
+  }
   
   async changePack(req, res, next) {
     try {
@@ -674,12 +675,12 @@ class UserController {
         files.forEach(filename => {
           if (filename[0]!=='_') {
             let result = fs.readFileSync(process.env.STATIC_PAGE_LINK + filename, {encoding: "utf-8"})
-            console.log('Прочитали файл3',filename)
+            console.log('Прочитали файл3', filename)
             const jsdom = require("jsdom");
             const {JSDOM} = jsdom;
             const dom = new JSDOM(result);
             let title = dom.window.document.querySelector('h1').textContent
-            resultArr.push({title,link:filename.replace('.txt','')})
+            resultArr.push({title, link: filename.replace('.txt', '')})
             console.log(resultArr)
           }
         })
@@ -692,11 +693,22 @@ class UserController {
     }
   }
   
-  async getPriceInfo(req,res,next) {
+  async getHomeImageName(req, res, next) {
+    try {
+      const imageName = await userService.getHomeImageName()
+      res.json(imageName)
+      console.log('imageName', imageName)
+    } catch(e) {
+      console.log(e)
+      next(e)
+    }
+  }
+  
+  async getPriceInfo(req, res, next) {
     try {
       const priceInfo = await userService.getPriceInfo()
       res.json(priceInfo)
-      console.log('priceInfo',priceInfo)
+      console.log('priceInfo', priceInfo)
     } catch(e) {
       console.log(e)
       next(e)

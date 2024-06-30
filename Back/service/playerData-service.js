@@ -427,9 +427,11 @@ class playerDataService {
       gameRoom.imageId = data.imageId
       gameRoom.population = new Intl.NumberFormat('ru-RU').format(data.population).toString()
       gameRoom.endOfTime = data.countMin
+      gameRoom.soundId = data.soundId
       data = {
         [chartName]: data.newChart.text,
         imageName: data.imageName,
+        soundName: data.soundName,
         population: gameRoom.population,
         endOfTime: data.countMin
       }
@@ -540,6 +542,8 @@ class playerDataService {
     let bunkerSize = null
     let population = null
     let countMin = null
+    let soundId = null
+    let soundName = null
     bunkerSize = this.getRandomInt(20, 200)
     population = this.getRandomInt(30000000, 1000000000)
     if (players!==null) {
@@ -561,6 +565,11 @@ class playerDataService {
     if (!isCatastrophe) {
       catastrophe = this.getRandomDataBunker('catastrophe')
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: catastrophe.id}})
+      let sound = await UserModel.CatastropheSounds.findOne({where: {catastropheId: catastrophe.id}})
+      if (sound) {
+        soundId = sound.id
+        soundName = sound.soundName
+      }
       let catastropheMin = await UserModel.ChartBunker.findOne({where: {id: catastrophe.id}})
       if (catastropheMin.countMin!==null) {
         countMin = new Date(+new Date() + (catastropheMin.countMin * 60 * 1000))
@@ -597,6 +606,7 @@ class playerDataService {
     if (!isCatastrophe) {
       thisGame.catastrophe = catastrophe.id
       thisGame.imageId = imageId
+      thisGame.soundId = soundId
       thisGame.population = new Intl.NumberFormat('ru-RU').format(population).toString()
       thisGame.endOfTime = countMin
     }
@@ -619,6 +629,7 @@ class playerDataService {
         bunkerFood: bunkerFood.text,
         population: new Intl.NumberFormat('ru-RU').format(population).toString(),
         catastrophe: catastrophe.text,
+        soundName: soundName,
         endOfTime: countMin,
         imageName: imageName
       }
@@ -680,7 +691,7 @@ class playerDataService {
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime', 'soundId'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -696,425 +707,330 @@ class playerDataService {
         showCancelButton = false
       }
     }
-      if (!objIsEmpty(logs)) {
-        
-        for (let log of logs) {
-          let obLog = {}
-          
-          if (log.funcName==='rollTheDice') {
-            obLog.type = 'rollDice'
-            obLog.value = log.text
-            
-          }
-          else if (log.funcName==='voitingFinished') {
-            let data = JSON.parse(log.lastVar)
-            obLog.value = data
-            obLog.type = 'voiting'
-          }
-          else {
-            obLog.type = 'text'
-            obLog.value = log.text
-          }
-          obLog.date = log.createdAt
-          //  console.log(obLog)
-          logsData.push(obLog)
-        }
-      }
-      //   console.log(objIsEmpty(logs))
-      bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
-      bunkerData.maxSurvivor = gameRoom.maxSurvivor
-      bunkerData.population = gameRoom.population
-      bunkerData.endOfTime = gameRoom.endOfTime
-      let bunkerItems = []
-      for (let key in gameRoom) {
-        if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime') {
-          let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
-          // console.log(gameRoom[key])
-          bunkerData[key] = chartBunker.text
-          
-        }
-        else if (key.toString()==='imageId') {
-          let image = await UserModel.CatastropheImage.findOne({where: {id: gameRoom[key]}})
-          bunkerData.imageName = image.imageName
-        }
-        else if (key.toString()==='bunkerItems1' || key.toString()==='bunkerItems2' || key.toString()==='bunkerItems3') {
-          let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
-          bunkerItems.push(chartBunker.text)
-        }
-      }
-      console.log(gameRoom)
-      bunkerData.bunkerCreated= bunkerData.bunkerCreated.replace('[year]',gameRoom.bunkerAge)
-      bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
-      bunkerData.bunkerItems = bunkerItems
-      bunkerData.bunkerLocation = (bunkerData.bunkerLocation.slice(0, 1).toUpperCase()).concat(
-        bunkerData.bunkerLocation.slice(1))
-      bunkerData.bunkerBedroom = (bunkerData.bunkerBedroom.slice(0, 1).toUpperCase()).concat(
-        bunkerData.bunkerBedroom.slice(1))
-      // let age = this.getRandomInt(1, 50)
-      //  let bunkerAge = `${age} ${this.getAgeText(age)}`
-      //  result.text = result.text.replace('[year]', bunkerAge)
-      let userData = await this.getAvailablePlayerData2(idRoom, true)
-      let voitingData = null
-      let thisPlayer = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playerId}})
-      if (!isWatcher || gameRoom.voitingStatus===1) {
-        voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
-      }
-      if (gameRoom.voitingStatus===0 && !thisPlayer.isAlive) {
-        voitingData = null
-      }
-      let players = {}
-      let allPlayers = await UserModel.RoomSession.findAll({
-        attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
-        where: {gameRoomId: gameRoom.id, isPlayer: 1},
-        raw: true
-      })
+    if (!objIsEmpty(logs)) {
       
-      for (let player in allPlayers) {
-        let playerData = {}
-        if (allPlayers[player].userId===playerId && !isWatcher) {
-          for (let key in allPlayers[player]) {
-            if (key.toString()!=='isMVPRefresh') {
-              playerData[key] = JSON.parse(allPlayers[player][key])
-            }
-            else if (key.toString()==='isMVPRefresh' && allPlayers[player][key]!==null) {
-              playerData[key] = !!allPlayers[player][key]
-            }
-          }
+      for (let log of logs) {
+        let obLog = {}
+        
+        if (log.funcName==='rollTheDice') {
+          obLog.type = 'rollDice'
+          obLog.value = log.text
+          
+        }
+        else if (log.funcName==='voitingFinished') {
+          let data = JSON.parse(log.lastVar)
+          obLog.value = data
+          obLog.type = 'voiting'
         }
         else {
-          for (let key in allPlayers[player]) {
-            if (key.toString()!=='isMVPRefresh') {
-              let data = JSON.parse(allPlayers[player][key])
-              if (data && data.isOpen) {
-                playerData[key] = data
-              }
+          obLog.type = 'text'
+          obLog.value = log.text
+        }
+        obLog.date = log.createdAt
+        //  console.log(obLog)
+        logsData.push(obLog)
+      }
+    }
+    //   console.log(objIsEmpty(logs))
+    bunkerData.bunkerSize = `${gameRoom.bunkerSize}кв.м`
+    bunkerData.maxSurvivor = gameRoom.maxSurvivor
+    bunkerData.population = gameRoom.population
+    bunkerData.endOfTime = gameRoom.endOfTime
+    let bunkerItems = []
+    for (let key in gameRoom) {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime' && key.toString()!=='soundId') {
+        let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
+        // console.log(gameRoom[key])
+        bunkerData[key] = chartBunker.text
+        
+      }
+      else if (key.toString()==='imageId') {
+        let image = await UserModel.CatastropheImage.findOne({where: {id: gameRoom[key]}})
+        bunkerData.imageName = image.imageName
+      }
+      else if (key.toString()==='bunkerItems1' || key.toString()==='bunkerItems2' || key.toString()==='bunkerItems3') {
+        let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
+        bunkerItems.push(chartBunker.text)
+      }
+      else if (key.toString()==='soundId') {
+        let sound = await UserModel.CatastropheSounds.findOne({where: {id: gameRoom[key]}})
+        if(sound){
+        bunkerData.soundName = sound.soundName
+        }
+      }
+    }
+    console.log(gameRoom)
+    bunkerData.bunkerCreated = bunkerData.bunkerCreated.replace('[year]', gameRoom.bunkerAge)
+    bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
+    bunkerData.bunkerItems = bunkerItems
+    bunkerData.bunkerLocation = (bunkerData.bunkerLocation.slice(0, 1).toUpperCase()).concat(
+      bunkerData.bunkerLocation.slice(1))
+    bunkerData.bunkerBedroom = (bunkerData.bunkerBedroom.slice(0, 1).toUpperCase()).concat(
+      bunkerData.bunkerBedroom.slice(1))
+    // let age = this.getRandomInt(1, 50)
+    //  let bunkerAge = `${age} ${this.getAgeText(age)}`
+    //  result.text = result.text.replace('[year]', bunkerAge)
+    let userData = await this.getAvailablePlayerData2(idRoom, true)
+    let voitingData = null
+    let thisPlayer = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: playerId}})
+    if (!isWatcher || gameRoom.voitingStatus===1) {
+      voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
+    }
+    if (gameRoom.voitingStatus===0 && !thisPlayer.isAlive) {
+      voitingData = null
+    }
+    let players = {}
+    let allPlayers = await UserModel.RoomSession.findAll({
+      attributes: ['userId', 'sex', 'body', 'trait', 'profession', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo', 'spec1', 'spec2', 'isMVPRefresh'],
+      where: {gameRoomId: gameRoom.id, isPlayer: 1},
+      raw: true
+    })
+    
+    for (let player in allPlayers) {
+      let playerData = {}
+      if (allPlayers[player].userId===playerId && !isWatcher) {
+        for (let key in allPlayers[player]) {
+          if (key.toString()!=='isMVPRefresh') {
+            playerData[key] = JSON.parse(allPlayers[player][key])
+          }
+          else if (key.toString()==='isMVPRefresh' && allPlayers[player][key]!==null) {
+            playerData[key] = !!allPlayers[player][key]
+          }
+        }
+      }
+      else {
+        for (let key in allPlayers[player]) {
+          if (key.toString()!=='isMVPRefresh') {
+            let data = JSON.parse(allPlayers[player][key])
+            if (data && data.isOpen) {
+              playerData[key] = data
             }
           }
         }
-        if (!objIsEmpty(playerData)) {
-          players[allPlayers[player].userId] = playerData
-        }
       }
-      
-      if (voitingData===null) {
-        return {players: players, userData: userData, bunkerData: bunkerData, logsData: logsData,showCancelButton:showCancelButton}
+      if (!objIsEmpty(playerData)) {
+        players[allPlayers[player].userId] = playerData
       }
-      else {
-        return {
-          players: players,
-          userData: userData,
-          bunkerData: bunkerData,
-          voitingData: voitingData,
-          logsData: logsData,
-          showCancelButton:showCancelButton
-        }
-      }//{id:1}
-      //key = id
-      //gameRoom[key]=1
-      
     }
     
-    async getAvailablePlayerData2(idRoom, isJoin = false)
-    {
-      const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
-      let userList = []
-      //  let arrayPlayer = []
-      if (!isJoin) {
-        let list = this.indexForRandom(players.length)
-        for (let i = 0; i<players.length; i++) {
-          userList.push(players[list[i]].userId)
-        }
+    if (voitingData===null) {
+      return {
+        players: players,
+        userData: userData,
+        bunkerData: bunkerData,
+        logsData: logsData,
+        showCancelButton: showCancelButton
       }
-      else {
-        userList = JSON.parse(gameRoomData.userList)
+    }
+    else {
+      return {
+        players: players,
+        userData: userData,
+        bunkerData: bunkerData,
+        voitingData: voitingData,
+        logsData: logsData,
+        showCancelButton: showCancelButton
       }
-      
-      //  console.log('POTOK',players[0])
-      // console.log('ABRAKADABRA',userList)
-      let data = {}
-      let sortedPlayers = []
+    }//{id:1}
+    //key = id
+    //gameRoom[key]=1
+    
+  }
+  
+  async getAvailablePlayerData2(idRoom, isJoin = false) {
+    const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
+    let userList = []
+    //  let arrayPlayer = []
+    if (!isJoin) {
+      let list = this.indexForRandom(players.length)
       for (let i = 0; i<players.length; i++) {
-        let userData = {}
-        let player = players.find(item => item.userId===userList[i])
-        sortedPlayers.push(player.userId)
-        // console.log('player',player.userId)
-        //  arrayPlayer.push(player.userId)
-        if (player.userId>0) {
-          let user = await UserModel.User.findOne({where: {id: player.userId}})
-          
-          userData.nickname = user.nickname
-          userData.avatar = user.avatar
-          userData.isPlayer = player.isPlayer
-          userData.accessLevel = user.accsessLevel
-          // userData.
-        }
-        else {
-          // userData.id = player.userId
-          userData.nickname = `Гость#${Math.abs(player.userId)}`
-          userData.avatar = null
-          userData.isPlayer = player.isPlayer
-          userData.accessLevel = 'noreg'
-          
-          
-        }
-        //console.log(player.isAlive, player.userId)
-        // console.log('IGROK POSLE','id',player.userId,player.isAlive)
-        if (player.isAlive) {
-          userData.isAlive = true
-        }
-        else {
-          userData.isAlive = false
-        }
-        data[player.userId] = userData
-        // console.log('NEWDATA',data)
+        userList.push(players[list[i]].userId)
       }
-      // console.log('DATA',data)
-      if (!isJoin) {
-        
-        gameRoomData.userList = JSON.stringify(sortedPlayers)
-        await gameRoomData.save()
-      }
-      data.sortedPlayers = sortedPlayers
-      return data
-      
-      
+    }
+    else {
+      userList = JSON.parse(gameRoomData.userList)
     }
     
-    async getAvailablePlayerData(idRoom)
-    {
-      const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
-      
-      let data = {}
-      for (let player of players) {
-        let userData = {}
-        if (player.userId>0) {
-          let user = await UserModel.User.findOne({where: {id: player.userId}})
-          
-          userData.nickname = user.nickname
-          userData.avatar = user.avatar
-          userData.isPlayer = player.isPlayer
-          userData.accessLevel = user.accsessLevel
-          // userData.
-        }
-        else {
-          // userData.id = player.userId
-          userData.nickname = `Гость#${Math.abs(player.userId)}`
-          userData.avatar = null
-          userData.isPlayer = player.isPlayer
-          userData.accessLevel = 'noreg'
-          
-          
-        }
-        //console.log(player.isAlive, player.userId)
-        // console.log('IGROK POSLE','id',player.userId,player.isAlive)
-        if (player.isAlive) {
-          userData.isAlive = true
-        }
-        else {
-          userData.isAlive = false
-        }
-        data[player.userId] = userData
-      }
-      return data
-      
-      
-    }
-    
-    async refreshDataBunker(usePack, chartName = null, gameRoom, idRoom)
-    {
-      let isUsedSystemAdvancePack = false
-      if (usePack.includes(this.systemSettings.advancePack)) {
-        isUsedSystemAdvancePack = true
-      }
-      if (chartName===null) {
-        return await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
-      }
-      else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
-        return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
-      }
-      else if (chartName==='bunkerSize') {
-        let bunkerSize = this.getRandomInt(20, 200)
-        // console.log('bunkerSize',bunkerSize)
-        return {bunkerSize: bunkerSize}
-      }
-      else if (chartName==='catastrophe') {
-        let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
-        let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
-        let population = this.getRandomInt(30000000, 1000000000)
-        let countMin = null
-        let catastropheMin = await UserModel.ChartBunker.findOne({where: {id: newChart.id}})
-        if (catastropheMin.countMin!==null) {
-          countMin = new Date(+new Date() + (catastropheMin.countMin * 60 * 1000))
-        }
-        // console.log('allImageId', allImageId)
-        let imageId = null
-        let imageName = null
-        if (allImageId.length===1) {
-          imageId = allImageId[0].id
-          imageName = allImageId[0].imageName
-        }
+    //  console.log('POTOK',players[0])
+    // console.log('ABRAKADABRA',userList)
+    let data = {}
+    let sortedPlayers = []
+    for (let i = 0; i<players.length; i++) {
+      let userData = {}
+      let player = players.find(item => item.userId===userList[i])
+      sortedPlayers.push(player.userId)
+      // console.log('player',player.userId)
+      //  arrayPlayer.push(player.userId)
+      if (player.userId>0) {
+        let user = await UserModel.User.findOne({where: {id: player.userId}})
         
-        else {
-          let index = this.getRandomInt(0, allImageId.length - 1)
-          let image = allImageId[index]
-          imageId = image.id
-          imageName = image.imageName
-        }
-        return {newChart, imageName, imageId, population, countMin}
-        
+        userData.nickname = user.nickname
+        userData.avatar = user.avatar
+        userData.isPlayer = player.isPlayer
+        userData.accessLevel = user.accsessLevel
+        // userData.
       }
       else {
-        // console.log(chartName)
-        return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
+        // userData.id = player.userId
+        userData.nickname = `Гость#${Math.abs(player.userId)}`
+        userData.avatar = null
+        userData.isPlayer = player.isPlayer
+        userData.accessLevel = 'noreg'
+        
+        
       }
+      //console.log(player.isAlive, player.userId)
+      // console.log('IGROK POSLE','id',player.userId,player.isAlive)
+      if (player.isAlive) {
+        userData.isAlive = true
+      }
+      else {
+        userData.isAlive = false
+      }
+      data[player.userId] = userData
+      // console.log('NEWDATA',data)
     }
+    // console.log('DATA',data)
+    if (!isJoin) {
+      
+      gameRoomData.userList = JSON.stringify(sortedPlayers)
+      await gameRoomData.save()
+    }
+    data.sortedPlayers = sortedPlayers
+    return data
     
-    async refreshDataPlayer(usePack, chartName, data, gameRoomId, user)
-    {
-      let isUsedSystemAdvancePack = false
-      if (usePack.includes(this.systemSettings.advancePack)) {
-        isUsedSystemAdvancePack = true
+    
+  }
+  
+  async getAvailablePlayerData(idRoom) {
+    const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
+    
+    let data = {}
+    for (let player of players) {
+      let userData = {}
+      if (player.userId>0) {
+        let user = await UserModel.User.findOne({where: {id: player.userId}})
+        
+        userData.nickname = user.nickname
+        userData.avatar = user.avatar
+        userData.isPlayer = player.isPlayer
+        userData.accessLevel = user.accsessLevel
+        // userData.
+      }
+      else {
+        // userData.id = player.userId
+        userData.nickname = `Гость#${Math.abs(player.userId)}`
+        userData.avatar = null
+        userData.isPlayer = player.isPlayer
+        userData.accessLevel = 'noreg'
+        
+        
+      }
+      //console.log(player.isAlive, player.userId)
+      // console.log('IGROK POSLE','id',player.userId,player.isAlive)
+      if (player.isAlive) {
+        userData.isAlive = true
+      }
+      else {
+        userData.isAlive = false
+      }
+      data[player.userId] = userData
+    }
+    return data
+    
+    
+  }
+  
+  async refreshDataBunker(usePack, chartName = null, gameRoom, idRoom) {
+    let isUsedSystemAdvancePack = false
+    if (usePack.includes(this.systemSettings.advancePack)) {
+      isUsedSystemAdvancePack = true
+    }
+    if (chartName===null) {
+      return await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
+    }
+    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
+      return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
+    }
+    else if (chartName==='bunkerSize') {
+      let bunkerSize = this.getRandomInt(20, 200)
+      // console.log('bunkerSize',bunkerSize)
+      return {bunkerSize: bunkerSize}
+    }
+    else if (chartName==='catastrophe') {
+      let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
+      let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
+      let population = this.getRandomInt(30000000, 1000000000)
+      let countMin = null
+      let soundName = null
+      let soundId = null
+      
+      let sound = await UserModel.CatastropheSounds.findOne({where: {catastropheId: newChart.id}})
+      if(sound){
+        soundName = sound.soundName
+        soundId = sound.id
+      }
+      let catastropheMin = await UserModel.ChartBunker.findOne({where: {id: newChart.id}})
+      if (catastropheMin.countMin!==null) {
+        countMin = new Date(+new Date() + (catastropheMin.countMin * 60 * 1000))
+      }
+      // console.log('allImageId', allImageId)
+      let imageId = null
+      let imageName = null
+      if (allImageId.length===1) {
+        imageId = allImageId[0].id
+        imageName = allImageId[0].imageName
       }
       
-      let players = await UserModel.RoomSession.findAll(
-        {attributes: [chartName], where: {gameRoomId: gameRoomId, isPlayer: 1}})
+      else {
+        let index = this.getRandomInt(0, allImageId.length - 1)
+        let image = allImageId[index]
+        imageId = image.id
+        imageName = image.imageName
+      }
+      return {newChart, imageName, imageId, population, countMin,soundName,soundId}
+      
+    }
+    else {
+      // console.log(chartName)
+      return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
+    }
+  }
+  
+  async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
+    let isUsedSystemAdvancePack = false
+    if (usePack.includes(this.systemSettings.advancePack)) {
+      isUsedSystemAdvancePack = true
+    }
+    
+    let players = await UserModel.RoomSession.findAll(
+      {attributes: [chartName], where: {gameRoomId: gameRoomId, isPlayer: 1}})
+    if (chartName==='sex') {
+      for (let player of players) {
+        let playerData = JSON.parse(player[chartName])
+        if (playerData.text.includes('чайлдфри')) {
+          this.childFreeCount += 1
+        }
+      }
+    }
+    if (chartName==='health') {
+      for (let player of players) {
+        let playerData = JSON.parse(player[chartName])
+        if (playerData.text.includes('Идеально здоров')) {
+          this.perfectHealthCount += 1
+          
+        }
+      }
+    }
+    let age = 41
+    let isGood = false
+    while (!isGood) {
+      
       if (chartName==='sex') {
-        for (let player of players) {
-          let playerData = JSON.parse(player[chartName])
-          if (playerData.text.includes('чайлдфри')) {
-            this.childFreeCount += 1
-          }
-        }
-      }
-      if (chartName==='health') {
-        for (let player of players) {
-          let playerData = JSON.parse(player[chartName])
-          if (playerData.text.includes('Идеально здоров')) {
-            this.perfectHealthCount += 1
-            
-          }
-        }
-      }
-      let age = 41
-      let isGood = false
-      while (!isGood) {
-        
-        if (chartName==='sex') {
-          let age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
-          let sex = !!this.getRandomInt(0, 1)
-          let maleSexText = ['Мужчина', '(Молодой)']
-          let femaleSexText = ['Женщина', '(Молодая)']
-          if (age>=36 && age<=59) {
-            maleSexText[1] = '(Взрослый)'
-            femaleSexText[1] = '(Взрослая)'
-          }
-          else if (age>=60) {
-            maleSexText[1] = '(Пожилой)'
-            femaleSexText[1] = '(Пожилая)'
-          }
-          sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
-            age)} ${sex? maleSexText[1]:femaleSexText[1]}`
-          
-          if (!((this.childFreeCount + 1) / 6 * 100>25) &&
-            this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
-            sex += ' | чайлдфри'
-            this.childFreeCount += 1
-          }
-          if (sex!==data.text) {
-            isGood = true
-            data.text = sex
-            
-          }
-        }
-        else if (chartName==='health') {
-          
-          let health = null
-          
-          if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
-            100)<=this.systemSettings.perfectHealthPercentage) {
-            health = {id: 0, text: 'Идеально здоров', isOpen: false}
-            this.perfectHealthCount += 1
-          }
-          else {
-            health = this.getRandomData('health', isUsedSystemAdvancePack)
-          }
-          
-          if (health!==data.text) {
-            isGood = true
-            data.text = health.text
-            data.id = health.id
-            
-          }
-        }
-        else if (chartName==='profession') {
-          console.log(user)
-          let datas = JSON.parse(user.sex).text
-          let newAge = parseInt(datas.match(/\d+/))
-          if (newAge) {
-            if (newAge>16) {
-              age = newAge
-            }
-            else {
-              age = 16
-            }
-          }
-          //  console.log(newAge, age)
-          let profession = this.getRandomData(
-            'profession',
-            isUsedSystemAdvancePack, age)
-          if (profession.text!==data.text) {
-            isGood = true
-            data.text = profession.text
-            data.id = profession.id
-            data.description = profession.description
-            
-          }
-        }
-        else {
-          
-          let newChart = this.getRandomData(chartName, isUsedSystemAdvancePack)
-          //console.log(newChart)
-          if (newChart.text!==data.text) {
-            isGood = true
-            data.text = newChart.text
-            data.id = newChart.id
-            
-          }
-        }
-        
-      }
-      return data
-      
-    }
-    
-    async createDataPlayer(usePackIds, playerId, gameRoomId, playerData, player = null, isChange = false)
-    {
-      let isUsedSystemAdvancePack = false
-      if (usePackIds.includes(this.systemSettings.advancePack)) {
-        isUsedSystemAdvancePack = true
-      }
-      let age = playerData?.age || null
-      let sex = playerData?.sex || null
-      let body = playerData?.body || null
-      let trait = playerData?.trait || null
-      let health = playerData?.health || null
-      let hobbies = playerData?.hobbies || null
-      let phobia = playerData?.phobia || null
-      let inventory = playerData?.inventory || null
-      let backpack = playerData?.backpack || null
-      let addInfo = playerData?.addInfo || null
-      let spec1 = playerData?.spec1 || null
-      let spec2 = playerData?.spec2 || null
-      let profession = playerData?.profession || null
-      let isMVPRefresh = null
-      let sexIsOpen = false
-      let healthIsOpen = false
-      if (sex===null) {
-        age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
-        
-        sex = !!this.getRandomInt(0, 1)
+        let age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
+        let sex = !!this.getRandomInt(0, 1)
         let maleSexText = ['Мужчина', '(Молодой)']
         let femaleSexText = ['Женщина', '(Молодая)']
         if (age>=36 && age<=59) {
@@ -1133,397 +1049,479 @@ class playerDataService {
           sex += ' | чайлдфри'
           this.childFreeCount += 1
         }
-        
-        if (player) {
-          sexIsOpen = JSON.parse(player['sex']).isOpen
-          healthIsOpen = JSON.parse(player['health']).isOpen
-          //   console.log('1111', JSON.parse(player['health']).isOpen)
+        if (sex!==data.text) {
+          isGood = true
+          data.text = sex
+          
         }
-        
       }
-      else {
+      else if (chartName==='health') {
         
-        age = 41
-      }
-      
-      body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack, 0, player)
-      
-      trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack, 0, player)
-      
-      if (health===null) {
+        let health = null
+        
         if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
           100)<=this.systemSettings.perfectHealthPercentage) {
-          health = {id: 0, text: 'Идеально здоров', isOpen: healthIsOpen}
+          health = {id: 0, text: 'Идеально здоров', isOpen: false}
           this.perfectHealthCount += 1
         }
         else {
-          health = this.getRandomData('health', isUsedSystemAdvancePack, 0, player)
+          health = this.getRandomData('health', isUsedSystemAdvancePack)
+        }
+        
+        if (health!==data.text) {
+          isGood = true
+          data.text = health.text
+          data.id = health.id
+          
+        }
+      }
+      else if (chartName==='profession') {
+        console.log(user)
+        let datas = JSON.parse(user.sex).text
+        let newAge = parseInt(datas.match(/\d+/))
+        if (newAge) {
+          if (newAge>16) {
+            age = newAge
+          }
+          else {
+            age = 16
+          }
+        }
+        //  console.log(newAge, age)
+        let profession = this.getRandomData(
+          'profession',
+          isUsedSystemAdvancePack, age)
+        if (profession.text!==data.text) {
+          isGood = true
+          data.text = profession.text
+          data.id = profession.id
+          data.description = profession.description
+          
         }
       }
       else {
-        health = {id: 0, text: health, isOpen: healthIsOpen}
-      }
-      hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack, 0,
-        player)
-      
-      
-      phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack, 0,
-        player)
-      
-      
-      inventory = inventory? {id: 0, text: inventory, isOpen: false}:this.getRandomData('inventory',
-        isUsedSystemAdvancePack, 0, player)
-      
-      
-      backpack = backpack? {id: 0, text: backpack, isOpen: false}:this.getRandomData('backpack',
-        isUsedSystemAdvancePack, 0, player)
-      
-      
-      addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack, 0,
-        player)
-      
-      if (!isChange) {
-        spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack, 0,
-          player)
         
-        
-        spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack, 0,
-          player)
-      }
-      
-      profession = profession? {id: 0, text: profession, description: '', isOpen: false}:this.getRandomData(
-        'profession',
-        isUsedSystemAdvancePack, age, player)
-      
-      
-      let thisPlayer = await UserModel.RoomSession.findOne({where: {userId: playerId, gameRoomId: gameRoomId}})
-      if (playerId>0 && !isChange) {
-        let thisUser = await UserModel.User.findOne({where: {id: playerId}})
-        if (thisUser.accsessLevel.toString().toLowerCase()==="mvp" || thisUser.accsessLevel.toString().toLowerCase()==="admin") {
-          thisPlayer.isMVPRefresh = 0
-          isMVPRefresh = false
-        }
-      }
-      thisPlayer.sex = JSON.stringify({text: sex, isOpen: sexIsOpen})
-      thisPlayer.body = JSON.stringify(body)
-      thisPlayer.trait = JSON.stringify(trait)
-      thisPlayer.health = JSON.stringify(health)
-      thisPlayer.hobbies = JSON.stringify(hobbies)
-      thisPlayer.phobia = JSON.stringify(phobia)
-      thisPlayer.inventory = JSON.stringify(inventory)
-      thisPlayer.backpack = JSON.stringify(backpack)
-      thisPlayer.addInfo = JSON.stringify(addInfo)
-      if (!isChange) {
-        thisPlayer.spec1 = JSON.stringify(spec1)
-        thisPlayer.spec2 = JSON.stringify(spec2)
-      }
-      thisPlayer.profession = JSON.stringify(profession)
-      await thisPlayer.save()
-      // console.log(body)
-      let result = {}
-      if (!isChange) {
-        result[playerId] = {
+        let newChart = this.getRandomData(chartName, isUsedSystemAdvancePack)
+        //console.log(newChart)
+        if (newChart.text!==data.text) {
+          isGood = true
+          data.text = newChart.text
+          data.id = newChart.id
           
-          sex: {text: sex, isOpen: sexIsOpen},
-          body: body,
-          trait: trait,
-          health: health,
-          hobbies: hobbies,
-          phobia: phobia,
-          inventory: inventory,
-          backpack: backpack,
-          addInfo: addInfo,
-          spec1: spec1,
-          spec2: spec2,
-          profession: profession,
-          isMVPRefresh: isMVPRefresh
         }
       }
-      else {
-        result[playerId] = {
-          
-          sex: {text: sex, isOpen: sexIsOpen},
-          body: body,
-          trait: trait,
-          health: health,
-          hobbies: hobbies,
-          phobia: phobia,
-          inventory: inventory,
-          backpack: backpack,
-          addInfo: addInfo,
-          profession: profession,
-          isMVPRefresh: isMVPRefresh
-        }
+      
+    }
+    return data
+    
+  }
+  
+  async createDataPlayer(usePackIds, playerId, gameRoomId, playerData, player = null, isChange = false) {
+    let isUsedSystemAdvancePack = false
+    if (usePackIds.includes(this.systemSettings.advancePack)) {
+      isUsedSystemAdvancePack = true
+    }
+    let age = playerData?.age || null
+    let sex = playerData?.sex || null
+    let body = playerData?.body || null
+    let trait = playerData?.trait || null
+    let health = playerData?.health || null
+    let hobbies = playerData?.hobbies || null
+    let phobia = playerData?.phobia || null
+    let inventory = playerData?.inventory || null
+    let backpack = playerData?.backpack || null
+    let addInfo = playerData?.addInfo || null
+    let spec1 = playerData?.spec1 || null
+    let spec2 = playerData?.spec2 || null
+    let profession = playerData?.profession || null
+    let isMVPRefresh = null
+    let sexIsOpen = false
+    let healthIsOpen = false
+    if (sex===null) {
+      age = this.getRandomInt(this.systemSettings.minAge, this.systemSettings.maxAge)
+      
+      sex = !!this.getRandomInt(0, 1)
+      let maleSexText = ['Мужчина', '(Молодой)']
+      let femaleSexText = ['Женщина', '(Молодая)']
+      if (age>=36 && age<=59) {
+        maleSexText[1] = '(Взрослый)'
+        femaleSexText[1] = '(Взрослая)'
       }
-      // console.log('CreateDataPlayer', result)
-      return result
+      else if (age>=60) {
+        maleSexText[1] = '(Пожилой)'
+        femaleSexText[1] = '(Пожилая)'
+      }
+      sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
+        age)} ${sex? maleSexText[1]:femaleSexText[1]}`
+      
+      if (!((this.childFreeCount + 1) / 6 * 100>25) &&
+        this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
+        sex += ' | чайлдфри'
+        this.childFreeCount += 1
+      }
+      
+      if (player) {
+        sexIsOpen = JSON.parse(player['sex']).isOpen
+        healthIsOpen = JSON.parse(player['health']).isOpen
+        //   console.log('1111', JSON.parse(player['health']).isOpen)
+      }
+      
+    }
+    else {
+      
+      age = 41
     }
     
-    getAgeText(age)
-    {
-      let txt;
-      let count = age % 100;
-      if (count>=5 && count<=20) {
+    body = body? {id: 0, text: body, isOpen: false}:this.getRandomData('body', isUsedSystemAdvancePack, 0, player)
+    
+    trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack, 0, player)
+    
+    if (health===null) {
+      if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
+        100)<=this.systemSettings.perfectHealthPercentage) {
+        health = {id: 0, text: 'Идеально здоров', isOpen: healthIsOpen}
+        this.perfectHealthCount += 1
+      }
+      else {
+        health = this.getRandomData('health', isUsedSystemAdvancePack, 0, player)
+      }
+    }
+    else {
+      health = {id: 0, text: health, isOpen: healthIsOpen}
+    }
+    hobbies = hobbies? {id: 0, text: hobbies, isOpen: false}:this.getRandomData('hobbies', isUsedSystemAdvancePack, 0,
+      player)
+    
+    
+    phobia = phobia? {id: 0, text: phobia, isOpen: false}:this.getRandomData('phobia', isUsedSystemAdvancePack, 0,
+      player)
+    
+    
+    inventory = inventory? {id: 0, text: inventory, isOpen: false}:this.getRandomData('inventory',
+      isUsedSystemAdvancePack, 0, player)
+    
+    
+    backpack = backpack? {id: 0, text: backpack, isOpen: false}:this.getRandomData('backpack',
+      isUsedSystemAdvancePack, 0, player)
+    
+    
+    addInfo = addInfo? {id: 0, text: addInfo, isOpen: false}:this.getRandomData('addInfo', isUsedSystemAdvancePack, 0,
+      player)
+    
+    if (!isChange) {
+      spec1 = spec1? {id: 0, text: spec1, isOpen: false}:this.getRandomData('spec1', isUsedSystemAdvancePack, 0,
+        player)
+      
+      
+      spec2 = spec2? {id: 0, text: spec2, isOpen: false}:this.getRandomData('spec2', isUsedSystemAdvancePack, 0,
+        player)
+    }
+    
+    profession = profession? {id: 0, text: profession, description: '', isOpen: false}:this.getRandomData(
+      'profession',
+      isUsedSystemAdvancePack, age, player)
+    
+    
+    let thisPlayer = await UserModel.RoomSession.findOne({where: {userId: playerId, gameRoomId: gameRoomId}})
+    if (playerId>0 && !isChange) {
+      let thisUser = await UserModel.User.findOne({where: {id: playerId}})
+      if (thisUser.accsessLevel.toString().toLowerCase()==="mvp" || thisUser.accsessLevel.toString().toLowerCase()==="admin") {
+        thisPlayer.isMVPRefresh = 0
+        isMVPRefresh = false
+      }
+    }
+    thisPlayer.sex = JSON.stringify({text: sex, isOpen: sexIsOpen})
+    thisPlayer.body = JSON.stringify(body)
+    thisPlayer.trait = JSON.stringify(trait)
+    thisPlayer.health = JSON.stringify(health)
+    thisPlayer.hobbies = JSON.stringify(hobbies)
+    thisPlayer.phobia = JSON.stringify(phobia)
+    thisPlayer.inventory = JSON.stringify(inventory)
+    thisPlayer.backpack = JSON.stringify(backpack)
+    thisPlayer.addInfo = JSON.stringify(addInfo)
+    if (!isChange) {
+      thisPlayer.spec1 = JSON.stringify(spec1)
+      thisPlayer.spec2 = JSON.stringify(spec2)
+    }
+    thisPlayer.profession = JSON.stringify(profession)
+    await thisPlayer.save()
+    // console.log(body)
+    let result = {}
+    if (!isChange) {
+      result[playerId] = {
+        
+        sex: {text: sex, isOpen: sexIsOpen},
+        body: body,
+        trait: trait,
+        health: health,
+        hobbies: hobbies,
+        phobia: phobia,
+        inventory: inventory,
+        backpack: backpack,
+        addInfo: addInfo,
+        spec1: spec1,
+        spec2: spec2,
+        profession: profession,
+        isMVPRefresh: isMVPRefresh
+      }
+    }
+    else {
+      result[playerId] = {
+        
+        sex: {text: sex, isOpen: sexIsOpen},
+        body: body,
+        trait: trait,
+        health: health,
+        hobbies: hobbies,
+        phobia: phobia,
+        inventory: inventory,
+        backpack: backpack,
+        addInfo: addInfo,
+        profession: profession,
+        isMVPRefresh: isMVPRefresh
+      }
+    }
+    // console.log('CreateDataPlayer', result)
+    return result
+  }
+  
+  getAgeText(age) {
+    let txt;
+    let count = age % 100;
+    if (count>=5 && count<=20) {
+      txt = 'лет';
+    }
+    else {
+      count = count % 10;
+      if (count===1) {
+        txt = 'год';
+      }
+      else if (count>=2 && count<=4) {
+        txt = 'года';
+      }
+      else {
         txt = 'лет';
       }
-      else {
-        count = count % 10;
-        if (count===1) {
-          txt = 'год';
-        }
-        else if (count>=2 && count<=4) {
-          txt = 'года';
-        }
-        else {
-          txt = 'лет';
+    }
+    return txt;
+  }
+  
+  getRandomDataBunker(name) {
+    let result = null
+    
+    let whileCount = 0
+    while (!result) {
+      if (whileCount>10) {
+        throw ('Loop error')
+      }
+      this.getRandomPack(false, name)
+      // console.log(this.usedPack)
+      let nameArray = this.usedPack.chartBunkerData.filter(item => item.name===name)
+      
+      if (nameArray.length) {
+        let index = this.getRandomInt(0, nameArray.length - 1)
+        result = nameArray[index]
+        delete result.name
+        
+        index = this.usedPack.chartBunkerData.indexOf(nameArray[index])
+        this.usedPack.chartBunkerData.splice(index, 1)
+      }
+      if (name==='bunkerCreated') {
+        let age = this.getRandomInt(1, 50)
+        let bunkerAge = `${age} ${this.getAgeText(age)}`
+        result.text = result.text.replace('[year]', bunkerAge)
+        result.bunkerAge = bunkerAge
+      }
+      
+      whileCount += 1
+    }
+    return result
+  }
+  
+  getRandomData(name, isUsedSystemAdvancePack, age = 0, player) {
+    let result = {}
+    let countWhile = 0
+    age = +age
+    
+    if (name==='spec1' || name==='spec2') {
+      name = 'card'
+    }
+    // console.log('00000000000000000')
+    while (!result.text) {
+      if (countWhile>10) {
+        throw ('Loop throw')
+      }
+      this.getRandomPack(isUsedSystemAdvancePack, name)
+      // console.log('111111111111111111')
+      let playerData = null
+      if (player) {
+        playerData = JSON.parse(player[name])
+      }
+      if (name==='profession') {
+        let nameArray = this.usedPack.professionData.filter(item => {
+          let resAge = +item.minAmateurAge || +this.systemSettings.minAmateurAge
+          return resAge<= +age
+        })
+        if (nameArray.length) {
+          let index = this.getRandomInt(0, nameArray.length - 1)
+          result = nameArray[index]
+          if (playerData) {
+            result.isOpen = playerData.isOpen
+          }
+          else {
+            result.isOpen = false
+          }
+          result.text = result.name
+          delete result.name
+          index = this.usedPack.professionData.indexOf(nameArray[index])
+          this.usedPack.professionData.splice(index, 1)
         }
       }
-      return txt;
-    }
-    
-    getRandomDataBunker(name)
-    {
-      let result = null
-      
-      let whileCount = 0
-      while (!result) {
-        if (whileCount>10) {
-          throw ('Loop error')
-        }
-        this.getRandomPack(false, name)
-        // console.log(this.usedPack)
-        let nameArray = this.usedPack.chartBunkerData.filter(item => item.name===name)
-        
+      else {
+        let nameArray = this.usedPack.chartPlayerData.filter(item => item.name===name)
         if (nameArray.length) {
           let index = this.getRandomInt(0, nameArray.length - 1)
           result = nameArray[index]
           delete result.name
-          
-          index = this.usedPack.chartBunkerData.indexOf(nameArray[index])
-          this.usedPack.chartBunkerData.splice(index, 1)
-        }
-        if (name==='bunkerCreated') {
-          let age = this.getRandomInt(1, 50)
-          let bunkerAge = `${age} ${this.getAgeText(age)}`
-          result.text = result.text.replace('[year]', bunkerAge)
-          result.bunkerAge = bunkerAge
-        }
-        
-        whileCount += 1
-      }
-      return result
-    }
-    
-    getRandomData(name, isUsedSystemAdvancePack, age = 0, player)
-    {
-      let result = {}
-      let countWhile = 0
-      age = +age
-      
-      if (name==='spec1' || name==='spec2') {
-        name = 'card'
-      }
-      // console.log('00000000000000000')
-      while (!result.text) {
-        if (countWhile>10) {
-          throw ('Loop throw')
-        }
-        this.getRandomPack(isUsedSystemAdvancePack, name)
-        // console.log('111111111111111111')
-        let playerData = null
-        if (player) {
-          playerData = JSON.parse(player[name])
-        }
-        if (name==='profession') {
-          let nameArray = this.usedPack.professionData.filter(item => {
-            let resAge = +item.minAmateurAge || +this.systemSettings.minAmateurAge
-            return resAge<= +age
-          })
-          if (nameArray.length) {
-            let index = this.getRandomInt(0, nameArray.length - 1)
-            result = nameArray[index]
-            if (playerData) {
-              result.isOpen = playerData.isOpen
-            }
-            else {
-              result.isOpen = false
-            }
-            result.text = result.name
-            delete result.name
-            index = this.usedPack.professionData.indexOf(nameArray[index])
-            this.usedPack.professionData.splice(index, 1)
-          }
-        }
-        else {
-          let nameArray = this.usedPack.chartPlayerData.filter(item => item.name===name)
-          if (nameArray.length) {
-            let index = this.getRandomInt(0, nameArray.length - 1)
-            result = nameArray[index]
-            delete result.name
-            if (playerData) {
-              result.isOpen = playerData.isOpen
-            }
-            else {
-              result.isOpen = false
-            }
-            //  console.log(result)
-            if (name!=='health') {
-              delete result.dontAddLevelInfo
-            }
-            index = this.usedPack.chartPlayerData.indexOf(nameArray[index])
-            this.usedPack.chartPlayerData.splice(index, 1)
-          }
-        }
-        countWhile += 1
-      }
-      
-      switch(name) {
-        case 'body':
-          result.text += ` (Рост: ${this.getRandomInt(this.systemSettings.minHeight,
-            this.systemSettings.maxHeight)} см.)`
-          break;
-        case 'health':
-          //  console.log(result.text, result.dontAddLevelInfo)
-          if (result.text!=='Идеально здоров' && result.dontAddLevelInfo===0) {
-            
-            
-            const diseaseLevels = ['Легкая степень', 'Средняя степень', 'Тяжелая степень', 'Критическая степень']
-            result.text += ` (${diseaseLevels[this.getRandomInt(0, diseaseLevels.length - 1)]})`
-          }
-          delete result.dontAddLevelInfo
-          break;
-        case 'hobbies':
-          const hobbyLevels = ['Дилетант', 'Новичок', 'Любитель', 'Продвинутый', 'Мастер (гуру)']
-          result.text += ` (${hobbyLevels[this.getRandomInt(0, hobbyLevels.length - 1)]})`
-          break;
-        case 'profession':
-          const professionLevels = this.professionExp(result, age)
-          result.text += ` (${professionLevels[this.getRandomInt(0, professionLevels.length - 1)]})`
-          delete result.minAmateurAge
-          delete result.minInternAge
-          delete result.minMiddleAge
-          delete result.minExperiencedAge
-          delete result.minExpertAge
-          
-          
-          break;
-      }
-      
-      return result
-    }
-    
-    professionExp(result, age)
-    {
-      // let minAmateurAge = result.minAmateurAge || systemData.minAmateurAge
-      let minInternAge = result.minInternAge || this.systemSettings.minInternAge
-      let minMiddleAge = result.minMiddleAge || this.systemSettings.minMiddleAge
-      let minExperiencedAge = result.minExperiencedAge || this.systemSettings.minExperiencedAge
-      let minExpertAge = result.minExpertAge || this.systemSettings.minExpertAge
-      let minProAge = result.minProAge || this.systemSettings.minProAge
-      let professionLevels = ['Дилетант']
-      if (age>minInternAge) {
-        professionLevels = ['Дилетант', 'Стажер']
-        if (age>minMiddleAge) {
-          professionLevels = ['Дилетант', 'Стажер', 'Любитель']
-          if (age>minExperiencedAge) {
-            professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный']
-            if (age>minExpertAge) {
-              professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт']
-              if (age>minProAge) {
-                professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт', 'Профессионал']
-              }
-            }
-          }
-        }
-      }
-      
-      return professionLevels
-    }
-    
-    
-    getRandomPack(isUsedSystemAdvancePack = false, name)
-    {
-      let packs = []
-      let usedPacks = []
-      
-      // {chartPlayerData[{id,name,text},{id,name,text},{id,name,text},.....],chartBunkerData:[{id,name,text},{id,name,text},....],profession[{id,description,text,...},......]}
-      
-      if (isUsedSystemAdvancePack && this.systemAdvancePack) {
-        //  console.log('SYSTEMADVANCEPACK')
-        usedPacks.push({status: 'advanceSystem', body: this.systemAdvancePack})
-      }
-      if (this.basePack) {
-        if ((typeof this.basePack)==='object' && !objIsEmpty(this.basePack)) {
-          // console.log('BASEPACK')
-          usedPacks.push({status: 'base', body: this.basePack})
-        }
-      }
-      if (this.advancePack) {
-        if ((typeof this.advancePack)==='object' && !objIsEmpty(this.advancePack)) {
-          // console.log('ADVANCEPACK')
-          usedPacks.push({status: 'advance', body: this.advancePack})
-        }
-      }
-      
-      //  console.log('USED PACKS', usedPacks)
-      for (let pack of usedPacks) {
-        if (!objIsEmpty(pack.body)) {
-          //  console.log('/////////////////////////////////')
-          //  console.log(name==='profession' && !!pack.body.professionData)
-          //  console.log((name.includes('bunker') || name.includes('catastrophe')) &&
-          //    !!pack.body.chartBunkerData &&
-          //    !!pack.body.chartBunkerData.find(item => item.name===name))
-          //  console.log(pack.body.chartPlayerData)
-          if (name==='profession' && !!pack.body.professionData) {
-            packs.push(pack)
-            //  console.log('STATUS', pack.status)
-          }
-          else if ((name.includes('bunker') || name.includes('catastrophe')) &&
-            !!pack.body.chartBunkerData &&
-            !!pack.body.chartBunkerData.find(item => item.name===name)) {
-            packs.push(pack)
-            //    console.log('STATUS2', pack.status)
-          }
-          else if (!!pack.body.chartPlayerData && !!pack.body.chartPlayerData.find(item => item.name===name)) {
-            packs.push(pack)
-            // console.log('STATUS3', pack.status)
-          }
-        }
-      }
-      
-      if (packs.length>0) {
-        //  console.log('PACKSSSSSSSS', packs.length)
-        let advancePacks = packs.filter(pack => pack.status.includes('advance'))
-        let basePacks = packs.filter(pack => pack.status==='base')
-        if (advancePacks.length>0 && basePacks.length>0) {
-          if (this.getRandomInt(0, advancePacks.length - 1)<=100 - this.systemSettings.priorityPackPercentage) {
-            this.usedPack = this.basePack
-            return
+          if (playerData) {
+            result.isOpen = playerData.isOpen
           }
           else {
-            if (advancePacks.length===1) {
-              if (advancePacks[0].status==='advanceSystem') {
-                this.usedPack = this.systemAdvancePack
-                return
-              }
-              else {
-                this.usedPack = this.advancePack
-                return
-              }
-            }
-            let advancePack = advancePacks[this.getRandomInt(0, advancePacks.length - 1)].body
-            if (advancePack.status==='advanceSystem') {
-              this.usedPack = this.systemAdvancePack
-              return
-            }
-            else {
-              this.usedPack = this.advancePack
-              return
+            result.isOpen = false
+          }
+          //  console.log(result)
+          if (name!=='health') {
+            delete result.dontAddLevelInfo
+          }
+          index = this.usedPack.chartPlayerData.indexOf(nameArray[index])
+          this.usedPack.chartPlayerData.splice(index, 1)
+        }
+      }
+      countWhile += 1
+    }
+    
+    switch(name) {
+      case 'body':
+        result.text += ` (Рост: ${this.getRandomInt(this.systemSettings.minHeight,
+          this.systemSettings.maxHeight)} см.)`
+        break;
+      case 'health':
+        //  console.log(result.text, result.dontAddLevelInfo)
+        if (result.text!=='Идеально здоров' && result.dontAddLevelInfo===0) {
+          
+          
+          const diseaseLevels = ['Легкая степень', 'Средняя степень', 'Тяжелая степень', 'Критическая степень']
+          result.text += ` (${diseaseLevels[this.getRandomInt(0, diseaseLevels.length - 1)]})`
+        }
+        delete result.dontAddLevelInfo
+        break;
+      case 'hobbies':
+        const hobbyLevels = ['Дилетант', 'Новичок', 'Любитель', 'Продвинутый', 'Мастер (гуру)']
+        result.text += ` (${hobbyLevels[this.getRandomInt(0, hobbyLevels.length - 1)]})`
+        break;
+      case 'profession':
+        const professionLevels = this.professionExp(result, age)
+        result.text += ` (${professionLevels[this.getRandomInt(0, professionLevels.length - 1)]})`
+        delete result.minAmateurAge
+        delete result.minInternAge
+        delete result.minMiddleAge
+        delete result.minExperiencedAge
+        delete result.minExpertAge
+        
+        
+        break;
+    }
+    
+    return result
+  }
+  
+  professionExp(result, age) {
+    // let minAmateurAge = result.minAmateurAge || systemData.minAmateurAge
+    let minInternAge = result.minInternAge || this.systemSettings.minInternAge
+    let minMiddleAge = result.minMiddleAge || this.systemSettings.minMiddleAge
+    let minExperiencedAge = result.minExperiencedAge || this.systemSettings.minExperiencedAge
+    let minExpertAge = result.minExpertAge || this.systemSettings.minExpertAge
+    let minProAge = result.minProAge || this.systemSettings.minProAge
+    let professionLevels = ['Дилетант']
+    if (age>minInternAge) {
+      professionLevels = ['Дилетант', 'Стажер']
+      if (age>minMiddleAge) {
+        professionLevels = ['Дилетант', 'Стажер', 'Любитель']
+        if (age>minExperiencedAge) {
+          professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный']
+          if (age>minExpertAge) {
+            professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт']
+            if (age>minProAge) {
+              professionLevels = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт', 'Профессионал']
             }
           }
         }
-        else if (advancePacks.length>0) {
-          //  console.log('PACKSSSSSSSS2', advancePacks.length)
+      }
+    }
+    
+    return professionLevels
+  }
+  
+  
+  getRandomPack(isUsedSystemAdvancePack = false, name) {
+    let packs = []
+    let usedPacks = []
+    
+    // {chartPlayerData[{id,name,text},{id,name,text},{id,name,text},.....],chartBunkerData:[{id,name,text},{id,name,text},....],profession[{id,description,text,...},......]}
+    
+    if (isUsedSystemAdvancePack && this.systemAdvancePack) {
+      //  console.log('SYSTEMADVANCEPACK')
+      usedPacks.push({status: 'advanceSystem', body: this.systemAdvancePack})
+    }
+    if (this.basePack) {
+      if ((typeof this.basePack)==='object' && !objIsEmpty(this.basePack)) {
+        // console.log('BASEPACK')
+        usedPacks.push({status: 'base', body: this.basePack})
+      }
+    }
+    if (this.advancePack) {
+      if ((typeof this.advancePack)==='object' && !objIsEmpty(this.advancePack)) {
+        // console.log('ADVANCEPACK')
+        usedPacks.push({status: 'advance', body: this.advancePack})
+      }
+    }
+    
+    //  console.log('USED PACKS', usedPacks)
+    for (let pack of usedPacks) {
+      if (!objIsEmpty(pack.body)) {
+        //  console.log('/////////////////////////////////')
+        //  console.log(name==='profession' && !!pack.body.professionData)
+        //  console.log((name.includes('bunker') || name.includes('catastrophe')) &&
+        //    !!pack.body.chartBunkerData &&
+        //    !!pack.body.chartBunkerData.find(item => item.name===name))
+        //  console.log(pack.body.chartPlayerData)
+        if (name==='profession' && !!pack.body.professionData) {
+          packs.push(pack)
+          //  console.log('STATUS', pack.status)
+        }
+        else if ((name.includes('bunker') || name.includes('catastrophe')) &&
+          !!pack.body.chartBunkerData &&
+          !!pack.body.chartBunkerData.find(item => item.name===name)) {
+          packs.push(pack)
+          //    console.log('STATUS2', pack.status)
+        }
+        else if (!!pack.body.chartPlayerData && !!pack.body.chartPlayerData.find(item => item.name===name)) {
+          packs.push(pack)
+          // console.log('STATUS3', pack.status)
+        }
+      }
+    }
+    
+    if (packs.length>0) {
+      //  console.log('PACKSSSSSSSS', packs.length)
+      let advancePacks = packs.filter(pack => pack.status.includes('advance'))
+      let basePacks = packs.filter(pack => pack.status==='base')
+      if (advancePacks.length>0 && basePacks.length>0) {
+        if (this.getRandomInt(0, advancePacks.length - 1)<=100 - this.systemSettings.priorityPackPercentage) {
+          this.usedPack = this.basePack
+          return
+        }
+        else {
           if (advancePacks.length===1) {
             if (advancePacks[0].status==='advanceSystem') {
               this.usedPack = this.systemAdvancePack
@@ -1544,439 +1542,450 @@ class playerDataService {
             return
           }
         }
+      }
+      else if (advancePacks.length>0) {
+        //  console.log('PACKSSSSSSSS2', advancePacks.length)
+        if (advancePacks.length===1) {
+          if (advancePacks[0].status==='advanceSystem') {
+            this.usedPack = this.systemAdvancePack
+            return
+          }
+          else {
+            this.usedPack = this.advancePack
+            return
+          }
+        }
+        let advancePack = advancePacks[this.getRandomInt(0, advancePacks.length - 1)].body
+        if (advancePack.status==='advanceSystem') {
+          this.usedPack = this.systemAdvancePack
+          return
+        }
         else {
-          this.usedPack = this.basePack
+          this.usedPack = this.advancePack
           return
         }
       }
-      //  console.log('isUsedBasePackssssssssssssssssssssssssssssssssss')
-      this.usedPack = this.systemBasePack
-    }
-    
-    async dataForBunker(hostPack, systemData)
-    {
-      let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
-      let dataBunker = {}
-      
-      
-      let hostBaseDataPacksBunker = await this.getDataPackData(baseIdPack, 'bunker')
-      let hostAdvanceDataPacksBunker = await this.getDataPackData(advanceIdPack, 'bunker')
-      
-      return {hostBaseDataPacksBunker, hostAdvanceDataPacksBunker}
-      
-    }
-    
-    async collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName = null)
-    {
-      let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
-      let useChartId = []
-      if (chartName===null) {
-        for (let key in gameRoom) {
-          if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
-            
-            useChartId.push(gameRoom[key])
-            
-            
-          }
-        }
-      }
-      else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
-        useChartId.push(gameRoom.bunkerItems1)
-        useChartId.push(gameRoom.bunkerItems2)
-        useChartId.push(gameRoom.bunkerItems3)
-        
-      }
       else {
-        if (gameRoom[chartName]) {
-          useChartId.push(gameRoom[chartName])
-        }
+        this.usedPack = this.basePack
+        return
       }
-      if (chartName!=='bunkerSize') {
-        if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-          // console.log(this.systemSettings.basePack)
-          this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
-          //  console.log('Сделали системный пак')
-        }
-        
-        if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
-          this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
-            true)
-        }
-        // console.log(baseIdPack, advanceIdPack)
-        this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
-        this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
-      }
-      
-      
     }
+    //  console.log('isUsedBasePackssssssssssssssssssssssssssssssssss')
+    this.usedPack = this.systemBasePack
+  }
+  
+  async dataForBunker(hostPack, systemData) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
+    let dataBunker = {}
     
-    async collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName)
-    {
-      let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
-      let players = await UserModel.RoomSession.findAll(
-        {attributes: [`${chartName}`], where: {gameRoomId: gameRoomId, isPlayer: 1}})
-      let useChartId = []
-      for (let player of players) {
-        let data = JSON.parse(player[chartName])
-        if (data.id && data.id!==0) {
-          useChartId.push(data.id)
+    
+    let hostBaseDataPacksBunker = await this.getDataPackData(baseIdPack, 'bunker')
+    let hostAdvanceDataPacksBunker = await this.getDataPackData(advanceIdPack, 'bunker')
+    
+    return {hostBaseDataPacksBunker, hostAdvanceDataPacksBunker}
+    
+  }
+  
+  async collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName = null) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
+    let useChartId = []
+    if (chartName===null) {
+      for (let key in gameRoom) {
+        if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
+          
+          useChartId.push(gameRoom[key])
+          
           
         }
       }
+    }
+    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
+      useChartId.push(gameRoom.bunkerItems1)
+      useChartId.push(gameRoom.bunkerItems2)
+      useChartId.push(gameRoom.bunkerItems3)
+      
+    }
+    else {
+      if (gameRoom[chartName]) {
+        useChartId.push(gameRoom[chartName])
+      }
+    }
+    if (chartName!=='bunkerSize') {
       if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-        //   console.log(this.systemSettings.basePack)
-        this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName)
+        // console.log(this.systemSettings.basePack)
+        this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
         //  console.log('Сделали системный пак')
       }
       
       if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
-        this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName)
+        this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
+          true)
       }
-      //console.log(baseIdPack, advanceIdPack)
-      this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName)
-      this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
-      
-      
-    }
-    
-    async  collectAndSetDataForPlayer(hostPack, players, isChange = false)
-    {
-      let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
-      // console.log('//////////////////')
-      //console.log(baseIdPack, advanceIdPack)
-      // console.log('//////////////////')
-      
-      // console.log('!baseIdPack.includes(this.systemSettings.basePack)',
-      //    !baseIdPack.includes(this.systemSettings.basePack))
-      // this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
-      // console.log('collectAndSetDataForPlayer', baseIdPack.includes(+this.systemSettings.basePack))
-      if (!baseIdPack.includes(+this.systemSettings.basePack)) {
-        if (!isChange) {
-          this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
-        }
-        else {
-          this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'playerData')
-        } //  console.log('Сделали системный пак')
-      }
-      let usePriorityAccess = false
-      
-      if (!advanceIdPack.includes(this.systemSettings.advancePack)) {
-        for (let player of players) {
-          // console.log('playr.id', player.userId)
-          if (player.userId>0) {
-            let user = await UserModel.User.findOne({where: {id: player.userId}})
-            //  console.log('/////////////////////////////////////////////////', user.isUsedSystemAdvancePack)
-            if (user.isUsedSystemAdvancePack) {
-              usePriorityAccess = true
-              break;
-            }
-          }
-        }
-      }
-      if (!isChange) {
-        this.basePack = await this.getDataPackData(baseIdPack, 'all')
-        this.advancePack = await this.getDataPackData(advanceIdPack, 'all')
-        // console.log('usePriorityAccess', usePriorityAccess)
-        if (usePriorityAccess) {
-          this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'all')
-        }
-      }
-      else {
-        this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
-        this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
-        // console.log('usePriorityAccess', usePriorityAccess)
-        if (usePriorityAccess) {
-          this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'playerData')
-        }
-      }
-    }
-    
-    async howThisPack(hostPack)
-    {
-      let baseIdPack = []
-      let advanceIdPack = []
-      for (let pack of hostPack) {
-        let thisPack = await UserModel.ChartPack.findOne({where: {id: pack}})
-        if (thisPack.status===0) {
-          baseIdPack.push(pack)
-        }
-        else {
-          advanceIdPack.push(pack)
-        }
-      }
-      return {baseIdPack, advanceIdPack}
-      
-    }
-    
-    async hostUsePack(hostId)
-    {
-      const dataPack = []
-      
-      
-      if (hostId>0) {
-        const user = await UserModel.User.findOne({where: {id: hostId}})
-        if (user.isUsedSystemBasePack) {
-          dataPack.push(this.systemSettings.basePack)
-        }
-        
-        if (user.isUsedSystemAdvancePack) {
-          dataPack.push(this.systemSettings.advancePack)
-        }
-        const packs = await UserModel.UserUsePack.findAll({where: {userId: hostId}})
-        if (packs) {
-          
-          
-          for (let pack of packs) {
-            if (this.systemSettings.basePack!==pack.chartPackId && this.systemSettings.advancePack!==pack.chartPackId) {
-              let checkPack = await UserModel.ChartPack.findOne({where: {id: pack.chartPackId}})
-              if (!checkPack.isHidden) {
-                dataPack.push(pack.chartPackId)
-              }
-            }
-          }
-        }
-        return dataPack
-      }
-      
-      dataPack.push(this.systemSettings.basePack)
-      return dataPack
-    }
-    
-    async playerUsePack(hostPack, playerId, gameRoomId)
-    {
-      
-      let player = await UserModel.RoomSession.findOne({where: {userId: playerId, gameRoomId: gameRoomId}})
-      if (playerId<0) {
-        player.usePack = JSON.stringify(hostPack)
-        await player.save()
-        return hostPack
-      }
-      
-      const user = await UserModel.User.findOne({where: {id: playerId}})
-      if (!user.isUsedSystemAdvancePack) {
-        player.usePack = JSON.stringify(hostPack)
-        await player.save()
-        return hostPack
-      }
-      if (!hostPack.includes(this.systemSettings.advancePack)) {
-        hostPack.push(this.systemSettings.advancePack)
-      }
-      
-      player.usePack = JSON.stringify(hostPack)
-      await player.save()
-      return hostPack
-    }
-    
-    async getDataPackRefresh(dataPackId, useChartId, chartName, isBunkerData = false)
-    {
-      //  console.log(useChartId)
-      //  console.log(dataPackId)
-      if (chartName==='profession' && !isBunkerData) {
-        let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
-          {attributes: ['professionId'], where: {chartPackId: dataPackId}})
-        let dataProfessionIdPlayerData = []
-        for (let chartId of professionIdPlayerData) {
-          if (!useChartId.includes(chartId.professionId)) {
-            dataProfessionIdPlayerData.push(chartId.professionId)
-          }
-        }
-        let dataProfessionChartData = await UserModel.Profession.findAll({
-          attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-          where: {id: dataProfessionIdPlayerData}, raw: true
-        })
-        
-        
-        return {professionData: dataProfessionChartData}
-        
-      }
-      else if (!isBunkerData) {
-        let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
-          {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
-        
-        
-        let dataChartPlayerIdPlayerData = []
-        for (let chartId of chartPlayerIdPlayerData) {
-          if (!useChartId.includes(chartId.chartPlayerId)) {
-            dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
-          }
-        }
-        
-        let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
-          {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
-        
-        return {chartPlayerData: dataPlayerChartData}
-      }
-      else {
-        let bunkerChart = await UserModel.BunkerChartPack.findAll(
-          {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
-        let dataBunker = []
-        for (let chartId of bunkerChart) {
-          if (!useChartId.includes(chartId.chartBunkerId)) {
-            dataBunker.push(chartId.chartBunkerId)
-          }
-        }
-        let dataBunkerChart = await UserModel.ChartBunker.findAll(
-          {attributes: ['id', 'name', 'text'], where: {id: dataBunker}, raw: true})
-        return {chartBunkerData: dataBunkerChart}
-      }
-      
-    }
-    
-    async getDataPackData(dataPackId, track = null)
-    {
-
-//  let chartPlayerId = await UserModel.PlayerChartPack.findAll({where: {chartPackId:{[Op.or]: dataPackId, }}})
-      //  console.log('TRACK', track)
-      switch(track) {
-        case 'player':
-          let playersChart = await UserModel.PlayerChartPack.findAll(
-            {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
-          let dataPlayer = []
-          for (let chartId of playersChart) {
-            
-            dataPlayer.push(chartId.chartPlayerId)
-          }
-          let dataPlayerChart = await UserModel.ChartPlayer.findAll(
-            {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataPlayer}, raw: true})
-          //  console.log(dataPlayer)
-          return dataPlayerChart
-        case 'bunker':
-          let bunkerChart = await UserModel.BunkerChartPack.findAll(
-            {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
-          let dataBunker = []
-          for (let chartId of bunkerChart) {
-            
-            dataBunker.push(chartId.chartBunkerId)
-          }
-          let dataBunkerChart = await UserModel.ChartBunker.findAll(
-            {attributes: ['id', 'name', 'text'], where: {id: dataBunker}, raw: true})
-          return dataBunkerChart
-        case 'profession':
-          let professionChart = await UserModel.ProfessionChartPack.findAll(
-            {attributes: ['professionId'], where: {chartPackId: dataPackId}})
-          let dataProfession = []
-          for (let chartId of professionChart) {
-            
-            dataProfession.push(chartId.professionId)
-          }
-          let dataProfessionChart = await UserModel.Profession.findAll({
-            attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-            where: {id: dataProfession},
-            raw: true
-          })
-          return dataProfessionChart
-        case 'playerData' :
-          //console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
-          let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
-            {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
-          let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
-            {attributes: ['professionId'], where: {chartPackId: dataPackId}})
-          let dataProfessionIdPlayerData = []
-          let dataChartPlayerIdPlayerData = []
-          for (let chartId of chartPlayerIdPlayerData) {
-            
-            dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
-          }
-          for (let chartId of professionIdPlayerData) {
-            
-            dataProfessionIdPlayerData.push(chartId.professionId)
-          }
-          let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
-            {
-              attributes: ['id', 'name', 'text', 'dontAddLevelInfo'],
-              where: {id: dataChartPlayerIdPlayerData},
-              raw: true
-            })
-          let dataProfessionChartData = await UserModel.Profession.findAll({
-            attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-            where: {id: dataProfessionIdPlayerData}, raw: true
-          })
-          return {chartPlayerData: dataPlayerChartData, professionData: dataProfessionChartData}
-        case 'all' || null:
-          //   console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
-          let chartPlayerId = await UserModel.PlayerChartPack.findAll(
-            {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
-          let chartBunkerId = await UserModel.BunkerChartPack.findAll(
-            {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
-          //  console.log('chartBunkerIds', chartBunkerId)
-          let professionId = await UserModel.ProfessionChartPack.findAll(
-            {attributes: ['professionId'], where: {chartPackId: dataPackId}})
-          let dataChartPlayerId = []
-          for (let chartId of chartPlayerId) {
-            
-            dataChartPlayerId.push(chartId.chartPlayerId)
-          }
-          for (let chartId of chartBunkerId) {
-            
-            dataChartPlayerId.push(chartId.chartBunkerId)
-          }
-          let dataChartBunkerId = []
-          for (let chartId of chartBunkerId) {
-            
-            dataChartBunkerId.push(chartId.chartBunkerId)
-          }
-          let dataProfessionId = []
-          for (let chartId of professionId) {
-            
-            dataProfessionId.push(chartId.professionId)
-          }
-          let chartPlayerData = await UserModel.ChartPlayer.findAll(
-            {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataChartPlayerId}, raw: true})
-          let professionData = await UserModel.Profession.findAll({
-            attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
-            where: {id: dataProfessionId}, raw: true
-          })
-          let chartBunkerData = await UserModel.ChartBunker.findAll(
-            {attributes: ['id', 'name', 'text'], where: {id: dataChartBunkerId}, raw: true})
-          let result = {}
-          if (!objIsEmpty(chartBunkerData)) {
-            result.chartBunkerData = chartBunkerData
-          }
-          if (!objIsEmpty(professionData)) {
-            result.professionData = professionData
-          }
-          if (!objIsEmpty(chartPlayerData)) {
-            result.chartPlayerData = chartPlayerData
-          }
-          if (objIsEmpty(result)) {
-            return null
-          }
-          return result
-      }
-      
-    }
-    
-    async setStatisticGame(idRoom)
-    {
-      let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
-      if (diffMinute>20) {
-        let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-        for (let player of players) {
-          if (player.userId>0) {
-            let user = await UserModel.User.findOne({where: {id: player.userId}})
-            user.numGame++
-            if (player.isAlive) {
-              user.numWinGame++
-            }
-            await user.save()
-          }
-        }
-        
-      }
-    }
-    
-    getRandomInt(min, max)
-    {
-      max += 1
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min) + min); // Максимум не включается, минимум включается
+      // console.log(baseIdPack, advanceIdPack)
+      this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
+      this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
     }
     
     
   }
   
-  module
-.
-  exports = new playerDataService()
+  async collectAndSetDataForPlayerRefresh(usePack, gameRoomId, chartName) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
+    let players = await UserModel.RoomSession.findAll(
+      {attributes: [`${chartName}`], where: {gameRoomId: gameRoomId, isPlayer: 1}})
+    let useChartId = []
+    for (let player of players) {
+      let data = JSON.parse(player[chartName])
+      if (data.id && data.id!==0) {
+        useChartId.push(data.id)
+        
+      }
+    }
+    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+      //   console.log(this.systemSettings.basePack)
+      this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName)
+      //  console.log('Сделали системный пак')
+    }
+    
+    if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
+      this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName)
+    }
+    //console.log(baseIdPack, advanceIdPack)
+    this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName)
+    this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
+    
+    
+  }
+  
+  async collectAndSetDataForPlayer(hostPack, players, isChange = false) {
+    let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
+    // console.log('//////////////////')
+    //console.log(baseIdPack, advanceIdPack)
+    // console.log('//////////////////')
+    
+    // console.log('!baseIdPack.includes(this.systemSettings.basePack)',
+    //    !baseIdPack.includes(this.systemSettings.basePack))
+    // this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
+    // console.log('collectAndSetDataForPlayer', baseIdPack.includes(+this.systemSettings.basePack))
+    if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+      if (!isChange) {
+        this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'all')
+      }
+      else {
+        this.systemBasePack = await this.getDataPackData(this.systemSettings.basePack, 'playerData')
+      } //  console.log('Сделали системный пак')
+    }
+    let usePriorityAccess = false
+    
+    if (!advanceIdPack.includes(this.systemSettings.advancePack)) {
+      for (let player of players) {
+        // console.log('playr.id', player.userId)
+        if (player.userId>0) {
+          let user = await UserModel.User.findOne({where: {id: player.userId}})
+          //  console.log('/////////////////////////////////////////////////', user.isUsedSystemAdvancePack)
+          if (user.isUsedSystemAdvancePack) {
+            usePriorityAccess = true
+            break;
+          }
+        }
+      }
+    }
+    if (!isChange) {
+      this.basePack = await this.getDataPackData(baseIdPack, 'all')
+      this.advancePack = await this.getDataPackData(advanceIdPack, 'all')
+      // console.log('usePriorityAccess', usePriorityAccess)
+      if (usePriorityAccess) {
+        this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'all')
+      }
+    }
+    else {
+      this.basePack = await this.getDataPackData(baseIdPack, 'playerData')
+      this.advancePack = await this.getDataPackData(advanceIdPack, 'playerData')
+      // console.log('usePriorityAccess', usePriorityAccess)
+      if (usePriorityAccess) {
+        this.systemAdvancePack = await this.getDataPackData(this.systemSettings.advancePack, 'playerData')
+      }
+    }
+  }
+  
+  async howThisPack(hostPack) {
+    let baseIdPack = []
+    let advanceIdPack = []
+    for (let pack of hostPack) {
+      let thisPack = await UserModel.ChartPack.findOne({where: {id: pack}})
+      if (thisPack.status===0) {
+        baseIdPack.push(pack)
+      }
+      else {
+        advanceIdPack.push(pack)
+      }
+    }
+    return {baseIdPack, advanceIdPack}
+    
+  }
+  
+  async hostUsePack(hostId) {
+    const dataPack = []
+    
+    
+    if (hostId>0) {
+      const user = await UserModel.User.findOne({where: {id: hostId}})
+      if (user.isUsedSystemBasePack) {
+        dataPack.push(this.systemSettings.basePack)
+      }
+      
+      if (user.isUsedSystemAdvancePack) {
+        dataPack.push(this.systemSettings.advancePack)
+      }
+      const packs = await UserModel.UserUsePack.findAll({where: {userId: hostId}})
+      if (packs) {
+        
+        
+        for (let pack of packs) {
+          if (this.systemSettings.basePack!==pack.chartPackId && this.systemSettings.advancePack!==pack.chartPackId) {
+            let checkPack = await UserModel.ChartPack.findOne({where: {id: pack.chartPackId}})
+            if (!checkPack.isHidden) {
+              dataPack.push(pack.chartPackId)
+            }
+          }
+        }
+      }
+      return dataPack
+    }
+    
+    dataPack.push(this.systemSettings.basePack)
+    return dataPack
+  }
+  
+  async playerUsePack(hostPack, playerId, gameRoomId) {
+    
+    let player = await UserModel.RoomSession.findOne({where: {userId: playerId, gameRoomId: gameRoomId}})
+    if (playerId<0) {
+      player.usePack = JSON.stringify(hostPack)
+      await player.save()
+      return hostPack
+    }
+    
+    const user = await UserModel.User.findOne({where: {id: playerId}})
+    if (!user.isUsedSystemAdvancePack) {
+      player.usePack = JSON.stringify(hostPack)
+      await player.save()
+      return hostPack
+    }
+    if (!hostPack.includes(this.systemSettings.advancePack)) {
+      hostPack.push(this.systemSettings.advancePack)
+    }
+    
+    player.usePack = JSON.stringify(hostPack)
+    await player.save()
+    return hostPack
+  }
+  
+  async getDataPackRefresh(dataPackId, useChartId, chartName, isBunkerData = false) {
+    //  console.log(useChartId)
+    //  console.log(dataPackId)
+    if (chartName==='profession' && !isBunkerData) {
+      let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
+        {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+      let dataProfessionIdPlayerData = []
+      for (let chartId of professionIdPlayerData) {
+        if (!useChartId.includes(chartId.professionId)) {
+          dataProfessionIdPlayerData.push(chartId.professionId)
+        }
+      }
+      let dataProfessionChartData = await UserModel.Profession.findAll({
+        attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+        where: {id: dataProfessionIdPlayerData}, raw: true
+      })
+      
+      
+      return {professionData: dataProfessionChartData}
+      
+    }
+    else if (!isBunkerData) {
+      let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
+        {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+      
+      
+      let dataChartPlayerIdPlayerData = []
+      for (let chartId of chartPlayerIdPlayerData) {
+        if (!useChartId.includes(chartId.chartPlayerId)) {
+          dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
+        }
+      }
+      
+      let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
+        {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataChartPlayerIdPlayerData}, raw: true})
+      
+      return {chartPlayerData: dataPlayerChartData}
+    }
+    else {
+      let bunkerChart = await UserModel.BunkerChartPack.findAll(
+        {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
+      let dataBunker = []
+      for (let chartId of bunkerChart) {
+        if (!useChartId.includes(chartId.chartBunkerId)) {
+          dataBunker.push(chartId.chartBunkerId)
+        }
+      }
+      let dataBunkerChart = await UserModel.ChartBunker.findAll(
+        {attributes: ['id', 'name', 'text'], where: {id: dataBunker}, raw: true})
+      return {chartBunkerData: dataBunkerChart}
+    }
+    
+  }
+  
+  async getDataPackData(dataPackId, track = null) {
+
+//  let chartPlayerId = await UserModel.PlayerChartPack.findAll({where: {chartPackId:{[Op.or]: dataPackId, }}})
+    //  console.log('TRACK', track)
+    switch(track) {
+      case 'player':
+        let playersChart = await UserModel.PlayerChartPack.findAll(
+          {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+        let dataPlayer = []
+        for (let chartId of playersChart) {
+          
+          dataPlayer.push(chartId.chartPlayerId)
+        }
+        let dataPlayerChart = await UserModel.ChartPlayer.findAll(
+          {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataPlayer}, raw: true})
+        //  console.log(dataPlayer)
+        return dataPlayerChart
+      case 'bunker':
+        let bunkerChart = await UserModel.BunkerChartPack.findAll(
+          {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
+        let dataBunker = []
+        for (let chartId of bunkerChart) {
+          
+          dataBunker.push(chartId.chartBunkerId)
+        }
+        let dataBunkerChart = await UserModel.ChartBunker.findAll(
+          {attributes: ['id', 'name', 'text'], where: {id: dataBunker}, raw: true})
+        return dataBunkerChart
+      case 'profession':
+        let professionChart = await UserModel.ProfessionChartPack.findAll(
+          {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+        let dataProfession = []
+        for (let chartId of professionChart) {
+          
+          dataProfession.push(chartId.professionId)
+        }
+        let dataProfessionChart = await UserModel.Profession.findAll({
+          attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+          where: {id: dataProfession},
+          raw: true
+        })
+        return dataProfessionChart
+      case 'playerData' :
+        //console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
+        let chartPlayerIdPlayerData = await UserModel.PlayerChartPack.findAll(
+          {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+        let professionIdPlayerData = await UserModel.ProfessionChartPack.findAll(
+          {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+        let dataProfessionIdPlayerData = []
+        let dataChartPlayerIdPlayerData = []
+        for (let chartId of chartPlayerIdPlayerData) {
+          
+          dataChartPlayerIdPlayerData.push(chartId.chartPlayerId)
+        }
+        for (let chartId of professionIdPlayerData) {
+          
+          dataProfessionIdPlayerData.push(chartId.professionId)
+        }
+        let dataPlayerChartData = await UserModel.ChartPlayer.findAll(
+          {
+            attributes: ['id', 'name', 'text', 'dontAddLevelInfo'],
+            where: {id: dataChartPlayerIdPlayerData},
+            raw: true
+          })
+        let dataProfessionChartData = await UserModel.Profession.findAll({
+          attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+          where: {id: dataProfessionIdPlayerData}, raw: true
+        })
+        return {chartPlayerData: dataPlayerChartData, professionData: dataProfessionChartData}
+      case 'all' || null:
+        //   console.log('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
+        let chartPlayerId = await UserModel.PlayerChartPack.findAll(
+          {attributes: ['chartPlayerId'], where: {chartPackId: dataPackId}})
+        let chartBunkerId = await UserModel.BunkerChartPack.findAll(
+          {attributes: ['chartBunkerId'], where: {chartPackId: dataPackId}})
+        //  console.log('chartBunkerIds', chartBunkerId)
+        let professionId = await UserModel.ProfessionChartPack.findAll(
+          {attributes: ['professionId'], where: {chartPackId: dataPackId}})
+        let dataChartPlayerId = []
+        for (let chartId of chartPlayerId) {
+          
+          dataChartPlayerId.push(chartId.chartPlayerId)
+        }
+        for (let chartId of chartBunkerId) {
+          
+          dataChartPlayerId.push(chartId.chartBunkerId)
+        }
+        let dataChartBunkerId = []
+        for (let chartId of chartBunkerId) {
+          
+          dataChartBunkerId.push(chartId.chartBunkerId)
+        }
+        let dataProfessionId = []
+        for (let chartId of professionId) {
+          
+          dataProfessionId.push(chartId.professionId)
+        }
+        let chartPlayerData = await UserModel.ChartPlayer.findAll(
+          {attributes: ['id', 'name', 'text', 'dontAddLevelInfo'], where: {id: dataChartPlayerId}, raw: true})
+        let professionData = await UserModel.Profession.findAll({
+          attributes: ['id', 'name', 'description', 'minAmateurAge', 'minInternAge', 'minMiddleAge', 'minExperiencedAge', 'minExpertAge'],
+          where: {id: dataProfessionId}, raw: true
+        })
+        let chartBunkerData = await UserModel.ChartBunker.findAll(
+          {attributes: ['id', 'name', 'text'], where: {id: dataChartBunkerId}, raw: true})
+        let result = {}
+        if (!objIsEmpty(chartBunkerData)) {
+          result.chartBunkerData = chartBunkerData
+        }
+        if (!objIsEmpty(professionData)) {
+          result.professionData = professionData
+        }
+        if (!objIsEmpty(chartPlayerData)) {
+          result.chartPlayerData = chartPlayerData
+        }
+        if (objIsEmpty(result)) {
+          return null
+        }
+        return result
+    }
+    
+  }
+  
+  async setStatisticGame(idRoom) {
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
+    if (diffMinute>20) {
+      let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+      for (let player of players) {
+        if (player.userId>0) {
+          let user = await UserModel.User.findOne({where: {id: player.userId}})
+          user.numGame++
+          if (player.isAlive) {
+            user.numWinGame++
+          }
+          await user.save()
+        }
+      }
+      
+    }
+  }
+  
+  getRandomInt(min, max) {
+    max += 1
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); // Максимум не включается, минимум включается
+  }
+  
+  
+}
+
+module
+  .exports = new playerDataService()

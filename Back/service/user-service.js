@@ -7,6 +7,7 @@ const tokenService = require('./token-service')
 const UserDto = require('../dtos/user-dto')
 const UserDtoDiscord = require('../dtos/user-dtoDiscord')
 const ApiError = require('../exceptions/api-error')
+const playerDataService = require('./playerData-service')
 const axios = require('axios')
 const fs = require('fs')
 require('dotenv').config()
@@ -749,6 +750,20 @@ class UserService {
     
     return dataRooms
     
+  }
+
+  async getHomeImageName(){
+    let image = await UserModel.CatastropheImage.findAll({where:{favourite:1},raw:true})
+    let index = playerDataService.getRandomInt(0,image.length-1)
+//     let system = await UserModel.SystemSettings.findAll()
+//     if(system.homeImageName!==null){
+//
+//     }
+    if(image[index].imageName){
+    return {imageName:image[index].imageName}
+}else{
+  return {iamgeName:null}
+}
   }
   
   async changePack(token, idPack, isUse) {

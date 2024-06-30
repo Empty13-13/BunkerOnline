@@ -267,6 +267,13 @@ function getRandomNumToDice() {
   diceNum.value = getRandomInt(1, 6)
 }
 
+const audioPlayer = ref()
+function toggleSoundHandler() {
+  selectedGameData.playedAudio = !selectedGameData.playedAudio
+  selectedGameData.showPlayVoiceButton = false
+  audioPlayer.value.play()
+}
+
 </script>
 
 <template>
@@ -340,19 +347,15 @@ function getRandomNumToDice() {
             <p v-if="selectedGameData.bunkerData.population" class="welcome__population">
               Остаток населения - {{ selectedGameData.bunkerData.population }} человек
             </p>
-            <button v-if="selectedGameData.showPlayVoiceButton" class="welcome__playVoice" type="button">
-              Озвучить текст
+            <button @click.prevent="toggleSoundHandler" v-if="selectedGameData.bunkerData.soundName && selectedGameData.showPlayVoiceButton" class="welcome__playVoice" type="button">
+              {{ selectedGameData.playedAudio?'Остановить':'Озвучить текст' }}
               <span>
-              <svg id="Layer_1" viewBox="0 0 512 512"
-                   xmlns="http://www.w3.org/2000/svg"
-                   data-name="Layer 1">
-                <path
-                    d="m256 0c141.385 0 256 114.587 256 256.035 0 141.376-114.615 255.965-256 255.965s-256-114.589-256-255.965c0-141.448 114.615-256.035 256-256.035zm83.227 246.105-111.79-64.541a11.426 11.426 0 0 0 -17.139 9.891v129.089a11.4 11.4 0 0 0 17.138 9.892l111.791-64.542a11.425 11.425 0 0 0 0-19.789zm-83.227 162.237c84 0 152.345-68.342 152.345-152.342s-68.345-152.343-152.345-152.343-152.342 68.343-152.342 152.343 68.342 152.342 152.342 152.342zm0-314.842c-89.6 0-162.5 72.9-162.5 162.5s72.9 162.5 162.5 162.5 162.5-72.9 162.5-162.5-72.895-162.5-162.5-162.5z"
-                    fill="#fffffff" fill-rule="evenodd" style="fill: rgb(255,255,255);">
-                </path>
-              </svg>
-            </span>
+                <img :src="'/img/icons/' + (selectedGameData.playedAudio?'stop.png':'play.png')" alt="">
+              </span>
             </button>
+            <audio v-show="!selectedGameData.showPlayVoiceButton" ref="audioPlayer"  controls>
+              <source :src="'/catastropheSounds/'+selectedGameData.bunkerData.soundName" type="audio/mp3" />
+            </audio>
           </div>
         </div>
       </div>

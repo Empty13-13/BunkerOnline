@@ -63,8 +63,8 @@ onBeforeMount(async () => {
       <div class="footer__body">
         <p class="footer__text" v-html="text"></p>
         <div class="footer__images">
-          <img src="/img/footer/12.jpg" alt="">
-          <img src="/img/footer/online.jpg" alt="">
+          <img src="/img/footer/12.png" alt="">
+          <img src="/img/footer/online.png" alt="">
         </div>
       </div>
       <div class="footer__down down-footer ">
@@ -146,7 +146,7 @@ onBeforeMount(async () => {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 30px;
+    gap: 10px;
     margin-bottom: 100px;
     
     @media (max-width: $pc) {
@@ -160,6 +160,10 @@ onBeforeMount(async () => {
     }
     @media (max-width: $mobileSmall) {
        margin-bottom: 50px;
+    }
+
+    img  {
+      width: 80px;
     }
   }
 }

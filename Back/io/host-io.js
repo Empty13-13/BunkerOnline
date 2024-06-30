@@ -1045,7 +1045,7 @@ module.exports = function(io) {
           }
           
         }
-        
+        sendData.showCancelButton = false
         io.in(idRoom).emit('setAllGameData', sendData)
         io.in(idRoom).emit('restartGame')
       })
@@ -1459,8 +1459,8 @@ module.exports = function(io) {
           lastVar: JSON.stringify(data.lastVar)
         })
         
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {players: data.emitData},
-          {logsData: {type: `text`, value: textForLog, date: new Date()},showCancelButton :true})
+        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {players: data.emitData,
+          logsData: {type: `text`, value: textForLog, date: new Date()},showCancelButton :true})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: textForLog,
@@ -2256,6 +2256,13 @@ module.exports = function(io) {
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         emitData.showCancelButton = false
+        console.log(emitData)
+        await UserModel.Logi.create({
+                  idRoom: idRoom,
+                  funcName: `reverseLog`,
+                  text: textForLog,
+                  step: 0
+                })
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',

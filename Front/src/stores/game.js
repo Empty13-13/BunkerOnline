@@ -338,7 +338,8 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const showDice6 = ref(false)
   const showDice20 = ref(false)
   const votedPlayerID = ref(0)
-  const showPlayVoiceButton = ref(false)
+  const showPlayVoiceButton = ref(true)
+  const playedAudio = ref(false)
   const dateNow = ref(new Date())
   
   const getAlivePlayers = computed(() => {
@@ -506,8 +507,8 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen) {
       let textArray = playersData.value[id][item].text.split(' ')
       let resultArray = []
-      textArray.forEach((word,index) => {
-        if(index===textArray.length-1){
+      textArray.forEach((word, index) => {
+        if (index===textArray.length - 1) {
           return
         }
         if (word.length>9) {
@@ -589,6 +590,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     showCancelButton,
     dateNow,
     votedPlayerID,
+    playedAudio,
     bunkerData,
     playersData,
     userData,

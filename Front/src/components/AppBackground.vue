@@ -25,6 +25,7 @@ defineProps([
     <div class="wrapper__main-image">
       <img v-if="catastropheImg" :src="'/img/catastrophe/' + catastropheImg" alt="">
       <img v-else-if="imgName" :src="'/img/backgrounds/'+imgName" alt="">
+      <img v-else src="/img/backgrounds/mainClear.jpg" alt="">
     </div>
   </div>
 </template>

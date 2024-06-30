@@ -29,6 +29,7 @@ const streamersData = [
   {name: 'nickname228'},
   {name: 'nickname228'},
 ]
+const imageName = ref('')
 
 const inputId = ref('')
 
@@ -56,6 +57,8 @@ onBeforeMount(() => {
 onMounted(async () => {
   console.log('noregToken', authStore.getLocalData('noregToken'))
   await updateMyGames()
+  await getImageName()
+
   // await updateAllGames()
   setIntervalIfPageFocused()
 })
@@ -139,12 +142,22 @@ async function letsGo() {
   })
 }
 
+async function getImageName() {
+  try {
+    let response = await axiosInstance.get('/getHomeImageName')
+    imageName.value = response.data.imageName
+    console.log(response)
+  } catch(e) {
+    console.log(e)
+  }
+}
+
 </script>
 
 <template>
   <main class="main">
     <div class="welcome">
-      <AppBackground img-name="mainClear.jpg"></AppBackground>
+      <AppBackground :catastrophe-img="imageName"></AppBackground>
       <div class="welcome__container">
         <div class="welcome__body">
           <h1 class="welcome__title">
@@ -344,6 +357,9 @@ async function letsGo() {
       margin-left: 10px;
       width: 30px;
       height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 
@@ -353,6 +369,14 @@ async function letsGo() {
     font-size: 14px;
     line-height: 1.8;
     font-weight: 400;
+  }
+
+  &__block {
+    audio {
+      margin: 0 auto;
+      margin-top: 20px;
+      display: flex;
+    }
   }
 }
 

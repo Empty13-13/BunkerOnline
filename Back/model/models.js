@@ -90,7 +90,8 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerAge: {type: DataTypes.STRING},
   population: {type: DataTypes.STRING},
   endOfTime: {type: DataTypes.DATE},
-  voitingStatus: {type: DataTypes.TINYINT}
+  voitingStatus: {type: DataTypes.TINYINT},
+  soundId:{type: DataTypes.INTEGER}
 })
 
 const RoomSession = sequelize.define('roomSession', {
@@ -178,7 +179,8 @@ const Logi = sequelize.define('logi', {
 const CatastropheImage = sequelize.define('catastropheImage', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   imageName: {type: DataTypes.STRING},
-  catastropheId: {type: DataTypes.INTEGER}
+  catastropheId: {type: DataTypes.INTEGER},
+  favourite: {type: DataTypes.TINYINT,defaultValue: 0},
 })
 
 const CatastropheSounds = sequelize.define('catastropheSounds', {
