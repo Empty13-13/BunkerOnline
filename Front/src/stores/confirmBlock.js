@@ -27,7 +27,7 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
     
     timeout.value = setTimeout(() => {
       deactivate()
-    }, 5000)
+    }, 10000)
   }
   
   function deactivate() {

@@ -1,5 +1,8 @@
 <script setup="">
-defineProps(['imgName'])
+defineProps([
+  'imgName',
+  'catastropheImg'
+])
 </script>
 
 <template>
@@ -20,7 +23,8 @@ defineProps(['imgName'])
     </div>
 
     <div class="wrapper__main-image">
-      <img :src="'/img/backgrounds/'+imgName" alt="">
+      <img v-if="catastropheImg" :src="'/img/catastrophe/' + catastropheImg" alt="">
+      <img v-else-if="imgName" :src="'/img/backgrounds/'+imgName" alt="">
     </div>
   </div>
 </template>

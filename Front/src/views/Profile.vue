@@ -786,7 +786,7 @@ function activateKeyHandler(e) {
               </div>
               <div v-if="getValueFromPriceVip.oldPrice && getValueFromPriceVip.price"
                    class="price-subscribeBlock__discount">
-                Скидка {{ Math.floor(+getValueFromPriceVip.price / +getValueFromPriceVip.oldPrice * 100) }}%
+                Скидка {{ 100 - Math.floor(+getValueFromPriceVip.price / +getValueFromPriceVip.oldPrice * 100) }}%
               </div>
             </div>
             <div v-if="getValueFromPriceVip" class="">
@@ -814,7 +814,7 @@ function activateKeyHandler(e) {
               </div>
               <div v-if="getValueFromPriceMVP.oldPrice && getValueFromPriceMVP.price"
                    class="price-subscribeBlock__discount">
-                Скидка {{ Math.floor(+getValueFromPriceMVP.price / +getValueFromPriceMVP.oldPrice * 100) }}%
+                Скидка {{ 100 - Math.floor(+getValueFromPriceMVP.price / +getValueFromPriceMVP.oldPrice * 100) }}%
               </div>
             </div>
             <div v-if="getValueFromPriceMVP" class="">
@@ -1593,7 +1593,20 @@ function activateKeyHandler(e) {
   &__oldPrice {
     font-weight: 400;
     font-size: 20px;
-    text-decoration-line: line-through;
+    //text-decoration-line: line-through;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 110%;
+      height: 1px;
+      left: -5%;
+      top: 50%;
+      transform: translate(0,-50%);
+      background: white;
+      z-index: 5;
+    }
   }
 
   &__discount {

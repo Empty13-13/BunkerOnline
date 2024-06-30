@@ -327,7 +327,7 @@ function getRandomNumToDice() {
       <TheAdminPanel v-if="myProfile.isAdmin" />
     </Teleport>
     <div id="welcome" class="welcome">
-      <AppBackground img-name="cataclysm.jpg" />
+      <AppBackground :catastropheImg="selectedGameData.bunkerData.imageName" />
       <div class="welcome__container">
         <div class="welcome__body">
           <h1 v-slide class="welcome__titleH2 titleH2">

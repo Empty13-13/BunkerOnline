@@ -294,7 +294,9 @@ function cancelPreviousAction(e) {
             </button>
           </AppSpoiler>
           <AppSpoiler title="Украсть характеристику">
+            <p>Кто крадет:</p>
             <AppSelect v-model="funcData.steal.id1" :options="selectedGameData.getPlayerForSelect" />
+            <p>У кого крадут:</p>
             <AppSelect v-model="funcData.steal.id2"
                        :options="selectPlayer2WithoutSelectedFirst(funcData.steal.id1.value)" />
             <AppSelect v-model="funcData.steal.chart" :options="playerCharacteristics" />
@@ -724,6 +726,11 @@ function cancelPreviousAction(e) {
   }
 
   &__dice {
+  }
+
+  p {
+    margin-bottom: 5px;
+    margin-top: 8px;
   }
 }
 

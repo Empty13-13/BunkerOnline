@@ -506,7 +506,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (playersData.value[id] && playersData.value[id][item] && playersData.value[id][item].text && playersData.value[id][item].isOpen) {
       let textArray = playersData.value[id][item].text.split(' ')
       let resultArray = []
-      textArray.forEach(word => {
+      textArray.forEach((word,index) => {
+        if(index===textArray.length-1){
+          return
+        }
         if (word.length>9) {
           resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
         }

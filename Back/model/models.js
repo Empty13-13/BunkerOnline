@@ -181,6 +181,12 @@ const CatastropheImage = sequelize.define('catastropheImage', {
   catastropheId: {type: DataTypes.INTEGER}
 })
 
+const CatastropheSounds = sequelize.define('catastropheSounds', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  soundName: {type: DataTypes.STRING},
+  catastropheId: {type: DataTypes.INTEGER}
+})
+
 const OtherTexts = sequelize.define('otherTexts', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   name:{type: DataTypes.STRING,allowNull:false},
@@ -237,6 +243,7 @@ module.exports = {
   ChartBunker,
   ChartPack,
   ChartPlayer,
+  CatastropheSounds,
   BunkerChartPack,
   PlayerChartPack,
   ProfessionChartPack,
