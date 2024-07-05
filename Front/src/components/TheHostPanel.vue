@@ -131,6 +131,7 @@ const bunkerCharacteristicsItems = [
   {text: 'Размер', value: 2},
   {text: 'Время нахождения', value: 3},
   {text: 'Количество еды', value: 4},
+  {text: 'В бункере присутствует', value: 5},
 ]
 
 onMounted(() => {

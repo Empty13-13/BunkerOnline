@@ -6,7 +6,7 @@ import { RouterView } from 'vue-router'
 import TheHeader from "@/components/TheHeader.vue";
 import TheFooter from "@/components/TheFooter.vue";
 import AppUpButton from "@/components/AppUpButton.vue";
-import { onBeforeMount } from "vue";
+import { onBeforeMount, ref } from "vue";
 import AppPreloader from "@/components/AppPreloader.vue";
 import { getLinkParams, getLocalData } from "@/plugins/functions.js";
 import AppConfirm from "@/components/AppConfirm.vue";
@@ -35,6 +35,7 @@ const checkUser = () => {
     myProfile.id = userId
   }
 }
+const showBetaPopup = ref(true)
 
 checkUser()
 
@@ -86,6 +87,19 @@ onBeforeMount(async () => {
       {{globalPopup.title}}
     </template>
     <div v-html="globalPopup.text" style="text-align: center;"></div>
+  </AppPopup>
+
+  <AppPopup v-model="showBetaPopup" color="red">
+    <template v-slot:title>
+      <p class="redTextColor" style="font-size: 28px;">Внимание!</p>
+    </template>
+    <p style="text-align: center">
+      Сайт находится на стадии бета-тестирования. В случае возникновения ошибок/багов и других событий которые не должны были происходить, напишите нам по
+      <a target="_blank" href="">ссылке в групповой чат</a> и как можно подробнее опишите проблему с которой столкнулись, прикрепляя скриншот
+      <br>
+      <br>
+      <b>Спасибо за ваше участие!</b>
+    </p>
   </AppPopup>
 </template>
 

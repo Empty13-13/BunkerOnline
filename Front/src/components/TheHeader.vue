@@ -89,9 +89,9 @@ function headerScroll() {
                 <a target="_blank" href="" class="socials-header__item telegram">
                   <img src="/img/icons/telegram.svg" alt="">
                 </a>
-                <a target="_blank" href="" class="socials-header__item vk">
-                  <img src="/img/icons/vk.svg" alt="">
-                </a>
+<!--                <a target="_blank" href="" class="socials-header__item vk">-->
+<!--                  <img src="/img/icons/vk.svg" alt="">-->
+<!--                </a>-->
               </div>
               <div v-if="myProfile.isReg" v-adaptive="['.menu__body',992,0]"
                    class="header__authorization authorization-header">

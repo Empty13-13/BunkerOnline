@@ -509,9 +509,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let resultArray = []
       textArray.forEach((word, index) => {
         if (index===textArray.length - 1) {
-          return
+          resultArray.push(word)
         }
-        if (word.length>9) {
+        else if (word.length>9) {
           resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
         }
         else {

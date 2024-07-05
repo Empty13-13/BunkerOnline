@@ -74,6 +74,7 @@ defineProps([
       bottom: 0;
       left: -13%;
       transform: translateY(45%);
+      pointer-events: none;
     }
 
     @media (max-width: $containerWidth+px) {
@@ -104,6 +105,16 @@ defineProps([
       height: 100%;
       max-width: 100%;
       object-fit: cover;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.42);
     }
   }
 }
