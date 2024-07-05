@@ -115,6 +115,7 @@ router.get('/pricesInfo', authMiddleware, userController.getPriceInfo);
 router.get('/getHomeImageName', userController.getHomeImageName);
 
 
+
 //router.get('/loginVK',userController.loginVK);
 //router.get('/callbackVK',userController.callbackVK);
 
