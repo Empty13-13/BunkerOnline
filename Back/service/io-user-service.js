@@ -472,6 +472,7 @@ async deleteRoomFromDB(idRoom)
   }
   await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
   await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
+  await UserModel.Logi.destroy(({where:{idRoom:idRoom}}))
 
 }
 
@@ -488,6 +489,6 @@ async function getNoregUserId(noRegToken, socket) {
   return -Math.abs(isValidNoRegToken.id)
 }
 
-
+//ss
 module
   .exports = new ioUserService()

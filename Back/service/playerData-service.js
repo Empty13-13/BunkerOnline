@@ -575,15 +575,19 @@ class playerDataService {
         countMin = new Date(+new Date() + (catastropheMin.countMin * 60 * 1000))
       }
       // console.log('allImageId', allImageId)
-      if (allImageId.length===1) {
-        imageId = allImageId[0].id
-        imageName = allImageId[0].imageName
-      }
-      else {
-        let index = this.getRandomInt(0, allImageId.length - 1)
-        let image = allImageId[index]
-        imageId = image.id
-        imageName = image.imageName
+      console.log(allImageId.length)
+      if(allImageId>0) {
+        console.log('ПРОШЛО')
+        if (allImageId.length === 1) {
+          imageId = allImageId[0].id
+          imageName = allImageId[0].imageName
+        } else {
+          let index = this.getRandomInt(0, allImageId.length - 1)
+          let image = allImageId[index]
+          imageId = image.id
+          imageName = image.imageName
+        }
+
       }
     }
     //console.log('catastrophe', catastrophe)
@@ -749,8 +753,10 @@ class playerDataService {
         
       }
       else if (key.toString()==='imageId') {
-        let image = await UserModel.CatastropheImage.findOne({where: {id: gameRoom[key]}})
-        bunkerData.imageName = image.imageName
+        if(gameRoom[key]!==null) {
+          let image = await UserModel.CatastropheImage.findOne({where: {id: gameRoom[key]}})
+          bunkerData.imageName = image.imageName
+        }
       }
       else if (key.toString()==='bunkerItems1' || key.toString()==='bunkerItems2' || key.toString()==='bunkerItems3') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
