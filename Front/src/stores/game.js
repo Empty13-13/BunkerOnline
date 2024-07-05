@@ -583,6 +583,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     showPlayVoiceButton.value = false
     dateNow.value = new Date()
     showCancelButton.value = false
+    playedAudio.value = false
   }
   
   return {

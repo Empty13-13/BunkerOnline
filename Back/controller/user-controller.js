@@ -503,7 +503,6 @@ class UserController {
           else {
             console.log('Не удачно')
             return next(ApiError.CapthaBlock())
-            
           }
         })
         .catch((e) => {

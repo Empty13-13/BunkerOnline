@@ -695,7 +695,7 @@ class playerDataService {
       where: {idRoom: idRoom},
       raw: true
     })
-    let showCancelButton = true
+    let showCancelButton = false
     let bunkerData = {}
     let logsData = []
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
@@ -703,8 +703,12 @@ class playerDataService {
       {where: {idRoom: idRoom, step: await this.howStepLog(idRoom) - 1}})
     if (log) {
       
-      if (log.isBack) {
-        showCancelButton = false
+      if (!log.isBack) {
+        showCancelButton = true
+      }
+       console.log(log.step)
+      if(log.step===0){
+         showCancelButton = false
       }
     }
     if (!objIsEmpty(logs)) {
