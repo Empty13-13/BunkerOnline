@@ -319,6 +319,7 @@ module.exports = function(io) {
       socket.on('voiting:start', async () => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         //console.log(gameRoom)
+          let isHostEmit = false
         console.log(io.sockets.adapter.rooms)
         if (gameRoom && gameRoom.isStarted) {
           gameRoom.voitingStatus = 0
@@ -339,15 +340,27 @@ module.exports = function(io) {
               await player.save()
             }
           }
-          console.log('PLAYYERRSSS', players.length, players)
+        //  console.log('PLAYYERRSSS', players.length, players)
           for (let player of players) {
             // player.votedFor = null
             // await player.save()
+              if(player.userId === userId){
+                  isHostEmit = true
+              }
             io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {
               voitingData: {status: gameRoom.voitingStatus, userChoise: null},
               logsData: [{type: 'text', value: 'Голосование началось', date: new Date()}]
             })
             io.to(`user:${player.userId}:${idRoom}`).emit('voiting:start')
+          }
+          console.log(isHostEmit,userId)
+          if(!isHostEmit){
+              console.log('Отправилось')
+              io.to(`user:${userId}:${idRoom}`).emit('setAllGameData', {
+                  voitingData: {status: gameRoom.voitingStatus, userChoise: null},
+                  logsData: [{type: 'text', value: 'Голосование началось', date: new Date()}]
+              })
+              io.to(`user:${userId}:${idRoom}`).emit('voiting:start')
           }
           await gameRoom.save()
           await UserModel.Logi.create({
