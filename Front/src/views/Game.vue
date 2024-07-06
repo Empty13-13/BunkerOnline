@@ -268,6 +268,7 @@ function getRandomNumToDice() {
 }
 
 const audioPlayer = ref()
+
 function toggleSoundHandler() {
   selectedGameData.playedAudio = !selectedGameData.playedAudio
   selectedGameData.showPlayVoiceButton = false
@@ -347,13 +348,15 @@ function toggleSoundHandler() {
             <p v-if="selectedGameData.bunkerData.population" class="welcome__population">
               Остаток населения - {{ selectedGameData.bunkerData.population }} человек
             </p>
-            <button @click.prevent="toggleSoundHandler" v-if="selectedGameData.bunkerData.soundName && selectedGameData.showPlayVoiceButton" class="welcome__playVoice" type="button">
-              {{ selectedGameData.playedAudio?'Остановить':'Озвучить текст' }}
+            <button @click.prevent="toggleSoundHandler"
+                    v-if="selectedGameData.bunkerData.soundName && selectedGameData.showPlayVoiceButton"
+                    class="welcome__playVoice" type="button">
+              {{ selectedGameData.playedAudio? 'Остановить':'Озвучить текст' }}
               <span>
                 <img :src="'/img/icons/' + (selectedGameData.playedAudio?'stop.png':'play.png')" alt="">
               </span>
             </button>
-            <audio v-show="!selectedGameData.showPlayVoiceButton" ref="audioPlayer"  controls>
+            <audio v-show="!selectedGameData.showPlayVoiceButton" ref="audioPlayer" controls>
               <source :src="'/catastropheSounds/'+selectedGameData.bunkerData.soundName" type="audio/mp3" />
             </audio>
           </div>
@@ -637,7 +640,8 @@ function toggleSoundHandler() {
             </p>
           </div>
         </div>
-        <div v-else-if="!objIsEmpty(selectedGameData.voitingData)" class="voting__result results-voting">
+        <div v-else-if="!objIsEmpty(selectedGameData.voitingData) && selectedGameData.voitingData.status===1"
+             class="voting__result results-voting">
           <h2 v-slide class="results-voting__title titleH2">Результат последнего голосования</h2>
           <div slidebody>
             <div class="results-voting__body">
