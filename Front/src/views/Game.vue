@@ -608,7 +608,7 @@ function toggleSoundHandler() {
     ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
          class="voting">
       <div class="voting__container">
-        <div v-if="selectedGameData.isVoiting" class="voting__now now-voting">
+        <div v-if="selectedGameData.isVoiting && selectedGameData.getMyUserData.isAlive" class="voting__now now-voting">
           <h2 id="voting" v-slide class="now-voting__title titleH2">Голосование</h2>
           <div v-if="!selectedGameData.userVoitingChoice" slidebody>
             <form @submit.prevent="selectedGameGameplay.voteHandler(selectedGameData.votedPlayerID)"

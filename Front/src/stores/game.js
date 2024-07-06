@@ -471,6 +471,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       }
       else if (data.timer.seconds) {
         timerSeconds.value = +data.timer.seconds
+        timerStart.value = true
+        isPauseTimer.value = true
+        
       }
     }
   }
@@ -711,12 +714,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   }
   
   function resumeTimer(date) {
-    let second = Math.ceil((+(new Date(date)) - +(new Date())) / 1000)
-    if (second<1) {
-      return
-    }
-    selectedGameData.timerSeconds = second
-    selectedGameData.isPauseTimer = false
+    startTimer(date)
   }
   
   function stopTimer() {

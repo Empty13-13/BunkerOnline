@@ -82,15 +82,19 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       const title = data.title
       const message = data.message
       const color = data.color
-      globalPopup.activate(title || 'Сообщение от сервера', message || '', color,true)
+      globalPopup.activate(title || 'Сообщение от сервера', message || '', color, true)
     })
-    userSocket.on('startedGame', data => {
+    userSocket.on('startedGame', async data => {
       console.log('Игра началась')
       globalPreloader.activate()
       userSocket.emit('loadAllGameData')
+      await router.push('#welcome')
     })
-    userSocket.on('setAllGameData', data => {
+    userSocket.on('setAllGameData', async data => {
       console.log('Приняли все данные по игре', data)
+      if (!selectedGameData.getAlivePlayers) {
+        await router.push('#welcome')
+      }
       selectedGameData.setData(data)
       selectedGame.isStarted = true
       globalPreloader.deactivate()
