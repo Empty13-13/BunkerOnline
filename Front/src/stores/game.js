@@ -7,7 +7,6 @@ import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
-import { hostSocket } from "@/socket/sockets.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -466,6 +465,14 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     if (data.hasOwnProperty('showCancelButton')) {
       showCancelButton.value = data.showCancelButton
     }
+    if (data.hasOwnProperty('timer')) {
+      if (data.timer.date) {
+        useSelectedGameGameplay().startTimer(data.timer.date)
+      }
+      else if (data.timer.seconds) {
+        timerSeconds.value = +data.timer.seconds
+      }
+    }
   }
   
   function getNonVoitingUsersNicknames(voitingData) {
@@ -667,8 +674,12 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     userSocket.emit('voiting:choiseUser', +userId)
   }
   
-  function startTimer(second) {
+  function startTimer(date) {
     stopTimer()
+    let second = Math.ceil((+(new Date(date)) - +(new Date())) / 1000)
+    if (second<1) {
+      return
+    }
     switch(second) {
       case 15: {
         selectedGameData.activeTimers[0] = true
@@ -699,7 +710,12 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.isPauseTimer = true
   }
   
-  function resumeTimer() {
+  function resumeTimer(date) {
+    let second = Math.ceil((+(new Date(date)) - +(new Date())) / 1000)
+    if (second<1) {
+      return
+    }
+    selectedGameData.timerSeconds = second
     selectedGameData.isPauseTimer = false
   }
   

@@ -118,14 +118,14 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     });
     
     
-    userSocket.on('timer:start', (second) => {
-      selectedGameGameplay.startTimer(+second)
+    userSocket.on('timer:start', (date) => {
+      selectedGameGameplay.startTimer(date)
     })
     userSocket.on('timer:pause', () => {
       selectedGameGameplay.pauseTimer()
     })
-    userSocket.on('timer:resume', () => {
-      selectedGameGameplay.resumeTimer()
+    userSocket.on('timer:resume', (date) => {
+      selectedGameGameplay.resumeTimer(date)
     })
     userSocket.on('timer:stop', () => {
       selectedGameGameplay.stopTimer()
