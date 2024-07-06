@@ -374,9 +374,14 @@ module.exports = function(io) {
       })
       socket.on('voiting:finished', async () => {
         await ioUserService.finishedVoiting(idRoom, userId, io, socket)
+          //d
       })
       socket.on('timer:start', async (seconds) => {
-        io.in(idRoom).emit('timer:start', seconds)
+          let timerEndDate = new Date(+new Date() + (seconds * 1000))
+          let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+          gameRoom.timerEndDate = timerEndDate
+          await gameRoom.save()
+        io.in(idRoom).emit('timer:start', timerEndDate)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий поставил таймер на ${seconds} секунд`,
@@ -385,6 +390,11 @@ module.exports = function(io) {
         )
       })
       socket.on('timer:pause', async (value) => {
+          let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+          gameRoom.timerPauseSeconds =Math.ceil((gameRoom.timerEndDate - new Date())/1000)
+          gameRoom.save()
+
+
         io.in(idRoom).emit('timer:pause')
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
@@ -394,7 +404,13 @@ module.exports = function(io) {
         )
       })
       socket.on('timer:resume', async (value) => {
-        io.in(idRoom).emit('timer:resume')
+          let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+
+          let timerEndDate = new Date(+new Date() + (gameRoom.timerPauseSeconds * 1000))
+          gameRoom.timerPauseSeconds = null
+          gameRoom.timerEndDate = timerEndDate
+          await gameRoom.save()
+        io.in(idRoom).emit('timer:resume',timerEndDate)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий возобновил таймер`,
@@ -403,6 +419,10 @@ module.exports = function(io) {
         )
       })
       socket.on('timer:stop', async (value) => {
+          let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+          gameRoom.timerEndDate = null
+          gameRoom.timerPauseSeconds = null
+          await gameRoom.save()
         io.in(idRoom).emit('timer:stop')
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',

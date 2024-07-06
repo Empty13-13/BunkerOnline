@@ -695,13 +695,21 @@ class playerDataService {
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime', 'soundId'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime', 'soundId', 'timerEndDate', 'timerPauseSeconds'],
       where: {idRoom: idRoom},
       raw: true
     })
     let showCancelButton = false
     let bunkerData = {}
     let logsData = []
+    let timer ={}
+    if(gameRoom.timerEndDate!==null || gameRoom.timerPauseSeconds!==null){
+      if(gameRoom.timerPauseSeconds!==null){
+        timer.seconds = gameRoom.timerPauseSeconds
+      }else{
+        timer.date = gameRoom.timerEndDate
+      }
+    }
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
     let log = await UserModel.Logi.findOne(
       {where: {idRoom: idRoom, step: await this.howStepLog(idRoom) - 1}})
@@ -746,7 +754,7 @@ class playerDataService {
     bunkerData.endOfTime = gameRoom.endOfTime
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime' && key.toString()!=='soundId') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime' && key.toString()!=='soundId'&& key.toString()!=='timerPauseSeconds'&& key.toString()!=='timerEndDate') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
         // console.log(gameRoom[key])
         bunkerData[key] = chartBunker.text
@@ -829,7 +837,8 @@ class playerDataService {
         userData: userData,
         bunkerData: bunkerData,
         logsData: logsData,
-        showCancelButton: showCancelButton
+        showCancelButton: showCancelButton,
+        timer:timer
       }
     }
     else {
@@ -839,7 +848,8 @@ class playerDataService {
         bunkerData: bunkerData,
         voitingData: voitingData,
         logsData: logsData,
-        showCancelButton: showCancelButton
+        showCancelButton: showCancelButton,
+        timer:timer
       }
     }//{id:1}
     //key = id

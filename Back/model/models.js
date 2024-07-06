@@ -91,7 +91,9 @@ const GameRooms = sequelize.define('gameRooms', {
   population: {type: DataTypes.STRING},
   endOfTime: {type: DataTypes.DATE},
   voitingStatus: {type: DataTypes.TINYINT},
-  soundId:{type: DataTypes.INTEGER}
+  soundId:{type: DataTypes.INTEGER},
+  timerEndDate : {type: DataTypes.DATE},
+  timerPauseSeconds:{type: DataTypes.INTEGER}
 })
 
 const RoomSession = sequelize.define('roomSession', {
