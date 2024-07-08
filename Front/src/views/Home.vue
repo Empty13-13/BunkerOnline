@@ -29,7 +29,7 @@ const streamersData = [
   {name: 'nickname228'},
   {name: 'nickname228'},
 ]
-const imageName = ref('')
+const imageName = ref('asd')
 
 const inputId = ref('')
 
@@ -143,13 +143,18 @@ async function letsGo() {
 }
 
 async function getImageName() {
+  globalPreloader.activate()
   try {
     let response = await axiosInstance.get('/getHomeImageName')
     imageName.value = response.data.imageName
     console.log(response)
   } catch(e) {
     console.log(e)
+    imageName.value = ''
+  } finally {
+    globalPreloader.deactivate()
   }
+
 }
 
 </script>
