@@ -135,10 +135,8 @@ const bunkerCharacteristicsItems = [
 ]
 
 onMounted(() => {
-  fieldsInit()
 })
 onBeforeUnmount(() => {
-  destroyAll()
 })
 
 function charClick(e) {

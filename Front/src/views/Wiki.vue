@@ -36,6 +36,9 @@ onMounted(async () => {
         </p>
         <ul>
           <li>
+            <router-link to="/test" class="wiki__link colorGold">Тест "Оценка выживаемости бункера"</router-link>
+          </li>
+          <li>
             <router-link to="/wiki/professions" class="wiki__link colorGold">Профессиональные возможности</router-link>
           </li>
           <li

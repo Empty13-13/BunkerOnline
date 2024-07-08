@@ -2,6 +2,10 @@
 import { onUnmounted } from "vue";
 
 function scrollHandler() {
+  let btn = document.querySelector('.upButton')
+  if(!btn) {
+    return
+  }
   if (scrollY>400) {
     document.querySelector('.upButton').classList.add('_active')
   }

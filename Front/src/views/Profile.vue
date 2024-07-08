@@ -163,6 +163,7 @@ function banUser(e) {
       }
     } catch(e) {
       console.log(e.message)
+      globalPopup.activate('Ошибка сервера','Произошла ошибка на сервере, <br> ' + e.response.message,'red')
     }
 
     globalPreloader.deactivate()
@@ -263,8 +264,6 @@ onMounted(async () => {
     console.log(e)
   }
 
-  fieldsInit()
-
   globalPreloader.deactivate()
 })
 onBeforeUpdate(async () => {
@@ -277,7 +276,6 @@ onUpdated(async () => {
     globalPreloader.activate()
     oldId = +getId.value
     await updateProfileInfo()
-    fieldsInit()
 
     if (isMyProfile) {
       await myProfile.setMyProfileInfo()
@@ -674,11 +672,6 @@ function activateKeyHandler(e) {
             <div v-if="isMyProfile" class="middle-profileBlock__column">
               <label for="sex">Пол</label>
               <AppSelect v-model="data.isMale" :options="sexOptions" class="selectBlock profile" />
-              <!--              <select ref="isMaleSelect" class="profile" name="sex" id="sex">-->
-              <!--                <option value="-1" :selected="data.isMale===-1">Не выбран</option>-->
-              <!--                <option value="0" :selected="data.isMale===0">Женский</option>-->
-              <!--                <option value="1" :selected="data.isMale===1">Мужской</option>-->
-              <!--              </select>-->
             </div>
             <div v-if="isMyProfile" class="middle-profileBlock__column _column">
               <label for="about">О себе</label>
@@ -790,7 +783,8 @@ function activateKeyHandler(e) {
               </div>
             </div>
             <div v-if="getValueFromPriceVip" class="">
-              <AppButton @click.prevent="openWindow(getValueFromPriceVip.link)" class="subscribeBlock__btn" color="whiteGray">
+              <AppButton @click.prevent="openWindow(getValueFromPriceVip.link)" class="subscribeBlock__btn"
+                         color="whiteGray">
                 Перейти к оплате
               </AppButton>
             </div>
@@ -818,7 +812,8 @@ function activateKeyHandler(e) {
               </div>
             </div>
             <div v-if="getValueFromPriceMVP" class="">
-              <AppButton @click.prevent="openWindow(getValueFromPriceMVP.link)" class="subscribeBlock__btn" color="gold">
+              <AppButton @click.prevent="openWindow(getValueFromPriceMVP.link)" class="subscribeBlock__btn"
+                         color="gold">
                 Перейти к оплате
               </AppButton>
             </div>
@@ -1603,7 +1598,7 @@ function activateKeyHandler(e) {
       height: 1px;
       left: -5%;
       top: 50%;
-      transform: translate(0,-50%);
+      transform: translate(0, -50%);
       background: white;
       z-index: 5;
     }

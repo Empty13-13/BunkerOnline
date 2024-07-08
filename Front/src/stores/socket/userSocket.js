@@ -69,7 +69,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       globalPreloader.deactivate()
     })
     userSocket.on('roomClosed', async (data) => {
-      globalPopup.activate('Комната закрыта', '', 'gold')
+      globalPopup.activate('Комната закрыта', 'Для того чтобы узнать, остался ли ваш бункер в живых, вы можете пройти тест <a href="/test">Оценка выживаемости бункера</a>', 'gold')
       await router.push({name: 'home'})
     })
     userSocket.on('sendMessage', data => {
