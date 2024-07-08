@@ -40,7 +40,7 @@ export const useAdminSocketStore = defineStore('adminSocket', () => {
   function _connect() {
     adminSocket.auth = {
       token: myProfile.token,
-      idRoom: router.currentRoute.value.path.split('=')[1] || 0,
+      idRoom: router.currentRoute.value.path.split('=')[1],
       _retry: false,
     }
     adminSocket.connect()
