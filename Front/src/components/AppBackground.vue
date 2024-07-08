@@ -3,6 +3,8 @@ defineProps([
   'imgName',
   'catastropheImg'
 ])
+
+const backgroundImageUrl = import.meta.env.VITE_SERVER_BACKGROUND_IMAGES
 </script>
 
 <template>
@@ -23,8 +25,8 @@ defineProps([
     </div>
 
     <div class="wrapper__main-image">
-      <img v-if="catastropheImg" :src="'/img/catastrophe/' + catastropheImg" alt="">
-      <img v-else-if="imgName" :src="'/img/backgrounds/'+imgName" alt="">
+      <img v-if="catastropheImg" :src="backgroundImageUrl + catastropheImg" alt="">
+      <img v-else-if="imgName" :src="backgroundImageUrl+imgName" alt="">
       <img v-else src="/img/backgrounds/mainClear.jpg" alt="">
     </div>
   </div>
