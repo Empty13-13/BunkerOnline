@@ -445,13 +445,13 @@ module.exports = function(io) {
         )
       })
       socket.on('refresh:bunkerData', async (chartId) => {
-        let arrayBunkerChart = ['allChart', 'bunkerCreated', 'bunkerSize', 'bunkerTime', 'bunkerFood', 'catastrophe']
+        let arrayBunkerChart = ['allChart', 'bunkerCreated', 'bunkerSize', 'bunkerTime', 'bunkerFood', 'catastrophe','bunkerItems']
         let chartName = arrayBunkerChart[chartId]
         if (chartId===0) {
           chartName = null
         }
         let gameRoom = await UserModel.GameRooms.findOne({
-          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted', 'population'],
+          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted', 'population','bunkerItemsOthers',],
           where: {idRoom: idRoom},
           raw: true
         })
@@ -479,7 +479,7 @@ module.exports = function(io) {
               
             }
             
-            //  console.log(bunkerData)
+            //  console.log(bunkerData)ss
             let lastVar = JSON.stringify(bunkerData)
             textForLog = `Ведущий изменил характеристики бункера на новые`
             await UserModel.Logi.create({
@@ -490,7 +490,7 @@ module.exports = function(io) {
               lastVar: lastVar
             })
           }
-          else if (gameRoom[chartName]) {
+          else if (gameRoom[chartName]|| chartName==='bunkerItems') {
             let name = ioUserService.howThisChartNameBunker(chartName)
             textForLog = `Ведущий изменил ${name}`
             let vars = {}
@@ -498,13 +498,20 @@ module.exports = function(io) {
               vars = {
                 chartName: chartName,
                 lastVar: gameRoom[chartName],
-                otherVar: {imageId: gameRoom.imageId, population: gameRoom.population}
+                otherVar: {imageId: gameRoom.imageId, population: gameRoom.population,soundId:gameRoom.soundId}
               }
               console.log(gameRoom.population)
+            }else if(chartName==='bunkerItems'){
+                vars = {
+                    chartName: chartName,
+                    lastVar : [gameRoom.bunkerItems1,gameRoom.bunkerItems2,gameRoom.bunkerItems3,gameRoom.bunkerItemsOthers]
+                }
+                console.log(gameRoom.bunkerItemsOthers)
             }
             else {
               vars = {chartName: chartName, lastVar: gameRoom[chartName]}
             }
+            console.log('LOOOOL',vars)
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: `bunkerData:${chartName}`,
@@ -2094,9 +2101,9 @@ module.exports = function(io) {
           }
         }
         else {
-          //    console.log(makeId, 'PRISHLO')
+          //    console.log(makeId, 'PRISHLO')zs
           let dataForNextPlayer = {}
-          let userList = JSON.parse(gameRoom.userList)
+            //let userList = JSON.parse(gameRoom.userList)
           let vars = {}
           let zeroPlayer = players.find(item => item.userId===userList[userList.length - 1])
           let lastPlayer = players.find(item => item.userId===userList[0])
@@ -2285,6 +2292,7 @@ module.exports = function(io) {
         console.log('Socket', emitData)
         log.isBack = 1
         await log.save()
+          console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()

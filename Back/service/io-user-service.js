@@ -155,7 +155,7 @@ class ioUserService {
     }
     if (funcName.includes('bunkerData')) {
       let lst = structuredClone(lastVar)
-      let chartName
+      let chartName = null
       let id
       let otherVar = null
       let emitData = {bunkerData: {}, logsData: {}}
@@ -165,22 +165,61 @@ class ioUserService {
         if (key==='chartName') {
           chartName = lst[key]
         }
-        else if(key!=='otherVar') {
+        else if(key!=='otherVar' && chartName!=='bunkerItems') {
+          id = lst[key]
+        }else if(chartName==='bunkerItems'){
+          console.log(lst[key])
           id = lst[key]
         }else{
           otherVar = lst[key]
         }
       }
+
       if(otherVar){
+        let imageId
+        let soundId
+        let imageName = null
+        let soundName = null
+        console.log(otherVar.soundId)
+        if(otherVar.imageId!==null){
+          let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
+          imageName = image.imageName
+        }
+        if(otherVar.soundId && otherVar.soundId !== null){
+          let sound = await UserModel.CatastropheSounds.findOne({where:{id:otherVar.soundId}})
+          soundName = sound.soundName
+        }
         gameRoom.imageId = otherVar.imageId
         gameRoom.population = otherVar.population
-        let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
-        emitData.bunkerData = {population:otherVar.population,imageName:image.imageName}
+
+        emitData.bunkerData = {population:otherVar.population,imageName:imageName,soundName:soundName}
       }
-      console.log(id, chartName)
-      gameRoom[chartName] = id
-      let newChart = await UserModel.ChartBunker.findOne({where: {id: id}})
-      emitData.bunkerData [chartName] = newChart.text
+      if(chartName==='bunkerItems'){
+        console.log(id)
+        gameRoom.bunkerItems1 = id[0]
+        gameRoom.bunkerItems2 = id[1]
+        gameRoom.bunkerItems3 = id[2]
+        console.log(id[3])
+        if(id[3]===null){
+          id[3]=''
+        }
+        gameRoom.bunkerItemsOthers = id[3]
+        let bunkerItems = []
+        let items = await UserModel.ChartBunker.findAll({where:{id:[id[0],id[1],id[2]]}})
+        for(let item of items){
+          bunkerItems.push(item.text)
+
+        }
+        bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
+        emitData.bunkerData[chartName]=bunkerItems
+      }
+      else{
+        console.log(id, chartName)
+        gameRoom[chartName] = id
+        let newChart = await UserModel.ChartBunker.findOne({where: {id: id}})
+        emitData.bunkerData [chartName] = newChart.text
+      }
+
       await gameRoom.save()
       return emitData
 
@@ -226,7 +265,7 @@ howThisChartNameBunker(chartName)
     case 'bunkerFood':
       name = 'Состояние о еде в бункере'
       break
-    case 'bunkerItems1' || 'bunkerItems2' || 'bunkerItems3':
+    case 'bunkerItems':
       name = 'Состояние о предметах в бункере'
       break
     case 'bunkerSize':

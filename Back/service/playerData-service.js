@@ -39,6 +39,7 @@ class playerDataService {
     this.systemSettings = null
     this.childFreeCount = 0
     this.perfectHealthCount = 0
+    this.playerPerfectHealth = []
   }
   
   async getSystemSettingsData() {
@@ -49,6 +50,26 @@ class playerDataService {
     }
     this.systemSettings = systemData
     return systemData
+  }
+
+  getPlayerPerfectHealth(players){
+   // let prefectPrerc = 100-this.systemSettings.perfectHealthPercentage
+    let count = Math.round(players.length*(this.systemSettings.perfectHealthPercentage/100))
+    console.log(players.length)
+    console.log(count)
+
+    let playersArray = []
+    for(let player of players){
+      playersArray.push(player.userId)
+    }
+
+    for(let i=0;i<count;i++){
+      let index = this.getRandomInt(0,playersArray.length-1)
+      this.playerPerfectHealth.push(playersArray[index])
+      playersArray.splice(index,1)
+    }
+    console.log(this.playerPerfectHealth)
+
   }
   
   async howStepLog(idRoom) {
@@ -277,6 +298,7 @@ class playerDataService {
   
   async refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText) {
     this.systemSettings = await this.getSystemSettingsData()
+    this.getPlayerPerfectHealth(players)
     let data = {players: {}, lastVar: {}, emitData: {players: {}}}
     if (chartName==='allChart') {
       let hostPackIds = await this.hostUsePack(gameRoom.hostId)
@@ -406,11 +428,18 @@ class playerDataService {
     // console.log('TWO')
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
     // console.log('Three')
-    //console.log(chartName==='bunkerSize',chartName)
-    if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize' && chartName!=='bunkerCreated') {
+    //console.log(chartName==='bunkerSize',chartName)s
+    if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize' && chartName!=='bunkerCreated'&& chartName!=='bunkerItems') {
       gameRoom[chartName] = data.id
       data = {[chartName]: data.text}
       
+    }
+    else if(chartName==='bunkerItems'){
+      gameRoom.bunkerItems1=data.itemId[0]
+      gameRoom.bunkerItems2=data.itemId[1]
+      gameRoom.bunkerItems3=data.itemId[2]
+      gameRoom.bunkerItemsOthers =''
+      data = {[chartName]:data.bunkerItems}
     }
     else if (chartName==='bunkerCreated') {
       gameRoom[chartName] = data.id
@@ -438,7 +467,7 @@ class playerDataService {
       
     }
     await gameRoom.save()
-    // console.log(data)
+     console.log(data)
     return data
     
     
@@ -489,7 +518,7 @@ class playerDataService {
       logsData: {}
     }
     await this.collectAndSetDataForPlayer(hostPackIds, players)
-    
+    this.getPlayerPerfectHealth(players)
     for (let player of players) {
       let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoomData.id)
       let resultPlayerData = null
@@ -526,6 +555,7 @@ class playerDataService {
     data.logsData = {type: 'text', value: textForLog, date: new Date()}
     await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: textForLog, step: 0})
     // console.log(data)
+    this.playerPerfectHealth=[]
     return data
   }
   
@@ -975,8 +1005,15 @@ class playerDataService {
     if (chartName===null) {
       return await this.createDataBunker(idRoom, gameRoom.maxSurvivor, true)
     }
-    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3') {
-      return this.getRandomDataBunker('bunkerItems', isUsedSystemAdvancePack)
+    else if (chartName==='bunkerItems2' || chartName==='bunkerItems1' || chartName==='bunkerItems3'|| chartName==='bunkerItems') {
+      let itemId = []
+      let bunkerItems = []
+      for (let i = 0; i<3; i++) {
+        let item = this.getRandomDataBunker('bunkerItems')
+        itemId.push(item.id)
+        bunkerItems.push(item.text)
+      }
+      return {bunkerItems,itemId}
     }
     else if (chartName==='bunkerSize') {
       let bunkerSize = this.getRandomInt(20, 200)
@@ -1003,16 +1040,16 @@ class playerDataService {
       // console.log('allImageId', allImageId)
       let imageId = null
       let imageName = null
-      if (allImageId.length===1) {
-        imageId = allImageId[0].id
-        imageName = allImageId[0].imageName
-      }
-      
-      else {
-        let index = this.getRandomInt(0, allImageId.length - 1)
-        let image = allImageId[index]
-        imageId = image.id
-        imageName = image.imageName
+      if(allImageId>0) {
+        if (allImageId.length === 1) {
+          imageId = allImageId[0].id
+          imageName = allImageId[0].imageName
+        } else {
+          let index = this.getRandomInt(0, allImageId.length - 1)
+          let image = allImageId[index]
+          imageId = image.id
+          imageName = image.imageName
+        }
       }
       return {newChart, imageName, imageId, population, countMin,soundName,soundId}
       
@@ -1201,10 +1238,13 @@ class playerDataService {
     trait = trait? {id: 0, text: trait, isOpen: false}:this.getRandomData('trait', isUsedSystemAdvancePack, 0, player)
     
     if (health===null) {
-      if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
-        100)<=this.systemSettings.perfectHealthPercentage) {
+    //  if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
+     //   100)<=this.systemSettings.perfectHealthPercentage) {
+      //  health = {id: 0, text: 'Идеально здоров', isOpen: healthIsOpen}
+      //  this.perfectHealthCount += 1
+    //  }
+      if(this.playerPerfectHealth.includes(playerId)){
         health = {id: 0, text: 'Идеально здоров', isOpen: healthIsOpen}
-        this.perfectHealthCount += 1
       }
       else {
         health = this.getRandomData('health', isUsedSystemAdvancePack, 0, player)
