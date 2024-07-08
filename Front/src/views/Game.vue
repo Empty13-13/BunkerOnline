@@ -71,7 +71,7 @@ const itemsName = [
 Профессионал – более 10 лет.
   `],
   ['Здоровье', 'health'],
-  ['Хобби / Увлечения', 'hobbies', `
+  ['Хобби/Увлечение', 'hobbies', `
   Дилетант – до 3 месяцев;<br>
 Новичок – от 3 месяцев до 1 года;<br>
 Любитель – от 1 до 2 лет;<br>
@@ -609,6 +609,7 @@ function toggleSoundHandler() {
     </div>
     <div v-if="(((hostFunctional.haveAccess && hostFunctional.isPlayerToo) || !hostFunctional.haveAccess) &&
     ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
+         :style="selectedGameData.voitingData.status===0 && hostFunctional.haveAccess?'margin: 0;':''"
          class="voting">
       <div class="voting__container">
         <div v-if="selectedGameData.isVoiting && selectedGameData.getMyUserData.isAlive" class="voting__now now-voting">

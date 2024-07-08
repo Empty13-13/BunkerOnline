@@ -519,13 +519,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let resultArray = []
       textArray.forEach((word, index) => {
         if (index===textArray.length - 1) {
-          resultArray.push(word)
+          resultArray.push(word.replaceAll('/',"$&&shy;/$&&shy;"))
         }
         else if (word.length>9) {
           resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
         }
         else {
-          resultArray.push(word)
+          resultArray.push(word.replaceAll('/',"$&&shy;/$&&shy;"))
         }
       })
       return resultArray.join(' ')
