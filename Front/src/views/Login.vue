@@ -11,6 +11,7 @@ import AppLoader from "@/components/AppLoader.vue";
 import AppPopup from "@/components/AppPopup.vue";
 import axiosInstance from "@/api.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
+import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
 
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
@@ -126,6 +127,10 @@ async function loginHandler(e) {
           setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
         }
         else {
+          console.log('LOGGGGGGGGGIIIIIIIIINNNN')
+          useAuthSocketStore().bindEvents()
+          useAuthSocketStore()._connect()
+          useAuthSocketStore().emit('login')
           await router.push(`/profile=${myProfile.id}`)
         }
       })

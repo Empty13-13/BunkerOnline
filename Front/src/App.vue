@@ -46,6 +46,7 @@ onBeforeMount(async () => {
   if (!(params['account'] && params['account']==="connected")) {
     console.log("setMyProfileInfo APP", params)
     await myProfile.setMyProfileInfo()
+    authSocket.setConnect()
   }
 
   /**

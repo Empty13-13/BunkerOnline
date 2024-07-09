@@ -5,7 +5,7 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useHostFunctionalStore, useSelectedGame } from "@/stores/game.js";
-import { authSocket } from "@/socket/sockets.js";
+import { authSocket, hostSocket } from "@/socket/sockets.js";
 import router from "@/router/index.js";
 import { switchError } from "@/logics/socketLogic.js";
 
@@ -34,8 +34,21 @@ export const useAuthSocketStore = defineStore('authSocket', () => {
       const color = data.color
       globalPopup.activate(title || 'Сообщение от сервера', message || '', color, true)
     })
+    
+    
     authSocket.on('logout',() => {
-      location.reload()
+      console.log('Пришел logout')
+      setTimeout(async () => {
+        myProfile.clearUserInfo()
+        authSocket.close()
+        location.reload()
+      },1000)
+    })
+    authSocket.on('disconnect',() => {
+      console.log('DISCONNECT AUTH')
+    })
+    authSocket.on('connect', socket => {
+      console.log('CONNECT AUTH')
     })
   }
   
@@ -46,14 +59,13 @@ export const useAuthSocketStore = defineStore('authSocket', () => {
     }
     authSocket.connect()
     connected.value = authSocket.connected
-    console.log('Подключились к функционалу AUTH')
+    console.log('Подключились к функционалу AUTH',authSocket.connected,myProfile.token)
   }
   
   function close() {
     authSocket.close()
     authSocket.removeAllListeners()
     connected.value = authSocket.connected
-    console.log('Разрываем с AUTH SOCKET.IO')
   }
   
   function emit(funcName, ...args) {
@@ -69,7 +81,7 @@ export const useAuthSocketStore = defineStore('authSocket', () => {
   }
   
   function setConnect() {
-    if (!connected.value) {
+    if (!connected.value && !myProfile.isNoReg) {
       console.log('Соединяем с AUTH SOCKET.IO')
       bindEvents()
       _connect()

@@ -171,7 +171,7 @@ class UserService {
         isAdmin = true
       }
     }
-    console.log('userID',userId)
+   // console.log('userID',userId)
     const users = await UserModel.User.findOne({where: {id: userId}})
     if (!users) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
@@ -222,7 +222,7 @@ class UserService {
     console.log('1')
     try{
       const resp = await axios.get('https://a.ggsel.com/partner/paginate/goods?token=$2y$10$xB37cm37yDYUcQXFC.mtie2sAa.xArJbvq56tVMr97/b8SBEKfFiq&filter[id_goods]=3726124')
-      console.log(resp.data.links)
+      //console.log(resp.data.links)
     }catch (e) {
       console.log(e)
     }
@@ -265,7 +265,7 @@ class UserService {
     // const avatar = user.data['avatar']
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
-    console.log(candidate)
+    //console.log(candidate)
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
     //console.log(candidateUser.userId)
     if (!candidate) {
@@ -430,7 +430,7 @@ class UserService {
     if (tokenId===userId) {
       if (extension==='gif') {
         if (user.accsessLevel.toString()!=='mvp' || user.accsessLevel.toString()!=='admin') {
-          console.log('ZAPRET EPTAAA')
+        //  console.log('ZAPRET EPTAAA')
           throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Acsess Denied'}])
         }
       }

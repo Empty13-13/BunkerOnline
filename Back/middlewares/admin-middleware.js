@@ -21,14 +21,14 @@ module.exports = function(accsessLevel) {
 //                 }
       
       const {refreshToken} = req.cookies
-      console.log("resfresh", req.cookies)
+     // console.log("resfresh", req.cookies)
       const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
       if (!id) {
         return next(ApiError.UnauthorizedError())
       }
       
       const user = await UserModel.User.findOne({where: {id: id.userId}})
-      console.log("USERRR", user.dataValues.accsessLevel)
+      //console.log("USERRR", user.dataValues.accsessLevel)
       if (user.dataValues.accsessLevel!==accsessLevel) {
         return next(ApiError.BadRerquest(`Нет доступа менять данные`, [{type: 'Inadmissible id'}]))
       }
@@ -38,7 +38,7 @@ module.exports = function(accsessLevel) {
       next()
       
     } catch(e) {
-      console.log('fsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdf')
+     // console.log('fsdfsdfsdfsdfsdfsdfsdfsdfsdfsdfsdf')
       return next(ApiError.UnauthorizedError())
     }
   }

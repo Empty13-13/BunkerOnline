@@ -8,10 +8,12 @@ import { useMyProfileStore } from "@/stores/profile.js";
 import { getClassForAccess, getId, getLinkParams } from "@/plugins/functions.js";
 import AppAvatar from "@/components/AppAvatar.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
+import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const access = useAccessStore()
+const authSocket = useAuthSocketStore()
 
 const isOpen = ref(false)
 const header = ref(null)
@@ -29,9 +31,12 @@ onUnmounted(() => {
 
 async function logout(e) {
   showConfirmBlock(e.target,async () => {
+    authSocket.emit('logout')
+    authSocket.close()
     await authStore.logoutUser()
     isOpen.value = false
   },'Вы уверены, что хотите выйти из аккаунта?')
+
 }
 
 function headerScroll() {

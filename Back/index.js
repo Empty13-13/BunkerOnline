@@ -39,6 +39,7 @@ const io = new Server(http, {
 require('./io/admin-io')(io)
 require('./io/host-io')(io)
 require('./io/users-io')(io)
+require('./io/auth-io')(io)
 
 
 // io.on('connection', (socket) => {
