@@ -16,6 +16,9 @@ module.exports = class ApiError extends Error {
   static BlockedUser() {
     return new ApiError(469, 'User is blocked')
   }
+  static AccessDenie() {
+    return new ApiError(400, 'У вас имеются 2 созданных игры. Закройте предыдущие комнаты перед созданием новой или зайдите в игру по приглашению')
+  }
   static keyExp(message) {
       return new ApiError(300, message)
     }

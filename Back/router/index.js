@@ -8,6 +8,7 @@ const authMiddleware = require('../middlewares/auth-meddleware')
 const adminMiddleware = require('../middlewares/admin-middleware')
 const vipMvpAdminMiddleware = require('../middlewares/vipMvpAdmin-middleware')
 const blockedUserCheck = require('../middlewares/isUserBlocked-middleware')
+const createGameMiddleware = require('../middlewares/createGame-middleware')
 const priorityUserMiddleware = require('../middlewares/priorityUser-middleware')
 const updateUserMiddleware = require('../middlewares/updateUser-middleware')
 const path = require('path')
@@ -100,7 +101,7 @@ router.post('/deleteAvatar=:id', blockedUserCheck, updateUserMiddleware('admin')
 router.post('/resetEmail', blockedUserCheck, authMiddleware, userController.resetEmail); // cookie
 router.post('/newEmail', blockedUserCheck, body('email').isEmail(), userController.newEmail);  //body parameters and email
 
-router.post('/generateRoomId', blockedUserCheck, userController.generateRoomId);
+router.post('/generateRoomId',createGameMiddleware, blockedUserCheck, userController.generateRoomId);
 router.post('/userGames', blockedUserCheck, userController.userGames);
 //router.post('/allGames', userController.allUsersGames);
 router.post('/allPacks', blockedUserCheck, userController.allPacks);

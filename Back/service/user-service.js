@@ -197,6 +197,7 @@ class UserService {
     if (userIsBlock) {
       isBan = true
     }
+
     users.dataValues.isBanned = isBan
     //   console.log(isBdayHidden, isAdmin, isUser)
     // let birthday = users.dataValues.birthday
