@@ -575,7 +575,7 @@ class playerDataService {
     let soundId = null
     let soundName = null
     bunkerSize = this.getRandomInt(20, 200)
-    population = this.getRandomInt(30000000, 1000000000)
+    population = this.getRandomInt(this.systemSettings.minPopulation, this.systemSettings.maxPopulation)
     if (players!==null) {
       bunkerSize = this.getRandomInt(20, 200)
       maxSurvivor = Math.floor(+players.length / 2)
@@ -1023,7 +1023,8 @@ class playerDataService {
     else if (chartName==='catastrophe') {
       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
-      let population = this.getRandomInt(30000000, 1000000000)
+      let population = this.getRandomInt(this.systemSettings.minPopulation, this.systemSettings.maxPopulation)
+      console.log('population',population)
       let countMin = null
       let soundName = null
       let soundId = null
