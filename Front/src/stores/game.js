@@ -397,7 +397,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getPlayerEndSeconds = computed(() => {
     let seconds = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
     
-    return seconds>0 && seconds<61?seconds:0
+    return seconds>0 && seconds<61? seconds:0
   })
   let timerCatastrophe = null
   setInterval(() => {
@@ -526,14 +526,18 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let textArray = playersData.value[id][item].text.split(' ')
       let resultArray = []
       textArray.forEach((word, index) => {
-        if (index===textArray.length - 1) {
-          resultArray.push(word.replaceAll('/', "$&&shy;/$&&shy;"))
-        }
-        else if (word.length>9) {
-          resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
+        // if (index===textArray.length - 1) {
+        //   resultArray.push(word.replaceAll('/', "$&&shy;/$&&shy;"))
+        // }
+        if (word.length>9) {
+          let resultWord = word.replace(/...../g, "$&&shy;").replace(/\/$/g, "")
+          if (resultWord[resultWord.length - 1]===';') {
+            resultWord = resultWord.slice(0,-5)
+          }
+          resultArray.push(resultWord);
         }
         else {
-          resultArray.push(word.replaceAll('/', "$&&shy;/$&&shy;"))
+          resultArray.push(word)
         }
       })
       return resultArray.join(' ')
