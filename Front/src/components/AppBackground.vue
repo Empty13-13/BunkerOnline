@@ -26,7 +26,7 @@ const backgroundImageUrl = import.meta.env.VITE_SERVER_BACKGROUND_IMAGES
 
     <div class="wrapper__main-image">
       <img v-if="catastropheImg" :src="backgroundImageUrl + catastropheImg" alt="">
-      <img v-else-if="imgName" :src="backgroundImageUrl+imgName" alt="">
+      <img v-else-if="imgName" :src="'/img/backgrounds/' + imgName" alt="">
       <img v-else src="/img/backgrounds/mainClear.jpg" alt="">
     </div>
   </div>
@@ -116,7 +116,7 @@ const backgroundImageUrl = import.meta.env.VITE_SERVER_BACKGROUND_IMAGES
       top: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.42);
+      background: rgba(0, 0, 0, 0.35);
     }
   }
 }

@@ -340,6 +340,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const showPlayVoiceButton = ref(true)
   const playedAudio = ref(false)
   const dateNow = ref(new Date())
+  const timerEndDate = ref((new Date()).toLocaleString())
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -393,7 +394,15 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getCatastropheEndSeconds = computed(() => {
     return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000 || 0
   })
+  const getPlayerEndSeconds = computed(() => {
+    let seconds = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
+    
+    return seconds>0 && seconds<61?seconds:0
+  })
   let timerCatastrophe = null
+  setInterval(() => {
+    dateNow.value = new Date()
+  }, 1000)
   
   function setData(data) {
     if (!data || objIsEmpty(data)) {
@@ -406,7 +415,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
           if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)>0) {
             clearInterval(timerCatastrophe)
             timerCatastrophe = setInterval(() => {
-              dateNow.value = new Date()
               if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)<=0) {
                 clearInterval(timerCatastrophe)
                 useGlobalPopupStore().activate('Таймер истек', 'Таймер для катаклизма истек', 'red')
@@ -470,10 +478,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
         useSelectedGameGameplay().startTimer(data.timer.date)
       }
       else if (data.timer.seconds) {
+        timerEndDate.value = new Date(+(new Date()) + (+data.timer.seconds * 1000)).toLocaleString()
         timerSeconds.value = +data.timer.seconds
         timerStart.value = true
         isPauseTimer.value = true
-        
       }
     }
   }
@@ -519,13 +527,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let resultArray = []
       textArray.forEach((word, index) => {
         if (index===textArray.length - 1) {
-          resultArray.push(word.replaceAll('/',"$&&shy;/$&&shy;"))
+          resultArray.push(word.replaceAll('/', "$&&shy;/$&&shy;"))
         }
         else if (word.length>9) {
           resultArray.push(word.replace(/...../g, "$&&shy;").replace(/\/$/g, ""));
         }
         else {
-          resultArray.push(word.replaceAll('/',"$&&shy;/$&&shy;"))
+          resultArray.push(word.replaceAll('/', "$&&shy;/$&&shy;"))
         }
       })
       return resultArray.join(' ')
@@ -594,11 +602,14 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     dateNow.value = new Date()
     showCancelButton.value = false
     playedAudio.value = false
+    timerEndDate.value = new Date().toLocaleString()
   }
   
   return {
     showPlayVoiceButton,
     showCancelButton,
+    timerEndDate,
+    getPlayerEndSeconds,
     dateNow,
     votedPlayerID,
     playedAudio,
@@ -697,20 +708,20 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
         break;
       }
     }
+    selectedGameData.timerEndDate = date
     selectedGameData.timerStart = true
-    selectedGameData.timerSeconds = second
+    selectedGameData.isPauseTimer = false
+    selectedGameData.timerSeconds = 0
     timerInterval = setInterval(() => {
-      if (selectedGameData.timerSeconds<1) {
+      if (new Date(selectedGameData.timerEndDate)<new Date()) {
         stopTimer()
-      }
-      else if (!selectedGameData.isPauseTimer) {
-        selectedGameData.timerSeconds -= 1
       }
     }, 1000)
   }
   
   function pauseTimer() {
     selectedGameData.isPauseTimer = true
+    selectedGameData.timerSeconds = selectedGameData.getPlayerEndSeconds
   }
   
   function resumeTimer(date) {
@@ -718,6 +729,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   }
   
   function stopTimer() {
+    selectedGameData.timerEndDate = new Date().toLocaleString()
     selectedGameData.timerSeconds = 0
     selectedGameData.timerStart = false
     selectedGameData.isPauseTimer = false
