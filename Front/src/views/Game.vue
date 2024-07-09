@@ -314,7 +314,7 @@ function toggleSoundHandler() {
            :class="hostFunctional.haveAccess?myProfile.isAdmin?'_hostAndAdmin':'_host':myProfile.isAdmin?'_admin':''"
       >
         <div class="timerBlock__body btn gold border">
-          <span class="text">{{ selectedGameData.timerSeconds }} СЕК.</span>
+          <span class="text">{{ selectedGameData.isPauseTimer?selectedGameData.timerSeconds:selectedGameData.getPlayerEndSeconds }} СЕК.</span>
         </div>
       </div>
       <div class="timerBlock _catastrophe" v-if="selectedGameData.getCatastropheEndSeconds>0">
@@ -601,6 +601,10 @@ function toggleSoundHandler() {
                   <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
                                 :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
+              </div>
+
+              <div class="wrapper-listGamer__subText">
+                <p>* Чтобы узнать, выжил ли ваш бункер по окончании игры, вы можете пройти тест <a target="_blank" href="/test">Оценка выживаемости бункера</a></p>
               </div>
             </div>
           </div>
@@ -1183,6 +1187,26 @@ function toggleSoundHandler() {
 
 .wrapper-listGamer {
   overflow-x: auto;
+
+   &__subText {
+     margin-top: 20px;
+     color: #F9D35BFF;
+     background: linear-gradient(90deg, #F9D35B, #D96613);
+     background-clip: border-box;
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent;
+     line-height: 1.2;
+
+     a {
+       text-decoration: underline !important;
+
+       @media (any-hover: hover){
+         &:hover{
+           text-decoration: none !important;
+         }
+       }
+     }
+   }
 }
 
 .table-listGamer {
