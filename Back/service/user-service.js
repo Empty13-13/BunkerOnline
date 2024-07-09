@@ -41,7 +41,8 @@ class UserService {
       })
     }
     const candidateNickName = await UserModel.User.findOne(
-      {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)})
+      {where: {nickname:nickname}})
+    //sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)s
     if (candidateNickName) {
       throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
         [{input: 'nickname', type: 'Already exist'}])
@@ -537,17 +538,19 @@ class UserService {
     // console.log('Проверка', id.id)
     // let unCorrectInputs = ['nickname','.password','isActivated','activationLink','accsessLevel','numGame','numWinGame']
     for (let key in data) {
-      // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
+      // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)s
       if ('nickname'===key.toString()) {
-        const candidateNickName = await UserModel.User.findOne(
-          {where: sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), data[key])})
-        //  console.log('NICKNAME::', data[key])
-        //  console.log('candidateNickName::', candidateNickName)
-        
-        if (candidateNickName) {
-          throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
-            [{input: 'nickname', type: 'Already exist'}])
-          
+        if(user[key].toLowerCase().toString()!==data[key].toLowerCase().toString()) {
+          const candidateNickName = await UserModel.User.findOne(
+              {where: {nickname: data[key]}})
+          //  console.log('NICKNAME::', data[key])
+          //  console.log('candidateNickName::', candidateNickName)
+
+          if (candidateNickName) {
+            throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
+                [{input: 'nickname', type: 'Already exist'}])
+
+          }
         }
         user[key] = data[key]
       }

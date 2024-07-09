@@ -83,6 +83,7 @@ const GameRooms = sequelize.define('gameRooms', {
   bunkerItems1: {type: DataTypes.INTEGER},
   bunkerItems2: {type: DataTypes.INTEGER},
   bunkerItems3: {type: DataTypes.INTEGER},
+  creatorId: {type: DataTypes.INTEGER},
   bunkerItemsOthers: {type: DataTypes.STRING(1000)},
   bunkerFood: {type: DataTypes.INTEGER},
   imageId: {type: DataTypes.INTEGER},

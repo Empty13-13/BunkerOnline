@@ -606,7 +606,7 @@ class playerDataService {
       }
       // console.log('allImageId', allImageId)
       console.log(allImageId.length)
-      if(allImageId>0) {
+      if(allImageId.length>0) {
         console.log('ПРОШЛО')
         if (allImageId.length === 1) {
           imageId = allImageId[0].id

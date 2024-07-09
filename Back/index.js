@@ -78,6 +78,9 @@ require('./io/users-io')(io)
 
 const PORT = process.env.PORT || 5000;
 
+// const corsOptions ={
+//   origin: 'http://localhost:5173/',
+// }
 
 app.use(fileUpload({}))
 app.use(express.json());

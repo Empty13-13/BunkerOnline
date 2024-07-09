@@ -50,7 +50,7 @@ module.exports = function(io) {
      //   console.log('inValid idRoom')
         return
       }
-      let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId})
+      let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId,creatorId:isValidateId})
       
       await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
       
