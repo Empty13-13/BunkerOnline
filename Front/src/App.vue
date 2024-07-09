@@ -15,12 +15,14 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import { useStaticPagesStore } from "@/stores/static.js";
 import axiosInstance from "@/api.js";
+import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 const confirmStore = useConfirmBlockStore()
+const authSocket = useAuthSocketStore()
 const staticPages = useStaticPagesStore()
 
 const checkUser = () => {
@@ -75,6 +77,8 @@ onMounted(() => {
     setLocalData('betaTestPopup', true)
     showBetaPopup.value = true
   }
+
+  authSocket.setConnect()
 })
 
 </script>
