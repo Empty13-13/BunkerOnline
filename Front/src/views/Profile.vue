@@ -534,7 +534,7 @@ function activateKeyHandler(e) {
                 <span v-if="!isChangingName" :class="getClassForAccess(data.access.title)">
                   {{ data.name }}
                   <button
-                      v-if="((isMyProfile && myProfile.isHigherThanDefault && !myProfile.isVIP) || myProfile.isAdmin || (isMyProfile && myProfile.isVIP && data.isChange)) && !isChangingName"
+                      v-if="((isMyProfile && myProfile.isHigherThanDefault && !myProfile.isVIP) || myProfile.isAdmin || (isMyProfile && (myProfile.isVIP || myProfile.isDefault) && data.isChange)) && !isChangingName"
                       class="naming-profileBlock__blockBtn btn"
                       ref="changeNameBtn"
                       @click="changeName"
