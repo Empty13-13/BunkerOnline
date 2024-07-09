@@ -15,3 +15,8 @@ export const adminSocket = io(URL + 'admin', {
   path: '/socket/',
   autoConnect: false
 });
+
+export const authSocket = io(URL + 'auth', {
+  path: '/socket/',
+  autoConnect: false
+});
