@@ -34,7 +34,7 @@ onMounted(async () => {
             <router-link to="/test" class="wiki__link colorGold">Тест "Оценка выживаемости бункера"</router-link>
           </li>
           <li>
-            <router-link to="/wiki/professions" class="wiki__link colorGold">Профессиональные возможности</router-link>
+            <router-link to="/wiki/professional-abilities" class="wiki__link colorGold">Профессиональные возможности</router-link>
           </li>
           <li
               v-for="link in links"
