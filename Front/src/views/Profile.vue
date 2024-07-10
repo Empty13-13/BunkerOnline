@@ -832,13 +832,19 @@ function activateKeyHandler(e) {
         <template v-slot:title>
           Подтверждение смены пароля отправлено на почту
         </template>
-        Для изменения пароля следуйте инструкции в почте
+        <p style="text-align: center;">
+          Для изменения пароля следуйте инструкции в почте<br>
+          Если вы не можете найти письмо в ящике, тогда, пожалуйста, посмотрите его в списке "спам"
+        </p>
       </AppPopup>
       <AppPopup v-model="showEmailChangePopup" color="gold" style="z-index: 998 !important;">
         <template v-slot:title>
           Подтверждение смены Email отправлено на почту
         </template>
-        Для изменения Email следуйте инструкции в почте
+        <p style="text-align: center;">
+          Для изменения Email следуйте инструкции в почте<br>
+          Если вы не можете найти письмо в ящике, тогда, пожалуйста, посмотрите его в списке "спам"
+        </p>
       </AppPopup>
       <AppPopup v-model="showGeneratePopup" color="gold" style="z-index: 998 !important;">
         <template v-slot:title>

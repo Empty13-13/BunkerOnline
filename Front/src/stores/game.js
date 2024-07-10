@@ -1,12 +1,13 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import axiosInstance from "@/api.js";
-import { objIsEmpty } from "@/plugins/functions.js";
+import { objIsEmpty, setLocalData } from "@/plugins/functions.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
+import router from "@/router/index.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
@@ -410,6 +411,19 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     if (data.hasOwnProperty('bunkerData')) {
       for (let key in data.bunkerData) {
+        if (key==='endOfTime') {
+          clearInterval(timerCatastrophe)
+          if(data.bunkerData.endOfTime) {
+            if (+(new Date(data.bunkerData.endOfTime)) - +(dateNow.value)>0) {
+              timerCatastrophe = setInterval(() => {
+                if (+(new Date(data.bunkerData.endOfTime)) - +(dateNow.value)<=0) {
+                  clearInterval(timerCatastrophe)
+                  useGlobalPopupStore().activate('Таймер истек', 'Таймер для катаклизма истек', 'red')
+                }
+              }, 1000)
+            }
+          }
+        }
         bunkerData.value[key] = data.bunkerData[key]
         if (key==='endOfTime') {
           if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)>0) {
@@ -420,6 +434,15 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
                 useGlobalPopupStore().activate('Таймер истек', 'Таймер для катаклизма истек', 'red')
               }
             }, 1000)
+          }
+        }
+        if (key==='soundName') {
+          showPlayVoiceButton.value = true
+          playedAudio.value = false
+          if(data.bunkerData.soundName) {
+          
+          } else {
+          
           }
         }
       }
@@ -661,6 +684,12 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   
   function openChart(el, charName) {
     showConfirmBlock(el.target, () => {
+      if((charName==='spec1' || charName==='spec2') && selectedGameData.getMyPlayerData[charName].isOpen) {
+        console.log('записываем',router.currentRoute.value.params.id+":"+charName)
+        setLocalData(`game:${router.currentRoute.value.params.id}:${charName}`,{openedBefore:true,date: +(new Date())})
+      }
+      
+      
       selectedGameData.getMyPlayerData[charName].isLoading = true
       userSocket.emit('openChart', charName)
       userSocket.on('openChart:good', (chartName) => {

@@ -9,19 +9,19 @@ import { getClassForAccess, getId, getLinkParams } from "@/plugins/functions.js"
 import AppAvatar from "@/components/AppAvatar.vue";
 import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
+import axiosInstance from "@/api.js";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import Pagination from "@/views/Pagination.vue";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const access = useAccessStore()
 const authSocket = useAuthSocketStore()
+const otherTexts = useOtherTextsStore()
 
 const isOpen = ref(false)
 const header = ref(null)
 let oldScrollY = 0
-
-onBeforeMount(() => {
-
-})
 onMounted(async () => {
   window.addEventListener('scroll', headerScroll)
 })
@@ -30,12 +30,12 @@ onUnmounted(() => {
 })
 
 async function logout(e) {
-  showConfirmBlock(e.target,async () => {
+  showConfirmBlock(e.target, async () => {
     authSocket.emit('logout')
     authSocket.close()
     await authStore.logoutUser()
     isOpen.value = false
-  },'Вы уверены, что хотите выйти из аккаунта?')
+  }, 'Вы уверены, что хотите выйти из аккаунта?')
 
 }
 
@@ -88,15 +88,18 @@ function headerScroll() {
                 </li>
               </ul>
               <div class="header__socials socials-header">
-                <a target="_blank" href="" class="socials-header__item discord">
+                <a title="Наш дискорд канал" target="_blank" :href="otherTexts.allTexts['discordLink']" class="socials-header__item discord">
                   <img src="/img/icons/discord.png" alt="">
                 </a>
-                <a target="_blank" href="" class="socials-header__item telegram">
+                <a title="Наш телеграм канал" target="_blank" :href="otherTexts.allTexts['telegramLink']" class="socials-header__item telegram">
                   <img src="/img/icons/telegram.svg" alt="">
                 </a>
-<!--                <a target="_blank" href="" class="socials-header__item vk">-->
-<!--                  <img src="/img/icons/vk.svg" alt="">-->
-<!--                </a>-->
+                <a title="Сообщить об ошибке" target="_blank" href="https://discord.com/channels/725334064751706114/1093869495505928212" class="socials-header__item red" style="font-size: 18px; font-weight: 700">
+                  ?
+                </a>
+                <!--                <a target="_blank" href="" class="socials-header__item vk">-->
+                <!--                  <img src="/img/icons/vk.svg" alt="">-->
+                <!--                </a>-->
               </div>
               <div v-if="myProfile.isReg" v-adaptive="['.menu__body',992,0]"
                    class="header__authorization authorization-header">
@@ -342,6 +345,15 @@ function headerScroll() {
         background: $blueHover;
       }
     }
+
+    &.red {
+      background: red;
+
+      &:hover {
+        background: #ef2d2d;
+      }
+    }
+
   }
 }
 
@@ -393,7 +405,7 @@ function headerScroll() {
     height: 35px;
     max-width: 35px;
 
-    &>* {
+    & > * {
       pointer-events: none;
     }
   }

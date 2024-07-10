@@ -16,6 +16,7 @@ import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import { useStaticPagesStore } from "@/stores/static.js";
 import axiosInstance from "@/api.js";
 import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -24,6 +25,7 @@ const globalPreloader = usePreloaderStore()
 const confirmStore = useConfirmBlockStore()
 const authSocket = useAuthSocketStore()
 const staticPages = useStaticPagesStore()
+const otherTexts = useOtherTextsStore()
 
 const checkUser = () => {
   const tokens = authStore.getLocalData('userTokens')
@@ -60,7 +62,25 @@ onBeforeMount(async () => {
         localStorage.removeItem(key)
       }
     }
+    if(key.includes('game:')) {
+      let data = getLocalData(key)
+      if (data && data.date && ((new Date()) - new Date(data.date))>2.592e+8) {
+        localStorage.removeItem(key)
+      }
+    }
+    if(key.includes('betaTestPopup')) {
+      let data = getLocalData(key)
+      if(data && data.date) {
+        if(((new Date()) - new Date(data.date))>1000*60*60*24) {
+          localStorage.removeItem(key)
+        }
+      } else {
+        localStorage.removeItem(key)
+      }
+    }
   }
+
+  await otherTexts.downloadAllTexts()
 
 
   // try {
@@ -75,7 +95,7 @@ onBeforeMount(async () => {
 onMounted(() => {
   let betaPopupLocal = getLocalData('betaTestPopup')
   if (!betaPopupLocal) {
-    setLocalData('betaTestPopup', true)
+    setLocalData('betaTestPopup', {read:true,date: +(new Date())})
     showBetaPopup.value = true
   }
 
@@ -109,7 +129,7 @@ onMounted(() => {
     <p style="text-align: center">
       Сайт находится на стадии бета-тестирования. В случае возникновения ошибок/багов и других событий которые не должны
       были происходить, напишите нам по
-      <a target="_blank" href="">ссылке в групповой чат</a> и как можно подробнее опишите проблему с которой
+      <a target="_blank" href="https://discord.com/channels/725334064751706114/1093869495505928212">ссылке в групповой чат</a> и как можно подробнее опишите проблему с которой
       столкнулись, прикрепляя скриншот
       <br>
       <br>

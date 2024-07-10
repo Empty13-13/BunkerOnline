@@ -652,7 +652,11 @@ class UserController {
     try {
       const textData = await userService.getOtherText(req.params.id.toString())
       if (textData) {
-        res.json(textData.text)
+        if(textData.text) {
+          res.json(textData.text)
+        } else {
+          res.json(textData)
+        }
       //  console.log('Нашли текст')
       }
       else {

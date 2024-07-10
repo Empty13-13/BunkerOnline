@@ -18,7 +18,7 @@ const titles = [
   {name: 'Голосование', link: 'voting'},
   {name: 'Коллективное обсуждение', link: 'discussion'},
   {name: 'Победа в игре', link: 'winCondition'},
-  {name: 'Характеристика персонажа', link: 'characterDescription'},
+  // {name: 'Характеристика персонажа', link: 'characterDescription'},
 ]
 const navBlock = ref()
 const pageHTML = ref(`<h1 class="main-rules-p__title">Правила игры</h1>

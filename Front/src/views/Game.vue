@@ -272,7 +272,9 @@ const audioPlayer = ref()
 function toggleSoundHandler() {
   selectedGameData.playedAudio = !selectedGameData.playedAudio
   selectedGameData.showPlayVoiceButton = false
-  audioPlayer.value.play()
+  setTimeout(() => {
+    audioPlayer.value.play()
+  },200)
 }
 
 </script>
@@ -356,7 +358,7 @@ function toggleSoundHandler() {
                 <img :src="'/img/icons/' + (selectedGameData.playedAudio?'stop.png':'play.png')" alt="">
               </span>
             </button>
-            <audio v-show="!selectedGameData.showPlayVoiceButton" ref="audioPlayer" controls>
+            <audio v-if="!selectedGameData.showPlayVoiceButton" ref="audioPlayer" controls>
               <source :src="'/catastropheSounds/'+selectedGameData.bunkerData.soundName" type="audio/mp3" />
             </audio>
           </div>

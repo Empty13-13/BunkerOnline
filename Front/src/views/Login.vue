@@ -12,12 +12,14 @@ import AppPopup from "@/components/AppPopup.vue";
 import axiosInstance from "@/api.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
+const otherTexts = useOtherTextsStore()
+
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const showPopup = ref(false)
-
 const nicknameReg = ref()
 const emailReg = ref()
 const passwordReg = ref()
@@ -183,7 +185,7 @@ function setErrorForInput(inputName, textSmall) {
 
 function clickRulesHandler(e) {
   e.preventDefault()
-  globalPopup.activate('Как играть?', 'Написать текст в будущем')
+  globalPopup.activate(otherTexts.allTexts['registrationRules:title'], otherTexts.allTexts['registrationRules:text'])
 }
 
 </script>

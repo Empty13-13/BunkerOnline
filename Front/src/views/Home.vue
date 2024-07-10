@@ -16,12 +16,14 @@ import axiosInstance from "@/api.js";
 import AppLoader from "@/components/AppLoader.vue";
 import { getId, getLocalData, recaptchaMaker } from "@/plugins/functions.js";
 import { set, useWindowFocus } from "@vueuse/core";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
+const otherTexts = useOtherTextsStore()
 
 const activeGames = ref([])
 const streamersData = [
@@ -36,9 +38,21 @@ const inputId = ref('')
 const isOpenHowToPlay = ref(false)
 
 function openGallery(e) {
-  let imgDiv = e.target.parentNode.parentNode.querySelector('.interface__img')
-  const imgRect = imgDiv.getBoundingClientRect()
-  const oldStyle = imgDiv.style
+  let imgDiv = e.target.querySelector('.interface__img')
+  if(imgDiv) {
+    if(!imgDiv.classList.contains('_active')) {
+      document.querySelector('.interface__body').querySelectorAll('.interface__img').forEach(item => item.classList.remove('_active'))
+    }
+    imgDiv.classList.toggle('_active')
+  } else {
+    imgDiv = e.target.closest('.interface__img')
+    if(imgDiv) {
+      if(!imgDiv.classList.contains('_active')) {
+        document.querySelector('.interface__body').querySelectorAll('.interface__img').forEach(item => item.classList.remove('_active'))
+      }
+      imgDiv.classList.toggle('_active')
+    }
+  }
 }
 
 const showPopup = ref(false)
@@ -252,21 +266,10 @@ async function getImageName() {
     </div>
 
     <AppPopup v-model="isOpenHowToPlay">
-      <template v-slot:title>
-        Как играть?
+      <template v-slot:title >
+        <p v-html="otherTexts.allTexts['howToPlay:title']"></p>
       </template>
-      1) Нажать на кнопку "Создать игру!" (после создания комнаты вы автоматически становитесь ведущим игры).<br>
-      <br>
-      2) На следующей странице вы получите ссылку на игровую комнату. Разошлите эту ссылку людям, с которыми вы хотите
-      играть.<br>
-      <br>
-      3) Ждем, когда все желающие присоединятся. Вы, как ведущий игры, будете видеть кто уже зашел.<br>
-      <br>
-      4) Как только зайдут все желающие, вы должны начать игру, нажав на кнопку "Начать игру!".<br>
-      <br>
-      Как найти игроков?<br>
-      Все очень просто! Присоединяйтесь к нашему <a target="_blank" href="">Discord</a> каналу, где вы всегда найдете
-      людей, с которыми отлично проведете время!<br>
+      <div v-html="otherTexts.allTexts['howToPlay:text']"></div>
     </AppPopup>
     <teleport to="#app">
       <TheResetPopup v-if="showPopup" />
@@ -280,6 +283,7 @@ async function getImageName() {
 .main {
   position: relative;
   overflow: hidden;
+  z-index: 4 !important;
 }
 
 //========================================================================================================================================================
@@ -557,6 +561,8 @@ async function getImageName() {
 
 //========================================================================================================================================================
 .interface {
+  position: relative;
+  z-index: 10;
 
   &__title {
   }
@@ -592,7 +598,7 @@ async function getImageName() {
     &:hover {
       cursor: pointer;
 
-      .interface__img {
+      .interface__img:not(._active) {
         border-color: white;
         transform: scale(1.05);
       }
@@ -612,7 +618,6 @@ async function getImageName() {
 
     @include adaptiveValue("height", 250, 136, 991, 360);
 
-
     img {
       position: absolute;
       left: 0;
@@ -621,6 +626,33 @@ async function getImageName() {
       height: 100%;
       object-fit: cover;
       object-position: center;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    &._active {
+      position: fixed;
+      z-index: 12;
+      left: 10%;
+      top: 10%;
+      width: 80%;
+      height: 80%;
+      transition: none;
+
+      img {
+        object-fit: contain;
+      }
+
+      &::after {
+        content: '';
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background: rgba(0,0,0,0.7);
+        z-index: -1;
+      }
     }
   }
 

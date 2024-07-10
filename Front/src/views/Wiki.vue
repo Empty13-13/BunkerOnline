@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import axiosInstance from "@/api.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
 const globalPreloader = usePreloaderStore()
+const otherTexts = useOtherTextsStore()
 
 const links = ref([])
 
@@ -25,14 +27,7 @@ onMounted(async () => {
     <div class="wiki__container ">
       <h1 class="wiki__title titleH1">Добро пожаловать на Bunker Online вики!</h1>
       <div class="wiki__body">
-        <p class="wiki__description">
-          Добро пожаловать на Bunker Online вики! <br>
-          Это энциклопедия, посвящённая игре «Бункер Онлайн!»! <br>
-          Здесь вы
-          найдете всю детальную информацию об игровых элементах, таких как, например, характеристики и что они означают.<br>
-          Также вы будете иметь полное представление о том, что за болезнь у вашего персонажа, на сколько это опасно и
-          т.д. <br>
-          Категории:
+        <p class="wiki__description" v-html="otherTexts.allTexts['wiki:text']">
         </p>
         <ul>
           <li>

@@ -1,5 +1,8 @@
 <script setup="">
 
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
+
+const otherTexts = useOtherTextsStore()
 </script>
 
 <template>
@@ -7,7 +10,7 @@
     <div class="contacts__container">
       <h1 class="contacts__title titleH1">Контакты</h1>
       <div class="contacts__body">
-        <a target="_blank" class="block-contacts linear-border gold">
+        <a target="_blank" :href="otherTexts.allTexts['telegramLink']" class="block-contacts linear-border gold">
           <div class="block-contacts__img">
             <img src="/img/icons/telegram.png" alt="">
           </div>
@@ -16,7 +19,7 @@
             <p class="block-contacts__text">Перейти</p>
           </div>
         </a>
-        <a target="_blank" class="block-contacts linear-border gold">
+        <a target="_blank" :href="otherTexts.allTexts['discordLink']" class="block-contacts linear-border gold">
           <div class="block-contacts__img">
             <img src="/img/icons/discord.png" alt="">
           </div>

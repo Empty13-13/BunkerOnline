@@ -41,7 +41,7 @@ class UserService {
       })
     }
     const candidateNickName = await UserModel.User.findOne(
-      {where: {nickname:nickname}})
+      {where: {nickname: nickname}})
     //sequelize.where(sequelize.fn('BINARY', sequelize.col('nickname')), nickname)s
     if (candidateNickName) {
       throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
@@ -171,7 +171,7 @@ class UserService {
         isAdmin = true
       }
     }
-   // console.log('userID',userId)
+    // console.log('userID',userId)
     const users = await UserModel.User.findOne({where: {id: userId}})
     if (!users) {
       throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Wrong user'}])
@@ -182,7 +182,7 @@ class UserService {
     if (users.hiddenBirthday===1) {
       isBdayHidden = true
     }
-    if(users.refreshNickname){
+    if (users.refreshNickname) {
       isChange = true
       users.dataValues.isChange = isChange
     }
@@ -197,7 +197,7 @@ class UserService {
     if (userIsBlock) {
       isBan = true
     }
-
+    
     users.dataValues.isBanned = isBan
     //   console.log(isBdayHidden, isAdmin, isUser)
     // let birthday = users.dataValues.birthday
@@ -217,17 +217,18 @@ class UserService {
     
     return users
   }
-
-  async getPrice(){
+  
+  async getPrice() {
     console.log('1')
-    try{
-      const resp = await axios.get('https://a.ggsel.com/partner/paginate/goods?token=$2y$10$xB37cm37yDYUcQXFC.mtie2sAa.xArJbvq56tVMr97/b8SBEKfFiq&filter[id_goods]=3726124')
+    try {
+      const resp = await axios.get(
+        'https://a.ggsel.com/partner/paginate/goods?token=$2y$10$xB37cm37yDYUcQXFC.mtie2sAa.xArJbvq56tVMr97/b8SBEKfFiq&filter[id_goods]=3726124')
       //console.log(resp.data.links)
-    }catch (e) {
+    } catch(e) {
       console.log(e)
     }
-
-
+    
+    
   }
   
   async connectionDiscord(code, res) {
@@ -425,12 +426,12 @@ class UserService {
     const extension = (path.extname(file['name'])).toLowerCase()
     //const type = file['name'].replace('image/','')
     //  console.log(extension)
-
+    
     const user = await UserModel.User.findOne({where: {id: userId}})
     if (tokenId===userId) {
       if (extension==='gif') {
         if (user.accsessLevel.toString()!=='mvp' || user.accsessLevel.toString()!=='admin') {
-        //  console.log('ZAPRET EPTAAA')
+          //  console.log('ZAPRET EPTAAA')
           throw ApiError.BadRerquestUser('Такого пользователя не существует', [{type: 'Acsess Denied'}])
         }
       }
@@ -541,16 +542,16 @@ class UserService {
     for (let key in data) {
       // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)s
       if ('nickname'===key.toString()) {
-        if(user[key].toLowerCase().toString()!==data[key].toLowerCase().toString()) {
+        if (user[key].toLowerCase().toString()!==data[key].toLowerCase().toString()) {
           const candidateNickName = await UserModel.User.findOne(
-              {where: {nickname: data[key]}})
+            {where: {nickname: data[key]}})
           //  console.log('NICKNAME::', data[key])
           //  console.log('candidateNickName::', candidateNickName)
-
+          
           if (candidateNickName) {
             throw ApiError.BadRerquest(`Пользователь с таким ником уже существует`,
-                [{input: 'nickname', type: 'Already exist'}])
-
+              [{input: 'nickname', type: 'Already exist'}])
+            
           }
         }
         user[key] = data[key]
@@ -561,8 +562,8 @@ class UserService {
       
       
     }
-    if(user.accsessLevel==='vip'){
-      user.refreshNickname=0
+    if (user.accsessLevel==='vip') {
+      user.refreshNickname = 0
     }
     await user.save()
     //  console.log(newUser.nickname)
@@ -755,19 +756,20 @@ class UserService {
     return dataRooms
     
   }
-
-  async getHomeImageName(){
-    let image = await UserModel.CatastropheImage.findAll({where:{favourite:1},raw:true})
-    let index = playerDataService.getRandomInt(0,image.length-1)
+  
+  async getHomeImageName() {
+    let image = await UserModel.CatastropheImage.findAll({where: {favourite: 1}, raw: true})
+    let index = playerDataService.getRandomInt(0, image.length - 1)
 //     let system = await UserModel.SystemSettings.findAll()
 //     if(system.homeImageName!==null){
 //
 //     }
-    if(image[index].imageName){
-    return {imageName:image[index].imageName}
-}else{
-  return {iamgeName:null}
-}
+    if (image[index].imageName) {
+      return {imageName: image[index].imageName}
+    }
+    else {
+      return {iamgeName: null}
+    }
   }
   
   async changePack(token, idPack, isUse) {
@@ -960,7 +962,17 @@ class UserService {
   }
   
   async getOtherText(name) {
-    return await UserModel.OtherTexts.findOne({where: {name}})
+    if (name==='all') {
+      let a = await UserModel.OtherTexts.findAll()
+      let resultObj = a.reduce((old, item) => {
+        old[item.name] = item.text
+        return old
+      }, {})
+      return resultObj
+    }
+    else {
+      return await UserModel.OtherTexts.findOne({where: {name}})
+    }
   }
   
   async getPriceInfo() {
@@ -1010,11 +1022,12 @@ async function getGamesData(userId, noregUserId) {
       
       
       if (idUserGame.includes(gameRoom.id)) {
-        const countPlayers = await UserModel.RoomSession.findAndCountAll({where: {gameRoomId: gameRoom.id,isPlayer:1}})
+        const countPlayers = await UserModel.RoomSession.findAndCountAll(
+          {where: {gameRoomId: gameRoom.id, isPlayer: 1}})
         let isHost = false
-        if(gameRoom.hostId===userId || gameRoom.hostId===noregUserId){
+        if (gameRoom.hostId===userId || gameRoom.hostId===noregUserId) {
           isHost = true
-        
+          
         }
         data.push({
           idRoom: gameRoom.idRoom,

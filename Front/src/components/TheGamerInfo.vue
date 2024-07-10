@@ -3,6 +3,8 @@ import AppSmallInfo from "@/components/AppSmallInfo.vue";
 import { useUserSocketStore } from "@/stores/socket/userSocket.js";
 import { useSelectedGame, useSelectedGameData, useSelectedGameGameplay } from "@/stores/game.js";
 import AppLoader from "@/components/AppLoader.vue";
+import { getLocalData } from "@/plugins/functions.js";
+import router from "@/router/index.js";
 
 defineProps(['data', 'isReg', 'isCreate', 'nickname', 'id'])
 
@@ -204,7 +206,7 @@ const specItems = [
                 <p class="item-gamerInfo__text">{{ data[specItems[item - 1][1]].text }}</p>
                 <div v-if="selectedGameData.userData[useSelectedGame().userId] && selectedGameData.userData[useSelectedGame().userId].isAlive"
                      class="item-gamerInfo__lockedFunc">
-                  <button v-if="data.isMVPRefresh===false"
+                  <button v-if="data.isMVPRefresh===false && (!getLocalData(`game:${router.currentRoute.value.params.id}:${specItems[item - 1][1]}`) || (getLocalData(`game:${router.currentRoute.value.params.id}:${specItems[item - 1][1]}`) && !getLocalData(`game:${router.currentRoute.value.params.id}:${specItems[item - 1][1]}`).openedBefore))"
                           @click="selectedGameGameplay.mvpReload($event,specItems[item - 1][1])"
                           class="item-gamerInfo__reload">
                     <img v-if="!data[`spec${item}`].isOpen" src="/img/icons/reload.png" alt="">
