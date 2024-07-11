@@ -9,17 +9,14 @@ const globalPreloader = usePreloaderStore()
 
 const inputModel = ref('')
 
-const list = [
-  {title: '3D Аниматор', description: 'Может добавить себе в "Инвентарь" планшет с зарядным устройством.'},
-  {title: 'Профессия 2', description: 'Описание какое то для второй проффессии'},
-]
+const list = ref([])
 const getResultList = computed(() => {
   let inputValue = inputModel.value
   if (!inputValue.length>0) {
-    return list
+    return list.value
   }
   else {
-    return list.reduce((old, item) => {
+    return list.value.reduce((old, item) => {
       let check = false
       let newItem = {}
       Object.assign(newItem, item)
