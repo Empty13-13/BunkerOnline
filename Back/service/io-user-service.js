@@ -216,6 +216,7 @@ class ioUserService {
           let sound = await UserModel.CatastropheSounds.findOne({where:{id:otherVar.soundId}})
           soundName = sound.soundName
         }
+        gameRoom.soundId = otherVar.soundId
         gameRoom.imageId = otherVar.imageId
         gameRoom.population = otherVar.population
 
