@@ -1,8 +1,11 @@
 <script setup="">
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
-import { computed, ref } from "vue";
+import { computed, onBeforeMount, ref } from "vue";
+import axiosInstance from "@/api.js";
+import { usePreloaderStore } from "@/stores/preloader.js";
 
 const otherTexts = useOtherTextsStore()
+const globalPreloader = usePreloaderStore()
 
 const inputModel = ref('')
 
@@ -33,6 +36,21 @@ const getResultList = computed(() => {
       }
       return old
     }, [])
+  }
+})
+
+onBeforeMount(async () => {
+  try {
+    globalPreloader.activate()
+    let baseProfData = await axiosInstance.get('/getBaseProfession')
+    console.log(baseProfData)
+    if(baseProfData.data) {
+      list.value = baseProfData.data
+    }
+  } catch(e) {
+    console.log('Ошибка при попытке взять профессии')
+  } finally {
+    globalPreloader.deactivate()
   }
 })
 </script>
