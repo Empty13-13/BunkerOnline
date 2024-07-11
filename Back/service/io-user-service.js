@@ -211,6 +211,7 @@ class ioUserService {
           let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
           imageName = image.imageName
         }
+        console.log(otherVar)
         if(otherVar.soundId && otherVar.soundId !== null){
           let sound = await UserModel.CatastropheSounds.findOne({where:{id:otherVar.soundId}})
           soundName = sound.soundName

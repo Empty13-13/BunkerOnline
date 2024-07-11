@@ -451,7 +451,7 @@ module.exports = function(io) {
           chartName = null
         }
         let gameRoom = await UserModel.GameRooms.findOne({
-          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted', 'population','bunkerItemsOthers',],
+          attributes: ['bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'imageId', 'isStarted', 'population','bunkerItemsOthers','soundId'],
           where: {idRoom: idRoom},
           raw: true
         })
@@ -466,7 +466,7 @@ module.exports = function(io) {
             
             
             for (let key in gameRoom) {
-              if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='population') {
+              if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='population'&& key.toString()!=='soundId') {
                // console.log('KEY', key)
                 bunkerData[key] = gameRoom[key]
                 
