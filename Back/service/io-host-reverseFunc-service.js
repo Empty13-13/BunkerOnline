@@ -147,7 +147,7 @@ class ioHostRevFunc {
       data = lastVar[player.userId]
       data.isOpen = isOpen
       player[chartName] = JSON.stringify(data)
-      //  console.log(data)ssss160
+      //  console.log(data)ssss160ы
       if (isOpen) {
         openData[chartName] = data
       }

@@ -269,9 +269,12 @@ class UserService {
     //console.log(candidate)
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
     //console.log(candidateUser.userId)
+
     if (!candidate) {
       let userDto = null
+      console.log('ДОШЁЛ1')
       if (!candidateUser) {
+        console.log('ДОШЁЛ2')
         const password = gen_password(16)
         const hashPassword = await bcrypt.hash(password, 3)
         const user = await UserModel.User.create(
@@ -285,12 +288,14 @@ class UserService {
         
       }
       else {
-        const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: candidateUser.userId}})
+        console.log('ДОШЁЛ3s',candidateUser)
+        const userIsBlock = await UserModel.BlackListUsers.findOne({where: {userId: candidateUser.id}})
         if (userIsBlock) {
           return 'banned'
         }
         userDto = new UserDto(candidateUser)
       }
+      console.log('ДОШЁЛ4')
       await UserModel.DiscordAuthId.create({userId: userDto.id, discordId: userId})
       const tokens = tokenService.generateTokens({...userDto})
       await tokenService.saveToken(userDto.id, tokens.refreshToken)
