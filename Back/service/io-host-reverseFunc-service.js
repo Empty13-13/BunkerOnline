@@ -134,7 +134,7 @@ class ioHostRevFunc {
 
   }
 
-  async exchangeChartRev(playersId, lastVar, gameRoomId, idRoom, io, chartName) {
+  async exchangeChartRev(playersId, lastVar, gameRoomId, idRoom, io, chartName,bunkerItems) {
     let emitData = {players: {}, logsData: {}}
     let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomId, userId: playersId}})
 
@@ -159,6 +159,10 @@ class ioHostRevFunc {
       await player.save()
       emitData.players[player.userId] = openData
       io.to(`user:${player.userId}:${idRoom}`).emit('setAllGameData', {players: {[player.userId]: closeData}})
+    }
+    if(bunkerItems.length>0){
+      emitData.bunkerData= {bunkerItems:bunkerItems}
+
     }
     return emitData
 

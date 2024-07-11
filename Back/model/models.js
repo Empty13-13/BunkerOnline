@@ -191,6 +191,12 @@ const CatastropheSounds = sequelize.define('catastropheSounds', {
   soundName: {type: DataTypes.STRING},
   catastropheId: {type: DataTypes.INTEGER}
 })
+const EmailNotification = sequelize.define('emailNotification', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  type: {type: DataTypes.STRING},
+  userId: {type: DataTypes.INTEGER},
+  timerEndDate : {type: DataTypes.DATE}
+})
 
 const OtherTexts = sequelize.define('otherTexts', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
@@ -259,5 +265,6 @@ module.exports = {
   Logi,
   OtherTexts,
   gameKey,
-  prices
+  prices,
+  EmailNotification
 }

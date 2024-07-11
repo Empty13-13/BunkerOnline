@@ -40,7 +40,26 @@ const limiter = rateLimit({
       console.log("22", user)
       if (user) {
         console.log("22222222", user.email)
-        mailService.sendRateLimited(user.email)
+        let emailNotification = await UserModel.EmailNotification.findOne({where:{userId:user.id,type:'bruet'}})
+        let nextDate = new Date(new Date().setUTCHours(0, 0, 0, 0) + 7 * 24 * 60 * 60 * 1000)
+        let isSend = true
+        let today =  new Date(new Date().setUTCHours(0, 0, 0, 0) )
+        if(emailNotification){
+          if(emailNotification.timerEndDate < today){
+            console.log('Можно отправлять')
+            emailNotification.timerEndDate = nextDate
+            await emailNotification.save()
+          }else{
+            console.log('Нельзя отправлять')
+            isSend = false
+          }
+        }else{
+          console.log('Новая записььв')
+          await UserModel.EmailNotification.create({type:'bruet',userId:user.id,timerEndDate:nextDate})
+        }
+        if(isSend) {
+          mailService.sendRateLimited(user.email)
+        }
       }
       
       throw ApiError.BadRerquest(`Привышен лимит запросов`, [{input: 'login', type: 'Rate limited'}])

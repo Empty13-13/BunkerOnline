@@ -138,10 +138,18 @@ class ioUserService {
       }
       return await ioHostRevFunc.cureMakeRev(playerIds, lastVar, gameRoom.id, idRoom, io)
     }
-    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour' || funcName==='stealChart' || funcName==='deleteRelocate') {
+    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour' || funcName==='stealChart' || funcName.includes('deleteRelocate')) {
       //console.log(lasstVar)sssssssss
       let playerIds = []
       let chartName
+      let makeId =1
+      let bunkerItems = []
+      console.log(funcName)
+      if(funcName.includes('deleteRelocate')){
+        if(funcName.includes('drop')){
+          makeId = 0
+        }
+      }
       for (let key in lastVar) {
         console.log(key, lastVar[key])
         if (key==='chartName') {
@@ -151,7 +159,25 @@ class ioUserService {
           playerIds.push(key)
         }
       }
-      return await ioHostRevFunc.exchangeChartRev(playerIds, lastVar, gameRoom.id, idRoom, io, chartName)
+      if(funcName.includes('deleteRelocate') && playerIds.length===1 && makeId===1){
+        console.log('ПЕРЕНЕС ИНВЕНТАРЬ',lastVar[playerIds[0]].text)
+      if(gameRoom.bunkerItemsOthers.includes(lastVar[playerIds[0]].text)){
+        console.log(gameRoom.bunkerItemsOthers)
+        gameRoom.bunkerItemsOthers = gameRoom.bunkerItemsOthers.replaceAll(`,${lastVar[playerIds[0]].text}`,'')
+        console.log(gameRoom.bunkerItemsOthers)
+        await gameRoom.save()
+
+        let items = await UserModel.ChartBunker.findAll({where:{id:[gameRoom.bunkerItems1,gameRoom.bunkerItems2,gameRoom.bunkerItems3]}})
+        for(let item of items){
+          bunkerItems.push(item.text)
+
+        }
+        bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
+       // emitData.bunkerData[chartName]=bunkerItems
+      }
+
+      }
+      return await ioHostRevFunc.exchangeChartRev(playerIds, lastVar, gameRoom.id, idRoom, io, chartName,bunkerItems)
     }
     if (funcName.includes('bunkerData')) {
       let lst = structuredClone(lastVar)

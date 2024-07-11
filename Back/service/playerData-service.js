@@ -1041,7 +1041,7 @@ class playerDataService {
       // console.log('allImageId', allImageId)
       let imageId = null
       let imageName = null
-      if(allImageId>0) {
+      if(allImageId.length>0) {
         if (allImageId.length === 1) {
           imageId = allImageId[0].id
           imageName = allImageId[0].imageName

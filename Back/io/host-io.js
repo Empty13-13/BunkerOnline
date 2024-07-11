@@ -90,15 +90,15 @@ module.exports = function(io) {
           //     console.log('Игра уже началась, невозможно выгнать')
           return
         }
-        console.log(`Delete Users ${Id}`)
-        console.log(gameRoomId)
+      //  console.log(`Delete Users ${Id}`)
+      //  console.log(gameRoomId)
         await UserModel.RoomSession.destroy({where: {userId: Id, gameRoomId: gameRoomId}})
         io.to(`user:${Id}:${idRoom}`).emit('kickOut', {message: 'Вас выгнали из комнаты'})
         io.to(`user:${Id}:${idRoom}`).disconnectSockets(true)
         io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
       })
       socket.on('isHiddenGame', async (isHiddenTrack) => {
-        console.log('TRY ISHIDDENGAME')
+    //    console.log('TRY ISHIDDENGAME')
         if (token) {
           let isValid = tokenService.validateAccessToken(token)
           if (!isValid) {
@@ -109,13 +109,13 @@ module.exports = function(io) {
                 functionName: 'isHiddenGame',
                 vars: [isHiddenTrack]
               })
-            console.log("INVALID TOKEN EPTA")
+          //  console.log("INVALID TOKEN EPTA")
             return
           }
           
           let userData = await UserModel.User.findOne({where: {id: isValid.id}})
           
-          console.log('PRIVATE GAME')
+      //    console.log('PRIVATE GAME')
           // console.log(userData && userData.accsessLevel.toString().toLowerCase()==="mvp" && userData.accsessLevel.toString().toLowerCase()==="admin")
           if (userData && (userData.accsessLevel.toString().toLowerCase()==="mvp" || userData.accsessLevel.toString().toLowerCase()==="admin")) {
             // console.log('PRIVATE GAME MVP',userData)
@@ -278,7 +278,7 @@ module.exports = function(io) {
           }
           
           const data = await playerDataService.createDataGame(idRoom, playersData)
-          console.log(data)
+       //   console.log(data)
           
           let room = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
           room.isStarted = 1
@@ -288,7 +288,7 @@ module.exports = function(io) {
           sendData.userData = data.userData
           sendData.bunkerData = data.bunkerData
           sendData.players = {}
-          console.log('DATA SOZDANA')
+        //  console.log('DATA SOZDANA')
           for (let playerId in data.userData) {
             sendData.players = {}
             if (data.userData[playerId].isPlayer) {
@@ -320,7 +320,7 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         //console.log(gameRoom)
           let isHostEmit = false
-        console.log(io.sockets.adapter.rooms)
+     //   console.log(io.sockets.adapter.rooms)
         if (gameRoom && gameRoom.isStarted) {
           gameRoom.voitingStatus = 0
           let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
@@ -353,9 +353,9 @@ module.exports = function(io) {
             })
             io.to(`user:${player.userId}:${idRoom}`).emit('voiting:start')
           }
-          console.log(isHostEmit,userId)
+        //  console.log(isHostEmit,userId)
           if(!isHostEmit){
-              console.log('Отправилось')
+            //  console.log('Отправилось')
               io.to(`user:${userId}:${idRoom}`).emit('setAllGameData', {
                   voitingData: {status: gameRoom.voitingStatus, userChoise: null},
                   logsData: [{type: 'text', value: 'Голосование началось', date: new Date()}]
@@ -467,7 +467,7 @@ module.exports = function(io) {
             
             for (let key in gameRoom) {
               if (key.toString()!=='isStarted' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='population') {
-                console.log('KEY', key)
+               // console.log('KEY', key)
                 bunkerData[key] = gameRoom[key]
                 
               }
@@ -500,18 +500,18 @@ module.exports = function(io) {
                 lastVar: gameRoom[chartName],
                 otherVar: {imageId: gameRoom.imageId, population: gameRoom.population,soundId:gameRoom.soundId}
               }
-              console.log(gameRoom.population)
+          //    console.log(gameRoom.population)
             }else if(chartName==='bunkerItems'){
                 vars = {
                     chartName: chartName,
                     lastVar : [gameRoom.bunkerItems1,gameRoom.bunkerItems2,gameRoom.bunkerItems3,gameRoom.bunkerItemsOthers]
                 }
-                console.log(gameRoom.bunkerItemsOthers)
+              //  console.log(gameRoom.bunkerItemsOthers)
             }
             else {
               vars = {chartName: chartName, lastVar: gameRoom[chartName]}
             }
-            console.log('LOOOOL',vars)
+          //  console.log('LOOOOL',vars)
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: `bunkerData:${chartName}`,
@@ -547,7 +547,7 @@ module.exports = function(io) {
         let textForLog = ''
         if (value) {
           if ((gameRoom.maxSurvivor + 1)<=players.length) {
-            console.log(gameRoom.maxSurvivor)
+           // console.log(gameRoom.maxSurvivor)
             await UserModel.Logi.create({
               idRoom: idRoom,
               funcName: 'maxSurvivor',
@@ -558,7 +558,7 @@ module.exports = function(io) {
             textForLog = `Ведущий увеличил мест в бункере до ${gameRoom.maxSurvivor + 1}`
             gameRoom.maxSurvivor += 1
             await gameRoom.save()
-            console.log(gameRoom.maxSurvivor)
+         //   console.log(gameRoom.maxSurvivor)
             
           }
           else {
@@ -608,7 +608,7 @@ module.exports = function(io) {
         )
       })
       socket.on('refresh:professionExp', async (playersId, expId) => {
-        console.log('id', playersId)
+      //  console.log('id', playersId)
         const expLevel = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт', 'Профессионал']
         if (expId>5 || expId<0) {
           socket.emit("setError",
@@ -667,15 +667,15 @@ module.exports = function(io) {
           }
           players = [players]
         }
-        console.log(players)
+      //  console.log(players)
         let emitData = {players: {}, logsData: {}}
-        console.log(players.length)
+      //  console.log(players.length)
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.profession)
-            console.log(data.text)
+         //   console.log(data.text)
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
-            console.log('ecsExp', ecsExp)
+         //   console.log('ecsExp', ecsExp)
             if (ecsExp!=='') {
               lastVar[player.userId] = ecsExp
               data.text = data.text.replace(ecsExp, exp)
@@ -683,10 +683,10 @@ module.exports = function(io) {
               player.profession = JSON.stringify(data)
               await player.save()
               data = {profession: data}
-              console.log(data)
+            //  console.log(data)
               
               if (isOpen) {
-                console.log("player.userId", player.userId)
+            //    console.log("player.userId", player.userId)
                 emitData.players[player.userId] = data
               }
               else {
@@ -722,7 +722,7 @@ module.exports = function(io) {
             lastVar: JSON.stringify(lastVar)
           })
         }
-        console.log(emitData)
+       // console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
@@ -738,7 +738,7 @@ module.exports = function(io) {
       })
       socket.on('rollTheDice', async (value) => {
         let num = playerDataService.getRandomInt(1, value)
-        console.log('VIPALO', num)
+       // console.log('VIPALO', num)
         await UserModel.Logi.create(
           {
             idRoom: idRoom,
@@ -776,7 +776,7 @@ module.exports = function(io) {
         vars.text = playerProfessionData.text
         lastVar[lastPlayer.userId] = vars
         if (playerProfessionData.isOpen) {
-          console.log("isOpen", players[0].userId)
+        //  console.log("isOpen", players[0].userId)
           emitData.players[players[0].userId] = {profession: playerProfessionData}
         }
         else {
@@ -795,7 +795,7 @@ module.exports = function(io) {
           lastVar[player.userId] = vars
           
           if (data.isOpen) {
-            console.log("isOpen", player.userId)
+           // console.log("isOpen", player.userId)
             emitData.players[player.userId] = {profession: dataForNextPlayer}
           }
           else {
@@ -851,7 +851,7 @@ module.exports = function(io) {
           //console.log(player.userId)
           await player.save()
           if (data.isOpen) {
-            console.log("player.userId", player.userId)
+          //  console.log("player.userId", player.userId)
             emitData.players[player.userId] = {profession: data}
           }
           else {
@@ -874,7 +874,7 @@ module.exports = function(io) {
       socket.on('refresh:sexOpposite', async (playerId) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         
-        console.log('PROVERKA ID', playerId)
+       // console.log('PROVERKA ID', playerId)
         let players = null
         let textForLog = ''
         let lastVar = {}
@@ -917,14 +917,14 @@ module.exports = function(io) {
           }
           players = [players]
         }
-        console.log(players)
+       // console.log(players)
         let emitData = {players: {}, logsData: {}}
-        console.log(players.length)
+      //  console.log(players.length)
         let invalidPlayersNickname = []
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.sex)
-            console.log(data.text)
+           // console.log(data.text)
             if (data.text.includes('Мужчина')) {
               data.text = data.text.replace('Мужчина', 'Женщина')
               lastVar[player.userId] = 'Мужчина'
@@ -937,15 +937,15 @@ module.exports = function(io) {
               invalidPlayersNickname.push(await ioUserService.getNickname(player.userId))
               continue
             }
-            console.log(data.text)
+          //  console.log(data.text)
             let isOpen = data.isOpen
             player.sex = JSON.stringify(data)
             await player.save()
             data = {sex: data}
-            console.log(data)
+           // console.log(data)
             
             if (isOpen) {
-              console.log("player.userId", player.userId)
+           //   console.log("player.userId", player.userId)
               emitData.players[player.userId] = data
             }
             else {
@@ -956,7 +956,7 @@ module.exports = function(io) {
             // добавляем в список недействительных пользователей
           }
         }
-        console.log('invalidPlayersNickname.length', invalidPlayersNickname.length, invalidPlayersNickname)
+     //   console.log('invalidPlayersNickname.length', invalidPlayersNickname.length, invalidPlayersNickname)
         if (invalidPlayersNickname.length) {
           socket.emit("setError", {
             message: "Нельзя изменить пол на противополжный у данного(ых) игроков",
@@ -974,7 +974,7 @@ module.exports = function(io) {
             lastVar: JSON.stringify(lastVar)
           })
         }
-        console.log(emitData)
+       // console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
@@ -1148,14 +1148,14 @@ module.exports = function(io) {
           }
           players = [players]
         }
-        console.log(players)
+     //   console.log(players)
         let emitData = {players: {}, logsData: {}}
-        console.log(players.length)
+        //console.log(players.length)
         let invalidPlayersNickname = []
         for (let player of players) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.health)
-            console.log(data.text)
+       //     console.log(data.text)
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
             if (ecsExp!=='' || data.text==='Идеально здоров') {
               // console.log('ecsExp', ecsExp)
@@ -1167,10 +1167,10 @@ module.exports = function(io) {
                 player.health = JSON.stringify(data)
                 await player.save()
                 data = {health: data}
-                console.log(data)
+              //  console.log(data)
               }
               if (isOpen) {
-                console.log("player.userId", player.userId)
+               // console.log("player.userId", player.userId)
                 emitData.players[player.userId] = data
               }
               else {
@@ -1214,7 +1214,7 @@ module.exports = function(io) {
             step: await playerDataService.howStepLog(idRoom)
           })
         }
-        console.log(emitData)
+       // console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
@@ -1293,11 +1293,11 @@ module.exports = function(io) {
           if (player && player.isPlayer && player.isAlive) {
             let refreshData = playerDataService.cureMake(player, makeId)
             player = refreshData.player
-            console.log(player.userId)
+         //   console.log(player.userId)
             lastVar[player.userId] = refreshData.lastVar
             await player.save()
             if (refreshData.isOpen) {
-              console.log("player.userId", player.userId)
+           //   console.log("player.userId", player.userId)
               emitData.players[player.userId] = refreshData.data
             }
             else {
@@ -1315,7 +1315,7 @@ module.exports = function(io) {
             lastVar: JSON.stringify(lastVar)
           })
         }
-        console.log(emitData)
+       // console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
@@ -1484,7 +1484,7 @@ module.exports = function(io) {
         
         
         let data = await playerDataService.stealChart(playerId1, playerId2, gameRoom, chartName)
-        console.log(playerId2)
+      //  console.log(playerId2)
         if (!data.isOpenPlayer1) {
           io.to(`user:${playerId1}:${idRoom}`).emit('setAllGameData', {players: {[playerId1]: data.players[playerId1]}})
         }
@@ -1534,7 +1534,7 @@ module.exports = function(io) {
         }
         let chartArray = ['trait', 'health', 'hobbies', 'phobia', 'inventory', 'backpack', 'addInfo']
         let nameChartArray = ['Человеческая черта', 'Здоровье', 'Хобби', 'Фобия', 'Инвентарь', 'Рюкзак', 'Доп. информация']
-        console.log('chartId', chartId)
+     //   console.log('chartId', chartId)
         if (chartId>7 || chartId<0) {
           socket.emit("setError",
             {
@@ -1605,7 +1605,7 @@ module.exports = function(io) {
         let emitData = {players: {}, logsData: {}}
         for (let player of players) {
           lastVar[player.userId] = JSON.parse(player[chartName])
-          console.log(JSON.parse(player[chartName]).id.length, (typeof JSON.parse(player[chartName]).id))
+        //  console.log(JSON.parse(player[chartName]).id.length, (typeof JSON.parse(player[chartName]).id))
           if ((typeof JSON.parse(player[chartName]).id)!=='number' && JSON.parse(player[chartName]).id.length>5) {
             socket.emit("setError",
               {
@@ -1649,7 +1649,12 @@ module.exports = function(io) {
       })
       socket.on('deleteRelocate', async (playersId, makeId) => {
         let arrayMake = ['Удалить инвентарь', 'Перенести инвентарь', 'Удалить рюкзак', 'Перенести рюкзак']
-        console.log(makeId)
+       // console.log(makeId)
+          let arrLast = ['drop','trans']
+          let makeFuncName = arrLast[1]
+          if(makeId===0 ||makeId===2){
+              makeFuncName = arrLast[0]
+          }
         if ((playersId===0 && makeId===1) || (playersId===0 && makeId===3)) {
           socket.emit("setError",
             {
@@ -1760,9 +1765,9 @@ module.exports = function(io) {
                 })
               return
             }
-            console.log(chartName, data.text)
+          //  console.log(chartName, data.text)
             gameRoom.bunkerItemsOthers = `${gameRoom.bunkerItemsOthers},${data.text}`
-            console.log(gameRoom.bunkerItemsOthers)
+          //  console.log(gameRoom.bunkerItemsOthers)
             data.text = 'Пусто'
             data.id = 0
             player[chartName] = JSON.stringify(data)
@@ -1777,13 +1782,13 @@ module.exports = function(io) {
             }
             let bunkerChart = await UserModel.ChartBunker.findAll(
               {where: {id: [gameRoom.bunkerItems1, gameRoom.bunkerItems2, gameRoom.bunkerItems3]}})
-            console.log('BUNKER', bunkerChart)
+           // console.log('BUNKER', bunkerChart)
             let bunkerItems = []
             for (let chart of bunkerChart) {
               bunkerItems.push(chart.text)
             }
-            console.log('ПРОВЕРКА НА ИТЕМЫ', bunkerItems,
-              gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0))
+           // console.log('ПРОВЕРКА НА ИТЕМЫ', bunkerItems,
+           //   gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0))
             bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
             
             
@@ -1793,7 +1798,7 @@ module.exports = function(io) {
         }
         await UserModel.Logi.create({
           idRoom: idRoom,
-          funcName: `deleteRelocate`,
+          funcName: `deleteRelocate:${makeFuncName}`,
           text: textForLog,
           step: await playerDataService.howStepLog(idRoom),
           lastVar: JSON.stringify(lastVar)
@@ -2169,7 +2174,7 @@ module.exports = function(io) {
             dataForNextPlayer = structuredClone(data)
           }
         }
-        console.log(lastVar)
+     //   console.log(lastVar)
         await UserModel.Logi.create({
           idRoom: idRoom,
           funcName: `ByHour`,
@@ -2243,7 +2248,7 @@ module.exports = function(io) {
           player[chartName] = JSON.stringify(data)
           //console.log(player.userId)
           await player.save()
-          console.log(data)
+        //  console.log(data)
           if (data.isOpen) {
             //  console.log("player.userId", player.userId)
             
@@ -2289,15 +2294,15 @@ module.exports = function(io) {
         }
         let textForLog = `Ведущий отменил последнее действие "${log.text}"`
         let emitData = await ioUserService.reversLog(log, gameRoom, idRoom, io)
-        console.log('Socket', emitData)
+     //   console.log('Socket', emitData)
         log.isBack = 1
         await log.save()
-          console.log(emitData)
+       //   console.log(emitData)
         emitData.logsData.type = 'text'
         emitData.logsData.value = textForLog
         emitData.logsData.date = new Date()
         emitData.showCancelButton = false
-        console.log(emitData)
+       // console.log(emitData)
         await UserModel.Logi.create({
                   idRoom: idRoom,
                   funcName: `reverseLog`,
