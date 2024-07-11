@@ -19,7 +19,7 @@ module.exports = function(io) {
      // console.log(token)
       const userData = tokenService.validateAccessToken(token)
       if (!userData) {
-       // console.log('Haven"t a UserData')
+       // console.log('Haven"t a UserData')s
         socket.emit("setError",
           {
             message: `Сервер не смог подтвердить вашу личность. Пожалуйста, перезагрузите страницу или перезайдите в аккаунт`,

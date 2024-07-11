@@ -548,6 +548,15 @@ class UserService {
     for (let key in data) {
       // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)s
       if ('nickname'===key.toString()) {
+        const forbiddenCharacters = await UserModel.BlackListWords.findAll()
+
+                if (forbiddenCharacters) {
+                  forbiddenCharacters.forEach(word => {
+                    if (data[key].toLowerCase().includes(word.word.toLowerCase())) {
+                      throw ApiError.BadRerquest(`Данный ник недопустим`, [{input: 'nickname', type: 'Inadmissible data'}])
+                    }
+                  })
+                }
         if (user[key].toLowerCase().toString()!==data[key].toLowerCase().toString()) {
           const candidateNickName = await UserModel.User.findOne(
             {where: {nickname: data[key]}})

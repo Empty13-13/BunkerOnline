@@ -711,7 +711,7 @@ module.exports = function(io) {
               functionName: 'refresh:sexOpposite',
               wrongData: invalidPlayersNickname
             })
-          
+          return
         }
         if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
@@ -964,6 +964,7 @@ module.exports = function(io) {
             functionName: 'refresh:sexOpposite',
             wrongData: invalidPlayersNickname
           })
+          return
         }
         if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
@@ -1195,7 +1196,7 @@ module.exports = function(io) {
               functionName: 'refresh:sexOpposite',
               wrongData: invalidPlayersNickname
             })
-          
+          return
         }
         if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
@@ -1205,27 +1206,36 @@ module.exports = function(io) {
             step: await playerDataService.howStepLog(idRoom),
             lastVar: JSON.stringify(lastVar)
           })
+          emitData.logsData.type = 'text'
+          emitData.logsData.value = textForLog
+          emitData.logsData.date = new Date()
+          emitData.showCancelButton = true
+          io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
+          io.in(idRoom).emit('sendMessage:timer', {
+              title: 'Сообщение от ведущего',
+              message: textForLog,
+              color: 'green'
+            }
+          )
         }
         else {
-          await UserModel.Logi.create({
-            idRoom: idRoom,
-            funcName: `degreeOfSick`,
-            text: textForLog,
-            step: await playerDataService.howStepLog(idRoom)
-          })
+          socket.emit("setError",
+                      {
+                        message: "Нельзя применить к данному игроку",
+                        status: 701,
+                        functionName: 'refresh:sexOpposite',
+                        wrongData: invalidPlayersNickname
+                      })
+//           await UserModel.Logi.create({
+//             idRoom: idRoom,
+//             funcName: `degreeOfSick`,
+//             text: textForLog,
+//             step: await playerDataService.howStepLog(idRoom)
+//           })
         }
         // console.log(emitData)
-        emitData.logsData.type = 'text'
-        emitData.logsData.value = textForLog
-        emitData.logsData.date = new Date()
-        emitData.showCancelButton = true
-        io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-        io.in(idRoom).emit('sendMessage:timer', {
-            title: 'Сообщение от ведущего',
-            message: textForLog,
-            color: 'green'
-          }
-        )
+
+
         // io.in(idRoom).emit()
       })
       socket.on('refresh:cureMake', async (playersId, makeId) => {
