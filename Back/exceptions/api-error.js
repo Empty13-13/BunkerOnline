@@ -10,11 +10,11 @@ module.exports = class ApiError extends Error {
   }
   
   static UnauthorizedError() {
-    return new ApiError(401, 'Users not autorization')
+    return new ApiError(401, 'Пользователь не авторизован')
   }
   
   static BlockedUser() {
-    return new ApiError(469, 'User is blocked')
+    return new ApiError(469, 'Пользователь заблокирован')
   }
   static AccessDenie() {
     return new ApiError(400, 'У вас имеются 2 созданных игры. Закройте предыдущие комнаты перед созданием новой или зайдите в игру по приглашению')
@@ -24,7 +24,7 @@ module.exports = class ApiError extends Error {
     }
   
   static CapthaBlock() {
-      return new ApiError(601, 'Ошибка прохождения каптчи. Пожалуйста, перезагрузите страницу и попробуйте снова')
+      return new ApiError(601, 'Ошибка прохождения ReCaptcha. Пожалуйста, перезагрузите страницу и попробуйте снова')
     }
   
   static BadRerquest(message, errors = []) {

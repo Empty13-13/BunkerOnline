@@ -28,7 +28,7 @@ module.exports = function(accsessLevel) {
       
       let user = await UserModel.User.findOne({where:{id:userData.id}})
       if (user.dataValues.accsessLevel.toString()===accsessLevel) {
-      return next(ApiError.BadRerquest(`Accsess Denied`, [{type: 'Accsess Denied'}]))
+      return next(ApiError.BadRerquest(`Доступ запрещен`, [{type: 'Access Denied'}]))
       }
       next()
     } catch(e) {

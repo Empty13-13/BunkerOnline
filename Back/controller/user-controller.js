@@ -43,7 +43,7 @@ class UserController {
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'nickname', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'nickname', type: 'Error validate'}]))
       }
       const {nickname, email, password} = req.body
       await userService.registration(nickname, email, password)
@@ -51,8 +51,6 @@ class UserController {
       //  {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       //delete userData.refreshToken
       return res.json({message: 'Вы успешно зарегистрировались!', type: 'successfully'})
-      
-      
     } catch(e) {
       next(e)
     }
@@ -89,7 +87,7 @@ class UserController {
       const errors = validationResult(req)
       // console.log(req)
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'nickname', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'nickname', type: 'Error validate'}]))
       }
       
       const {login, password} = req.body
@@ -289,7 +287,7 @@ class UserController {
       
       
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'avatar', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'avatar', type: 'Error validate'}]))
       }
       const file = req.files.file
       //console.log("ASDASDASDASDA",req.files.file['mimetype'])
@@ -362,7 +360,7 @@ class UserController {
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'email', type: 'Error validate'}]))
       }
       
       const {email} = req.body
@@ -411,17 +409,17 @@ class UserController {
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'password', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'password', type: 'Error validate'}]))
       }
       
       const {password, link, userId, idLink} = req.body
       const result = await userService.validationLinkReset(link)
       if (result.type.toString()!=="password") {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'userId', type: 'Error validate'}]))
       }
       //  console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'userId', type: 'Error validate'}]))
       }
       const newPass = await userService.newPassword(password, userId, idLink)
       
@@ -441,21 +439,21 @@ class UserController {
       const errors = validationResult(req)
       
       if (!errors.isEmpty()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'email', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'email', type: 'Error validate'}]))
       }
       
       const {email, link, userId, idLink} = req.body
       const result = await userService.validationLinkReset(link)
       if (result.type.toString()!=="email") {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'userId', type: 'Error validate'}]))
       }
       // console.log(userId, result.userId)
       if (userId.toString()!==result.userId.toString()) {
-        return next(ApiError.BadRerquest('Error validate', [{input: 'userId', type: 'Error validate'}]))
+        return next(ApiError.BadRerquest('Ошибка валидации поля', [{input: 'userId', type: 'Error validate'}]))
       }
       const newEmail = await userService.newEmail(email, userId, idLink)
       
-      const status = {status: 200, statusText: 'Ссылка на подверждение отправлена на email, подтвердите новый email'}
+      const status = {status: 200, statusText: 'Ссылка на подтверждение отправлена на email, подтвердите новый email'}
       res.json(status)
       
     } catch(e) {
@@ -689,7 +687,6 @@ class UserController {
         })
         
         res.json(resultArr)
-       // console.log('asdasdas')
       });
     } catch(e) {
       next(e)

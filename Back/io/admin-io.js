@@ -23,7 +23,7 @@ module.exports = function(io) {
         console.log('Haven"t a UserData')
         socket.emit("setError",
           {
-            message: `Сервер не смог подтвердить вашу личность. Пожалуйста перезагрузите страницу или перезайдите в аккаунт`,
+            message: `Сервер не смог подтвердить вашу личность. Пожалуйста, перезагрузите страницу или перезайдите в аккаунт`,
             status: 403,
             functionName: 'connection'
           })
@@ -106,7 +106,7 @@ module.exports = function(io) {
           )
         }
         socket.emit('sendMessage:timer', {
-            title: 'Сообщение от разработчиков',
+            title: 'Сообщение от сервера',
             message: 'Сообщение успешно отправлено',
             color: 'green'
           }
