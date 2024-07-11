@@ -175,12 +175,12 @@ class gameKey {
     let dateNow = new Date((new Date().setUTCHours(0, 0, 0, 0)))
     let testDate = new Date()
     console.log(dateNow,testDate)
-    let allUsers = await UserModel.User.findAll({where: {updateDate: dateNow}})
+    let allUsers = await UserModel.User.findAll({where: {updateDate: {[Op.lte]:dateNow}}})
     console.log(allUsers)
     if (allUsers) {
       for (let user of allUsers) {
         console.log(user.nickname, +user.updateDate=== +user.endDate)
-        if (+user.updateDate=== +user.endDate) {
+        if (+user.updateDate>= +user.endDate) {
           user.isUsedSystemAdvancePack = 0
           user.refreshNickName = 0
           await this.changeLevel('default', null, user)

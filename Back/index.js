@@ -110,10 +110,10 @@ const start = async () => {
 }
 start()
 
-  //cron.schedule('58 23 * * *', async () => {
- //  console.log('Запущена обновление подписки');
- //  await  gameKey.updateSubscription()
- // })
+  cron.schedule('58 23 * * *', async () => {
+   console.log('Запущена обновление подписки');
+   await  gameKey.updateSubscription()
+  })
 
     // cron.schedule("*/1000000 * * * * *", async function() {
  //  await userService.getPrice()
