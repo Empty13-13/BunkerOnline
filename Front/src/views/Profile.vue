@@ -35,6 +35,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import AppSelect from "@/components/Forms/AppSelect.vue";
 import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
+import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -42,6 +43,7 @@ const globalPreloader = usePreloaderStore()
 const actionsProfile = useActionsProfileStore()
 const globalPopup = useGlobalPopupStore()
 const adminSocket = useAdminSocketStore()
+const otherTexts = useOtherTextsStore()
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]
@@ -762,10 +764,7 @@ function activateKeyHandler(e) {
         <div class="subscribeBlock">
           <div class="subscribeBlock__block linear-border white">
             <div class="subscribeBlock__title silverTextColor">VIP</div>
-            <p class="subscribeBlock__text">
-              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-            </p>
+            <p class="subscribeBlock__text" v-html="otherTexts.allTexts['price:vip:text']"></p>
             <div class="subscribeBlock__days">
               <label for="dayVip">Срок действия</label>
               <AppSelect v-model="priceVIPSelectModel" :options="priceVIPSelectOptions" class="selectBlock profile" />
@@ -791,10 +790,7 @@ function activateKeyHandler(e) {
           </div>
           <div class="subscribeBlock__block linear-border gold">
             <div class="subscribeBlock__title goldTextColor">MVP</div>
-            <p class="subscribeBlock__text">
-              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-              Товарищи! дальнейшее развитие различных форм деятельности требуют определения и уточнения модели развития.
-            </p>
+            <p class="subscribeBlock__text" v-html="otherTexts.allTexts['price:mvp:text']"></p>
             <div class="subscribeBlock__days">
               <label for="dayMvp">Срок действия</label>
               <AppSelect v-model="priceMVPSelectModel" :options="priceMVPSelectOptions" class="selectBlock profile" />

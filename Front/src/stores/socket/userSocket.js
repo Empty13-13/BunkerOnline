@@ -88,12 +88,16 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       console.log('Игра началась')
       globalPreloader.activate()
       userSocket.emit('loadAllGameData')
-      await router.push('#welcome')
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      },0)
     })
     userSocket.on('setAllGameData', async data => {
       console.log('Приняли все данные по игре', data)
       if (!selectedGameData.getAlivePlayers) {
-        await router.push('#welcome')
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        },0)
       }
       selectedGameData.setData(data)
       selectedGame.isStarted = true
