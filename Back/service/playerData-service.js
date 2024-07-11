@@ -301,7 +301,7 @@ class playerDataService {
     this.getPlayerPerfectHealth(players)
     let data = {players: {}, lastVar: {}, emitData: {players: {}}}
     if (chartName==='allChart') {
-      let hostPackIds = await this.hostUsePack(gameRoom.hostId)
+      let hostPackIds = await this.creatorUsePack(idRoom)
       let resultPlayerData
       await this.collectAndSetDataForPlayer(hostPackIds, players, true)
       for (let player of players) {
@@ -421,8 +421,9 @@ class playerDataService {
     })
     // console.log('ONE', gameRoom.id)
     let host = await UserModel.RoomSession.findOne({where: {userId: userId, gameRoomId: gameRoom.id}})
+    let usePack = await this.creatorUsePack(idRoom)
     // console.log('2', gameRoom.id)
-    let usePack = JSON.parse(host.usePack)
+   // let usePack = JSON.parse(host.usePack)
     // console.log('ONE')
     await this.collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName)
     // console.log('TWO')
@@ -1788,7 +1789,13 @@ class playerDataService {
     return {baseIdPack, advanceIdPack}
     
   }
-  
+
+  async creatorUsePack(idRoom){
+    let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+    let creator = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoom.id,userId:gameRoom.creatorId}})
+    let hostPack = JSON.parse(creator.usePack)
+    return hostPack
+  }
   async hostUsePack(hostId) {
     const dataPack = []
     

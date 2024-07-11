@@ -22,10 +22,19 @@ const timeToCloseRoom = 6 * 60 * 60 * 1000
 const timerList = {}//{'B725D':setTimeout(),'A123D':setTimeout()}
 
 class ioUserService {
-  
-  async isAgeRestriction(hostId) {
+
+
+
+  async isAgeRestriction(hostId,isJoin=false,idRoom=null) {
     await playerDataService.getSystemSettingsData()
-    let hostPack = await playerDataService.hostUsePack(hostId)
+    let hostPack
+    if(isJoin){
+      let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+      let creator = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoom.id,userId:gameRoom.creatorId}})
+      hostPack = JSON.parse(creator.usePack)
+    }else {
+      hostPack = await playerDataService.hostUsePack(hostId)
+    }
     let packs = await UserModel.ChartPack.findAll({where: {id: hostPack, ageRestriction: 1}})
     let result = false
     if (packs.length>0) {
@@ -211,12 +220,10 @@ class ioUserService {
           let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
           imageName = image.imageName
         }
-        console.log(otherVar)
         if(otherVar.soundId && otherVar.soundId !== null){
           let sound = await UserModel.CatastropheSounds.findOne({where:{id:otherVar.soundId}})
           soundName = sound.soundName
         }
-        gameRoom.soundId = otherVar.soundId
         gameRoom.imageId = otherVar.imageId
         gameRoom.population = otherVar.population
 
