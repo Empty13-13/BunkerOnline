@@ -133,7 +133,7 @@ router.post('/generateKeys', adminMiddleware('admin'), adminController.generateK
 router.post('/activateKey', authMiddleware, userController.activateKey);
 router.get('/pricesInfo', authMiddleware, userController.getPriceInfo);
 router.get('/getHomeImageName', userController.getHomeImageName);
-
+router.get('/getBaseProfession', userController.getBaseProfession);
 
 
 //router.get('/loginVK',userController.loginVK);

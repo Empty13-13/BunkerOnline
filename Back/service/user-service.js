@@ -13,6 +13,7 @@ const fs = require('fs')
 require('dotenv').config()
 const path = require('path')
 const {Op} = require('sequelize')
+const {User} = require("../model/models");
 //import { Op } from '@sequelize/core';
 
 const forbiddenCharacters = [
@@ -761,7 +762,25 @@ class UserService {
     return dataRooms
     
   }
-  
+
+  async getBaseProfession(){
+    let systemData = await UserModel.SystemSettings.findOne({where:{nameSetting:"basePack"}})
+    let professionId = await UserModel.ProfessionChartPack.findAll({where:{chartPackId:systemData.value}})
+    let professionIdArr = []
+    for(let item of professionId){
+      professionIdArr.push(item.professionId)
+    }
+    let professions = await UserModel.Profession.findAll({where:{id:professionIdArr}})
+    let data = []
+    for(let profession of professions){
+      let item = {}
+      item.title = profession.name
+      item.description = profession.description
+      data.push(item)
+    }
+    return data
+  }
+
   async getHomeImageName() {
     let image = await UserModel.CatastropheImage.findAll({where: {favourite: 1}, raw: true})
     let index = playerDataService.getRandomInt(0, image.length - 1)

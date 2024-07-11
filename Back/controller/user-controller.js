@@ -695,7 +695,18 @@ class UserController {
       next(e)
     }
   }
-  
+
+  async getBaseProfession(req,res,next){
+    try {
+      const data = await userService.getBaseProfession()
+      res.json(data)
+      //console.log('imageName', imageName)
+    } catch(e) {
+      console.log(e)
+      next(e)
+    }
+  }
+
   async getHomeImageName(req, res, next) {
     try {
       const imageName = await userService.getHomeImageName()
