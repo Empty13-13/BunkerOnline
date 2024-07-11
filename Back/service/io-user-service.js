@@ -458,7 +458,7 @@ async getValidateGameData(idRoom, socket, io, isValidateId)
   let hostData = await UserModel.RoomSession.findOne(
     {where: {gameRoomId: gameRoom.id, userId: gameRoom.dataValues.hostId}})
   let isHostPlayer = !!hostData.isPlayer
-  let isAgeRestriction = await this.isAgeRestriction(gameRoom.dataValues.hostId)
+  let isAgeRestriction = await this.isAgeRestriction(gameRoom.dataValues.hostId,true,idRoom)
   let isStarted = !!gameRoom.isStarted
   let isPlayingBefore = !!userPlaying
   let dataUsersPlaying = await this.getPlayingUsers(idRoom)
