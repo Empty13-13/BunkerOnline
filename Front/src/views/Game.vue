@@ -210,7 +210,7 @@ function startGame(e) {
         await router.push({top: 0})
       }
       else {
-        globalPopup.activate('Ошибка', 'Произошла ошибка при создании данных. Пожалуйста попробуйте ещё раз')
+        globalPopup.activate('Ошибка', 'Произошла ошибка при создании данных. Пожалуйста, попробуйте ещё раз')
       }
     }
     else {
@@ -274,7 +274,7 @@ function toggleSoundHandler() {
   selectedGameData.showPlayVoiceButton = false
   setTimeout(() => {
     audioPlayer.value.play()
-  },200)
+  }, 200)
 }
 
 </script>
@@ -316,7 +316,9 @@ function toggleSoundHandler() {
            :class="hostFunctional.haveAccess?myProfile.isAdmin?'_hostAndAdmin':'_host':myProfile.isAdmin?'_admin':''"
       >
         <div class="timerBlock__body btn gold border">
-          <span class="text">{{ selectedGameData.isPauseTimer?selectedGameData.timerSeconds:selectedGameData.getPlayerEndSeconds }} СЕК.</span>
+          <span class="text">{{
+              selectedGameData.isPauseTimer? selectedGameData.timerSeconds:selectedGameData.getPlayerEndSeconds
+                             }} СЕК.</span>
         </div>
       </div>
       <div class="timerBlock _catastrophe" v-if="selectedGameData.getCatastropheEndSeconds>0">
@@ -606,7 +608,11 @@ function toggleSoundHandler() {
               </div>
 
               <div class="wrapper-listGamer__subText">
-                <p>* Чтобы узнать, выжил ли ваш бункер по окончании игры, вы можете пройти тест <a target="_blank" href="/test">Оценка выживаемости бункера</a></p>
+                <p>* Чтобы узнать, выжил ли ваш бункер по окончании игры, вы можете пройти тест <a target="_blank"
+                                                                                                   href="/test">Оценка
+                                                                                                                выживаемости
+                                                                                                                бункера</a>
+                </p>
               </div>
             </div>
           </div>
@@ -1190,25 +1196,38 @@ function toggleSoundHandler() {
 .wrapper-listGamer {
   overflow-x: auto;
 
-   &__subText {
-     margin-top: 20px;
-     color: #F9D35BFF;
-     background: linear-gradient(90deg, #F9D35B, #D96613);
-     background-clip: border-box;
-     -webkit-background-clip: text;
-     -webkit-text-fill-color: transparent;
-     line-height: 1.2;
+  &__subText {
+    margin-top: 20px;
+    color: #F9D35BFF;
+    background: linear-gradient(90deg, #F9D35B, #D96613);
+    background-clip: border-box;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
 
-     a {
-       text-decoration: underline !important;
+    a {
+      line-height: 1.2;
+      position: relative;
 
-       @media (any-hover: hover){
-         &:hover{
-           text-decoration: none !important;
-         }
-       }
-     }
-   }
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: calc(100%);
+        width: 100%;
+        height: 1px;
+        background: rgba(255,255,255,0.4);
+      }
+
+      @media (any-hover: hover){
+        &:hover{
+          &::after {
+            background: none;
+          }
+        }
+      }
+    }
+  }
 }
 
 .table-listGamer {

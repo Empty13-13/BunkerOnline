@@ -15,7 +15,6 @@ export const useHostSocketStore = defineStore('hostSocket', () => {
   const authStore = useAuthStore()
   const myProfile = useMyProfileStore()
   const globalPreloader = usePreloaderStore()
-  const globalPopup = useGlobalPopupStore()
   const selectedGame = useSelectedGame()
   const hostFunctional = useHostFunctionalStore()
   

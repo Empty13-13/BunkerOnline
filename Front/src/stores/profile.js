@@ -135,7 +135,7 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     try {
       await axiosInstance.post('/changePack',{id:pack.id,isUse:pack.isUse})
       if(pack.isUse && pack.ageRestriction) {
-        globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете что вы достигли совершеннолетнего возраста','red')
+        globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете, что вы достигли совершеннолетнего возраста','red')
       }
     } catch(e) {
       console.log('ОБРАЩАЮСЬ 2')

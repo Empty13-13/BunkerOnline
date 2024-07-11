@@ -38,7 +38,7 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       userSocket.emit('getAwaitRoomData')
     })
     userSocket.on('kickOut', async data => {
-      globalPopup.activate('Сообщение от комнаты', 'Вас исключили из комнаты')
+      globalPopup.activate('Сожалеем :(', 'Вас исключили из комнаты')
       await router.push({name: 'home'})
     })
     userSocket.on('setNoregToken', noRegToken => {
@@ -69,7 +69,13 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       globalPreloader.deactivate()
     })
     userSocket.on('roomClosed', async (data) => {
-      globalPopup.activate('Комната закрыта', 'Для того чтобы узнать, остался ли ваш бункер в живых, вы можете пройти тест <a target="_blank" href="/test">Оценка выживаемости бункера</a>', 'gold')
+      if(selectedGame.isStarted) {
+        globalPopup.activate('Комната закрыта',
+          'Для того чтобы узнать, остался ли ваш бункер в живых, вы можете пройти тест <a target="_blank" href="/test">Оценка выживаемости бункера</a>',
+          'gold')
+      } else {
+        globalPopup.activate('Комната закрыта','','gold')
+      }
       await router.push({name: 'home'})
     })
     userSocket.on('sendMessage', data => {

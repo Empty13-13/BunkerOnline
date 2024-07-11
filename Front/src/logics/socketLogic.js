@@ -78,7 +78,7 @@ export async function switchError(data, socket) {
     case 469: {
       myProfile.clearUserInfo()
       await router.push({name:'home'})
-      globalPopup.activate('Сообщение от сервера','Ваш аккаунт был забанен за нарушение правил. Для уточнения вопроса обратитесь к администрации сайта','red')
+      globalPopup.activate('Сообщение от сервера','Ваш аккаунт был забанен за нарушение правил. Для уточнения вопроса обратитесь к <a href="/contacts">администрации сайта</a>','red')
       break;
     }
     case 512: {

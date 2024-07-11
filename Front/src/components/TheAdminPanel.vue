@@ -54,13 +54,13 @@ function sendMessage(e) {
         )
         console.log('отослали')
       },
-      `Вы уверены что хотите отправить сообщение ${funcData.value.sendMessage.select.value===0? 'всем пользователям':'данному пользователю'}?`)
+      `Вы уверены, что хотите отправить сообщение ${funcData.value.sendMessage.select.value===0? 'всем пользователям':'данному пользователю'}?`)
 }
 
 function closeRoom(e) {
   showConfirmBlock(e.target, () => {
     adminSocket.emit('closeRoom')
-  }, 'Вы уверены что хотите закрыть комнату?')
+  }, 'Вы уверены, что хотите закрыть комнату?')
 }
 </script>
 

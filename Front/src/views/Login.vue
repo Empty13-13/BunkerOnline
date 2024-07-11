@@ -89,7 +89,7 @@ async function loginHandler(e) {
       }
       else {
         globalPopup.activate('Успешно!',
-            'Инструкция по восстановлению пароля была отправлена на email ' + loginInput.value.value, 'green')
+            'Инструкция по восстановлению пароля была отправлена вам на email. Если сообщение не пришло - проверьте папку "спам"' + loginInput.value.value, 'green')
       }
     })
   }
@@ -167,7 +167,7 @@ onBeforeMount(async () => {
   if (router.currentRoute.value.query.blocked==='true') {
     await router.push({name: 'login'})
     globalPopup.activate('Аккаунт заблокирован',
-        'Ваш аккаунт заблокирован за нарушение правил игры. Для того чтобы узнать подробности, пожалуйста, свяжитесь с администрацией сайта',
+        'Ваш аккаунт заблокирован за нарушение правил игры. Для того чтобы узнать подробности, пожалуйста, свяжитесь с <a href="/contacts">администрацией сайта</a>',
         'red',)
   }
 })
@@ -261,7 +261,7 @@ function clickRulesHandler(e) {
                        v-model="rulesChecked" @focus="focusInInput">
                 <label for="rules" class="checkbox__label">
                   <span class="checkbox__text">
-                    Я ознакомился с <span @click="clickRulesHandler" class="mainRules">правилами</span>
+                    Я ознакомился и согласен с <span @click="clickRulesHandler" class="mainRules">правилами сайта</span>
                   </span>
                 </label>
               </div>

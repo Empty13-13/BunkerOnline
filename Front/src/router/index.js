@@ -1,18 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from "@/views/Home.vue";
-import Example from "@/views/Example.vue";
-import Game from "@/views/Game.vue";
 import Login from "@/views/Login.vue";
 import Profile from "@/views/Profile.vue";
 import Rules from "@/views/Rules.vue";
-import Wiki from "@/views/Wiki.vue";
 import Updates from "@/views/Updates.vue";
 import Contacts from "@/views/Contacts.vue";
-import Pagination from "@/views/Pagination.vue";
-import { useAuthStore } from "@/stores/auth.js";
 import { useMyProfileStore } from "@/stores/profile.js";
-import { getId, getLinkParams } from "@/plugins/functions.js";
-import NotFound from "@/views/NotFound.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

@@ -14,7 +14,6 @@ export const useGlobalPopupStore = defineStore('globalPopup', () => {
   
   return {
     showLoader,
-    activate,
     deactivate
   }
 })

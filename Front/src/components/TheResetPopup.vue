@@ -66,7 +66,7 @@ async function changePasswordHandler(e) {
     } finally {
       showLoader.value = false
     }
-  },'Вы уверены что хотите изменить пароль?')
+  },'Вы уверены, что хотите изменить пароль?')
 
 }
 

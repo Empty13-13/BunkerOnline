@@ -83,7 +83,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
     if (data.hasOwnProperty('isAgeRestriction') && data.isAgeRestriction) {
       globalPopup.activate('Внимание',
-        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре, вы подтверждаете то что вам 18 или больше лет',
+        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре вы подтверждаете, что вам есть 18+ лет',
         'red')
     }
   }
@@ -708,7 +708,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
         selectedGameData.getMyPlayerData.isMVPRefresh = true;
         userSocket.removeListener('refreshChartMVP:good')
       })
-    }, 'Вы уверены что хотите поменять характеристику?')
+    }, 'Вы уверены, что хотите поменять характеристику?')
   }
   
   function voteHandler(userId) {

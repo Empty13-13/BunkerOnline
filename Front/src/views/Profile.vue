@@ -155,13 +155,13 @@ function banUser(e) {
       })
       await updateProfileInfo()
       if (data.isBlocked) {
-        globalPopup.activate('Успешно!', 'Пользователь успешно заблокирован', 'green')
+        globalPopup.activate('Успешно!', 'Пользователь заблокирован', 'green')
         adminSocket.setConnect()
         adminSocket.emit('banUser', data.id)
         // adminSocket.close()
       }
       else {
-        globalPopup.activate('Успешно!', 'Пользователь успешно разблокирован', 'green')
+        globalPopup.activate('Успешно!', 'Пользователь разблокирован', 'green')
       }
     } catch(e) {
       console.log(e.message)
@@ -407,7 +407,7 @@ function changePasswordHandler(e) {
       showPasswordChangePopup.value = true
     } catch(e) {
       console.log(e.message)
-      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление пароля', 'gold')
+      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление пароля. Если сообщение не пришло - проверьте папку "спам"', 'gold')
     }
 
   }, 'Вы уверены что хотите сменить пароль?')
@@ -423,7 +423,7 @@ function changeEmailHandler(e) {
       showEmailChangePopup.value = true
     } catch(e) {
       console.log(e.message)
-      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление email', 'gold')
+      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление email. Если сообщение не пришло - проверьте папку "спам"', 'gold')
     }
   })
 }
@@ -468,10 +468,10 @@ function generateHandler(e) {
       console.log(result)
     } catch(e) {
       console.log(e)
-      globalPopup.activate('Ошибка создание ключей', '')
+      globalPopup.activate('Ошибка создания ключей', e.response.message)
     }
     console.log(data)
-  }, 'Вы уверены что всё вписали правильно? В случае если файл с таким названием уже есть, то он будет перезаписан')
+  }, 'Вы уверены, что всё вписали правильно? В случае, если файл с таким названием уже есть, то он будет перезаписан')
 }
 
 const activationKey = ref('')

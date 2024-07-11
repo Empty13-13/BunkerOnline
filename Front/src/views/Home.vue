@@ -144,7 +144,7 @@ async function letsGo() {
   recaptchaMaker(async token => {
     let error = await selectedGame.generateGameId(token);
     if (error) {
-      globalPopup.activate('Ошибка создания комнаты', error.data.message, 'red')
+      globalPopup.activate('Ошибка создания комнаты. Пожалуйста, попробуйте ещё раз', error.data.message, 'red')
     }
     else {
       await router.push(`/game=${selectedGame.gameId}`)
