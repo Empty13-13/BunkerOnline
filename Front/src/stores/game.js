@@ -358,9 +358,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getActivePlayersFromUserData = computed(() => {
     let resultArr = []
-    userData.value.sortedPlayers.forEach(id => {
+    userData.value.sortedPlayers.forEach((id,index) => {
       if (!!userData.value[id].isPlayer) {
-        resultArr.push({id: id, data: userData.value[id]})
+        resultArr.push({id: id, data: userData.value[id],index})
       }
     })
     return resultArr

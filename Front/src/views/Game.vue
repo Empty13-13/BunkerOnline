@@ -633,7 +633,7 @@ function toggleSoundHandler() {
                 <TheVoteBlock
                     v-for="(gamer,index) in selectedGameData.getAlivePlayers"
                     :key="gamer.id"
-                    :index="index"
+                    :index="gamer.index-1"
                     :nickname="gamer.data.nickname"
                     :value="gamer.id"
                     v-model:isActive="selectedGameData.votedPlayerID"
