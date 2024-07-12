@@ -208,8 +208,11 @@ module.exports = function(io) {
       
       socket.on('startGame', async (playersData) => {
         let isCustomGame = false
+        let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+        let allPlayers = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1}})
+        console.log(allPlayers.length,GameData.countPlayers)
         try {
-          if (GameData.countPlayers<5) {
+          if (allPlayers.length<6) {
             socket.emit("setError",
               {
                 message: `Для начала игры нужно минимум 6 игроков`,
