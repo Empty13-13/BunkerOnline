@@ -28,13 +28,13 @@ const otherTexts = useOtherTextsStore()
             <p class="block-contacts__text">Перейти</p>
           </div>
         </a>
-        <a target="_blank" class="block-contacts linear-border gold">
+        <a target="_blank" :href="'mailto:'+otherTexts.allTexts['contactEmail']" class="block-contacts linear-border gold">
           <div class="block-contacts__img">
             <img src="/img/icons/email.png" alt="">
           </div>
           <div class="block-contacts__column">
             <h2 class="block-contacts__title">Электронная почта</h2>
-            <p class="block-contacts__text">contact@bunker-online.com</p>
+            <p class="block-contacts__text">{{otherTexts.allTexts['contactEmail']}}</p>
           </div>
         </a>
       </div>
