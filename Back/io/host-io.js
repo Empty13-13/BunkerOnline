@@ -397,6 +397,7 @@ module.exports = function(io) {
         gameRoom.timerEndDate = timerEndDate
         await gameRoom.save()
         io.in(idRoom).emit('timer:start', timerEndDate)
+         io.in(`watchers:${idRoom}`).emit('timer:start', timerEndDate)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий поставил таймер на ${seconds} секунд`,
@@ -411,6 +412,7 @@ module.exports = function(io) {
         
         
         io.in(idRoom).emit('timer:pause')
+        io.in(`watchers:${idRoom}`).emit('timer:pause')
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий поставил таймер на паузу`,
@@ -426,6 +428,7 @@ module.exports = function(io) {
         gameRoom.timerEndDate = timerEndDate
         await gameRoom.save()
         io.in(idRoom).emit('timer:resume', timerEndDate)
+        io.in(`watchers:${idRoom}`).emit('timer:resume', timerEndDate)
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий возобновил таймер`,
@@ -439,6 +442,7 @@ module.exports = function(io) {
         gameRoom.timerPauseSeconds = null
         await gameRoom.save()
         io.in(idRoom).emit('timer:stop')
+        io.in(`watchers:${idRoom}`).emit('timer:stop')
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий остановил таймер`,
@@ -1979,7 +1983,8 @@ module.exports = function(io) {
           lastVar: JSON.stringify(lastVar)
         })
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAwaitRoomData', {
-          hostId: +playerId
+          hostId: +playerId,
+          isHostPlayer:!!newHost.isPlayer
         })
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {
           logsData: {

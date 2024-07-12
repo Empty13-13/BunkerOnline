@@ -201,7 +201,7 @@ module.exports = function(io) {
             await player.save()
             socket.emit('openChart:good', chartName)
             io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
-            
+             io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
           }
           else {
             socket.emit("setError",

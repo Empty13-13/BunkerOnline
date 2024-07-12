@@ -587,7 +587,7 @@ function toggleSoundHandler() {
                       {{ data.data.nickname }}
                     </div>
                     <div class="texts-profile-column__access">{{ getAccessStr(data.data.accessLevel) }}</div>
-                    <div v-if="!selectedGame.imWatcher && hostFunctional.haveAccess"
+                    <div v-if="hostFunctional.haveAccess"
                          :class="{dead:!data.data.isAlive}"
                          class="texts-profile-column__banish"
                          @click.prevent="hostSocket.emit('banishOrReturn',data.id)"
@@ -617,9 +617,11 @@ function toggleSoundHandler() {
         </div>
       </div>
     </div>
+
     <div v-if="(((hostFunctional.haveAccess && hostFunctional.isPlayerToo) || !hostFunctional.haveAccess) &&
-    ((!selectedGame.imWatcher && selectedGameData.isVoiting) || !objIsEmpty(selectedGameData.voitingData)))"
-         :style="selectedGameData.voitingData.status===0 && hostFunctional.haveAccess?'margin: 0;':''"
+    ((!selectedGame.imWatcher && selectedGameData.isVoiting) || (!objIsEmpty(selectedGameData.voitingData) && selectedGameData.voitingData.status===1))) ||
+    (selectedGameData.voitingData.status===1 && hostFunctional.haveAccess && !hostFunctional.isPlayerToo)"
+         :style="selectedGameData.voitingData.status===0 && hostFunctional.haveAccess && !hostFunctional.isPlayerToo?'margin: 0;':''"
          class="voting">
       <div class="voting__container">
         <div v-if="selectedGameData.isVoiting && selectedGameData.getMyUserData.isAlive" class="voting__now now-voting">
@@ -1224,8 +1226,8 @@ function toggleSoundHandler() {
         opacity: 0.4;
       }
 
-      @media (any-hover: hover){
-        &:hover{
+      @media (any-hover: hover) {
+        &:hover {
           &::after {
             background: none;
           }

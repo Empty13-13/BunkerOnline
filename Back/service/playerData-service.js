@@ -829,7 +829,8 @@ class playerDataService {
     if (!isWatcher || gameRoom.voitingStatus===1) {
       voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
     }
-    if (gameRoom.voitingStatus===0 && (!thisPlayer.isAlive && !isHost)) {
+    console.log(thisPlayer)
+    if (gameRoom.voitingStatus===0 && thisPlayer &&(!thisPlayer.isAlive && !isHost)) {
       voitingData = null
     }
     let players = {}
