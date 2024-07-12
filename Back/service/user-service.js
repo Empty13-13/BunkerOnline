@@ -530,6 +530,7 @@ class UserService {
     if (objIsEmpty(data)) {
       throw ApiError.BadRerquest('Data missing', [])
     }
+
     //  console.log("DATA BABSDHBSAJDHASBJDKHASBKHJD", data)
     
     // const id = await UserModel.Token.findOne({where: {refreshToken: refreshToken}})
@@ -626,8 +627,9 @@ class UserService {
     //  console.log("qweqweqwe", tokenLinkExp)
     const alreadyReset = await UserModel.ResetPassword.findOne(
       {where: {userId: candidate.id, tokenLinkExp: {[Op.gt]: Date.now()}, isChange: 0, type: type}})
-    //  console.log(alreadyReset)
-    if (alreadyReset) {
+      console.log('123123',!!alreadyReset)
+    if (alreadyReset && alreadyReset!==null) {
+      console.log('22222222222')
       if (alreadyReset.type.toString()==='password') {
         throw ApiError.BadRerquest(
           `Запрос на смену пароля уже был отправлен, проверьте почту или же запросить ссылку заново`,
@@ -644,6 +646,7 @@ class UserService {
     const reset = await UserModel.ResetPassword.create(
       {userId: candidate.id, tokenLink: resetLink, tokenLinkExp: tokenLinkExp, type: type})
     if (!reset) {
+      console.log('2213')
       throw ApiError.BadRerquest(`Ошибка при добавлении в базу данных`,
         [{input: 'link', type: 'database'}])
     }
@@ -652,9 +655,11 @@ class UserService {
         await mailService.sendResetPasswordMail(email, `${process.env.API_URL}/api/resetUser/${resetLink}`)
       }
       else {
+        console.log('6666',email,resetLink)
         await mailService.sendResetEmailMail(email, `${process.env.API_URL}/api/resetUser/${resetLink}`)
       }
     } catch(e) {
+      console.log('44')
       throw ApiError.BadRerquest(`Ошибка при отправке сообщения на почту`,
         [{input: 'email', type: 'sendEmail'}])
     }
