@@ -22,20 +22,23 @@ const timeToCloseRoom = 6 * 60 * 60 * 1000
 const timerList = {}//{'B725D':setTimeout(),'A123D':setTimeout()}
 
 class ioUserService {
-
-
-
-  async isAgeRestriction(hostId,isJoin=false,idRoom=null) {
+  
+  
+  async isAgeRestriction(hostId, isJoin = false, idRoom = null) {
     await playerDataService.getSystemSettingsData()
     let hostPack
-    if(isJoin){
-      let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
-      if(gameRoom.isStarted){
-      let creator = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoom.id,userId:gameRoom.creatorId}})
-      hostPack = JSON.parse(creator.usePack)}else{
+    if (isJoin) {
+      let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+      if (gameRoom.isStarted) {
+        let creator = await UserModel.RoomSession.findOne(
+          {where: {gameRoomId: gameRoom.id, userId: gameRoom.creatorId}})
+        hostPack = JSON.parse(creator.usePack)
+      }
+      else {
         hostPack = await playerDataService.hostUsePack(hostId)
       }
-    }else {
+    }
+    else {
       hostPack = await playerDataService.hostUsePack(hostId)
     }
     let packs = await UserModel.ChartPack.findAll({where: {id: hostPack, ageRestriction: 1}})
@@ -46,7 +49,7 @@ class ioUserService {
     return result
     
   }
-
+  
   async finishedVoiting(idRoom, userId, io, socket) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     if (gameRoom && gameRoom.isStarted) {
@@ -82,7 +85,7 @@ class ioUserService {
             functionName: 'voiting:finished'
           })
       }
-
+      
     }
     else {
       socket.emit("setError",
@@ -92,9 +95,9 @@ class ioUserService {
           functionName: 'voiting:finished'
         })
     }
-
+    
   }
-
+  
   async testFunc(io) {
     let idRoom = 'S53FT'
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -105,7 +108,7 @@ class ioUserService {
       await this.reversLog(log, gameRoom, idRoom, io)
     }
   }
-
+  
   async reversLog(log, gameRoom, idRoom, io) {
     let funcName = log.funcName
     let emitData
@@ -150,15 +153,16 @@ class ioUserService {
       }
       return await ioHostRevFunc.cureMakeRev(playerIds, lastVar, gameRoom.id, idRoom, io)
     }
-    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour' || funcName==='stealChart' || funcName.includes('deleteRelocate')) {
+    if (funcName==='exchangeChart' || funcName==='addChart' || funcName==='SetNull' || funcName==='ByHour' || funcName==='stealChart' || funcName.includes(
+      'deleteRelocate')) {
       //console.log(lasstVar)sssssssss
       let playerIds = []
       let chartName
-      let makeId =1
+      let makeId = 1
       let bunkerItems = []
       console.log(funcName)
-      if(funcName.includes('deleteRelocate')){
-        if(funcName.includes('drop')){
+      if (funcName.includes('deleteRelocate')) {
+        if (funcName.includes('drop')) {
           makeId = 0
         }
       }
@@ -171,25 +175,26 @@ class ioUserService {
           playerIds.push(key)
         }
       }
-      if(funcName.includes('deleteRelocate') && playerIds.length===1 && makeId===1){
-        console.log('ПЕРЕНЕС ИНВЕНТАРЬ',lastVar[playerIds[0]].text)
-      if(gameRoom.bunkerItemsOthers.includes(lastVar[playerIds[0]].text)){
-        console.log(gameRoom.bunkerItemsOthers)
-        gameRoom.bunkerItemsOthers = gameRoom.bunkerItemsOthers.replaceAll(`,${lastVar[playerIds[0]].text}`,'')
-        console.log(gameRoom.bunkerItemsOthers)
-        await gameRoom.save()
-
-        let items = await UserModel.ChartBunker.findAll({where:{id:[gameRoom.bunkerItems1,gameRoom.bunkerItems2,gameRoom.bunkerItems3]}})
-        for(let item of items){
-          bunkerItems.push(item.text)
-
+      if (funcName.includes('deleteRelocate') && playerIds.length===1 && makeId===1) {
+        console.log('ПЕРЕНЕС ИНВЕНТАРЬ', lastVar[playerIds[0]].text)
+        if (gameRoom.bunkerItemsOthers.includes(lastVar[playerIds[0]].text)) {
+          console.log(gameRoom.bunkerItemsOthers)
+          gameRoom.bunkerItemsOthers = gameRoom.bunkerItemsOthers.replaceAll(`,${lastVar[playerIds[0]].text}`, '')
+          console.log(gameRoom.bunkerItemsOthers)
+          await gameRoom.save()
+          
+          let items = await UserModel.ChartBunker.findAll(
+            {where: {id: [gameRoom.bunkerItems1, gameRoom.bunkerItems2, gameRoom.bunkerItems3]}})
+          for (let item of items) {
+            bunkerItems.push(item.text)
+            
+          }
+          bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
+          // emitData.bunkerData[chartName]=bunkerItems
         }
-        bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
-       // emitData.bunkerData[chartName]=bunkerItems
+        
       }
-
-      }
-      return await ioHostRevFunc.exchangeChartRev(playerIds, lastVar, gameRoom.id, idRoom, io, chartName,bunkerItems)
+      return await ioHostRevFunc.exchangeChartRev(playerIds, lastVar, gameRoom.id, idRoom, io, chartName, bunkerItems)
     }
     if (funcName.includes('bunkerData')) {
       let lst = structuredClone(lastVar)
@@ -203,364 +208,362 @@ class ioUserService {
         if (key==='chartName') {
           chartName = lst[key]
         }
-        else if(key!=='otherVar' && chartName!=='bunkerItems') {
+        else if (key!=='otherVar' && chartName!=='bunkerItems') {
           id = lst[key]
-        }else if(chartName==='bunkerItems'){
+        }
+        else if (chartName==='bunkerItems') {
           console.log(lst[key])
           id = lst[key]
-        }else{
+        }
+        else {
           otherVar = lst[key]
         }
       }
-
-      if(otherVar){
+      
+      if (otherVar) {
         let imageId
         let soundId
         let imageName = null
         let soundName = null
         console.log(otherVar.soundId)
-        if(otherVar.imageId!==null){
-          let image = await UserModel.CatastropheImage.findOne({where:{id:otherVar.imageId}})
+        if (otherVar.imageId!==null) {
+          let image = await UserModel.CatastropheImage.findOne({where: {id: otherVar.imageId}})
           imageName = image.imageName
         }
-        if(otherVar.soundId && otherVar.soundId !== null){
-          let sound = await UserModel.CatastropheSounds.findOne({where:{id:otherVar.soundId}})
+        if (otherVar.soundId && otherVar.soundId!==null) {
+          let sound = await UserModel.CatastropheSounds.findOne({where: {id: otherVar.soundId}})
           soundName = sound.soundName
         }
         gameRoom.imageId = otherVar.imageId
         gameRoom.population = otherVar.population
-
-        emitData.bunkerData = {population:otherVar.population,imageName:imageName,soundName:soundName}
+        
+        emitData.bunkerData = {population: otherVar.population, imageName: imageName, soundName: soundName}
       }
-      if(chartName==='bunkerItems'){
+      if (chartName==='bunkerItems') {
         console.log(id)
         gameRoom.bunkerItems1 = id[0]
         gameRoom.bunkerItems2 = id[1]
         gameRoom.bunkerItems3 = id[2]
         console.log(id[3])
-        if(id[3]===null){
-          id[3]=''
+        if (id[3]===null) {
+          id[3] = ''
         }
         gameRoom.bunkerItemsOthers = id[3]
         let bunkerItems = []
-        let items = await UserModel.ChartBunker.findAll({where:{id:[id[0],id[1],id[2]]}})
-        for(let item of items){
+        let items = await UserModel.ChartBunker.findAll({where: {id: [id[0], id[1], id[2]]}})
+        for (let item of items) {
           bunkerItems.push(item.text)
-
+          
         }
         bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
-        emitData.bunkerData[chartName]=bunkerItems
+        emitData.bunkerData[chartName] = bunkerItems
       }
-      else{
+      else {
         console.log(id, chartName)
         gameRoom[chartName] = id
         let newChart = await UserModel.ChartBunker.findOne({where: {id: id}})
         emitData.bunkerData [chartName] = newChart.text
       }
-
+      
       await gameRoom.save()
       return emitData
-
-  }
-
-  //SetNulsl ByHsssasssssour exchangeChart deleteRelocate addChart stealChart refresh:chartName cureMake degreeOfSick sexOpposite professionExp
-
-}
-
-async getNickname(userId)
-{
-  let nickname = ''
-  if (userId>0) {
-    let user = await UserModel.User.findOne({where: {id: userId}})
-    nickname = user.nickname
-  }
-  else {
-    nickname = `Гость#${Math.abs(userId)}`
-  }
-  return nickname
-}
-
-howThisChartNameBunker(chartName)
-{
-  let name = ''
-  switch(chartName) {
-    case 'catastrophe':
-      name = 'Катаклизм'
-      break
-
-    case 'bunkerTime':
-      name = 'Время в бункере'
-      break
-    case 'bunkerLocation':
-      name = 'Локация бункера'
-      break
-    case 'bunkerCreated':
-      name = 'Когда был построен бункер'
-      break
-    case 'bunkerBedroom':
-      name = 'Состояние о комнатах в бункере'
-      break
-    case 'bunkerFood':
-      name = 'Состояние о еде в бункере'
-      break
-    case 'bunkerItems':
-      name = 'Состояние о предметах в бункере'
-      break
-    case 'bunkerSize':
-      name = 'Размер бункера'
-      break
-    case 'catastrophe':
-      name = 'Катоклизм'
-      break
-    case 'catastrophe':
-      name = 'Катоклизм'
-      break
-
-
-  }
-  return name
-}
-
-async validateToken(socket)
-{
-  try {
-    let token = socket.handshake.auth.token
-    let noRegToken = socket.handshake.auth.noregToken
-    let idRoom = socket.handshake.auth.idRoom
-    let isValidateId = null
-    //   console.log('Started validateToken')
-    if (!idRoom) {
-      console.log('Havent IDROOM')
-      socket.emit("setError",
-        {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
-      return null
+      
     }
-    if (!socket.handshake.auth.noregToken) {
-      //   console.log('Havent noregToken')
-      //Создавай новый токен и клади его в БД
-
-      noRegToken = uuid.v4()
-      socket.handshake.auth.noregToken = noRegToken.toString()
-      socket.emit('setNoregToken', noRegToken)
-      await UserModel.NoRegUsers.create({noRegToken: noRegToken})
+    
+    //SetNulsl ByHsssasssssour exchangeChart deleteRelocate addChart stealChart refresh:chartName cureMake degreeOfSick sexOpposite professionExp
+    
+  }
+  
+  async getNickname(userId) {
+    let nickname = ''
+    if (userId>0) {
+      let user = await UserModel.User.findOne({where: {id: userId}})
+      nickname = user.nickname
     }
-
-    //  console.log("TOKEN:::::", token)
-    if (token) {
-      //   console.log('Join to Token trigger')
-      const userData = tokenService.validateAccessToken(token)
-      if (!userData) {
-        //  console.log('Haven"t a UserData')
+    else {
+      nickname = `Гость#${Math.abs(userId)}`
+    }
+    return nickname
+  }
+  
+  howThisChartNameBunker(chartName) {
+    let name = ''
+    switch(chartName) {
+      case 'catastrophe':
+        name = 'Катаклизм'
+        break
+      
+      case 'bunkerTime':
+        name = 'Время в бункере'
+        break
+      case 'bunkerLocation':
+        name = 'Локация бункера'
+        break
+      case 'bunkerCreated':
+        name = 'Когда был построен бункер'
+        break
+      case 'bunkerBedroom':
+        name = 'Состояние о комнатах в бункере'
+        break
+      case 'bunkerFood':
+        name = 'Состояние о еде в бункере'
+        break
+      case 'bunkerItems':
+        name = 'Состояние о предметах в бункере'
+        break
+      case 'bunkerSize':
+        name = 'Размер бункера'
+        break
+      case 'catastrophe':
+        name = 'Катоклизм'
+        break
+      case 'catastrophe':
+        name = 'Катоклизм'
+        break
+      
+      
+    }
+    return name
+  }
+  
+  async validateToken(socket) {
+    try {
+      let token = socket.handshake.auth.token
+      let noRegToken = socket.handshake.auth.noregToken
+      let idRoom = socket.handshake.auth.idRoom
+      let isValidateId = null
+      let noregUserId = null
+      //   console.log('Started validateToken')
+      if (!idRoom) {
+        console.log('Havent IDROOM')
         socket.emit("setError",
           {
-            message: `Сервер не смог подтвердить вашу личность. Пожалуйста перезагрузите страницу или перезайдите в аккаунт`,
-            status: 403,
+            message: `Произошла ошибка c номером комнаты. Пожалуйста перезагрузите страницу`,
+            status: 400,
             functionName: 'connection'
           })
-        //     console.log('Невалидный токен')
         return null
       }
-      isValidateId = userData.id
-      const isBlock = await UserModel.BlackListUsers.findOne({where: {userId: isValidateId}})
-      if (isBlock) {
-        socket.emit("setError",
-          {
-            message: `Вы забанены`,
-            status: 469,
-            functionName: 'connection'
-          })
+      if (!socket.handshake.auth.noregToken) {
+        //   console.log('Havent noregToken')
+        //Создавай новый токен и клади его в БД
+        
+        noRegToken = uuid.v4()
+        socket.handshake.auth.noregToken = noRegToken.toString()
+        socket.emit('setNoregToken', noRegToken)
+        await UserModel.NoRegUsers.create({noRegToken: noRegToken})
+        noregUserId = await getNoregUserId(noRegToken)
       }
-      //    console.log('Have a UserData')
-      let gameRoomId = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-      if (gameRoomId) {
-        //   console.log('Have a gameRoomId')
-        let inGameUser = await UserModel.RoomSession.findOne(
-          {where: {userId: userData.id, gameRoomId: gameRoomId.id}})
-        // console.log('VAR inGameUser', inGameUser)
-        if (!inGameUser) {
-          //    console.log('Havent inGameUser')
-          console.log(noRegToken)
-          let noregUserId = await getNoregUserId(noRegToken, socket)
-          if (!noregUserId) {
-            //    console.log('Havent noregUserId')
-            socket.emit("setError",
-              {
-                message: `Произошла ошибка. Пожалуйста перезагрузите страницу`,
-                status: 400,
-                functionName: 'connection'
-              })
-            return null
-          }
-          //    console.log('Have noregUserId', noregUserId)
-          let inGameNoregUser = await UserModel.RoomSession.findOne(
-            {where: {userId: noregUserId, gameRoomId: gameRoomId.id}})
-          if (inGameNoregUser) {
-            //    console.log('Have inGameNoregUser', inGameNoregUser)
-            if (!socket.recovered) {
-              //      console.log('SOCKED NOT RECOVERED and SEND MESSAGE')
-              socket.emit('sendMessage',
-                {
-                  message: `Так как вы начали игру в комнате незарегистрированным, то в этой игре вы продолжите как гость#${Math.abs(
-                    noregUserId)}`
-                })
-            }
-            else {
-              //   console.log('SOCKED RECOVERED.DONT SEND MESSAGE')
-            }
-
-            isValidateId = noregUserId
-          }
-          else {
-            //    console.log('Havent inGameNoregUser',)
-          }
-
-
+      else {
+        noregUserId = await getNoregUserId(noRegToken)
+        if (!noregUserId) {
+          //   console.log('Havent noregToken 2')
+          //Создавай новый токен и клади его в БД
+          
+          noRegToken = uuid.v4()
+          socket.handshake.auth.noregToken = noRegToken.toString()
+          socket.emit('setNoregToken', noRegToken)
+          await UserModel.NoRegUsers.create({noRegToken: noRegToken})
+          noregUserId = await getNoregUserId(noRegToken)
+          
+          // socket.emit("setError",
+          //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
+          // return null
         }
       }
-
-      //   console.log('Connected with AccessToken', isValidateId)
+      
+      //  console.log("TOKEN:::::", token)
+      if (token) {
+        //   console.log('Join to Token trigger')
+        const userData = tokenService.validateAccessToken(token)
+        if (!userData) {
+          //  console.log('Haven"t a UserData')
+          socket.emit("setError",
+            {
+              message: `Сервер не смог подтвердить вашу личность. Пожалуйста перезагрузите страницу или перезайдите в аккаунт`,
+              status: 403,
+              functionName: 'connection'
+            })
+          //     console.log('Невалидный токен')
+          return null
+        }
+        isValidateId = userData.id
+        const isBlock = await UserModel.BlackListUsers.findOne({where: {userId: isValidateId}})
+        if (isBlock) {
+          socket.emit("setError",
+            {
+              message: `Вы забанены`,
+              status: 469,
+              functionName: 'connection'
+            })
+          return null
+        }
+        //    console.log('Have a UserData')
+        let gameRoomId = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        if (gameRoomId) {
+          //   console.log('Have a gameRoomId')
+          let inGameUser = await UserModel.RoomSession.findOne(
+            {where: {userId: userData.id, gameRoomId: gameRoomId.id}})
+          // console.log('VAR inGameUser', inGameUser)
+          if (!inGameUser) {
+            //    console.log('Havent inGameUser')
+//           console.log(noRegToken)
+//           let noregUserId = await getNoregUserId(noRegToken)
+//           if (!noregUserId) {
+//             //    console.log('Havent noregUserId')
+//             socket.emit("setError",
+//               {
+//                 message: `Произошла ошибка. Пожалуйста перезагрузите страницу`,
+//                 status: 400,
+//                 functionName: 'connection'
+//               })
+//             return null
+//           }
+            //    console.log('Have noregUserId', noregUserId)
+            let inGameNoregUser = await UserModel.RoomSession.findOne(
+              {where: {userId: noregUserId, gameRoomId: gameRoomId.id}})
+            if (inGameNoregUser) {
+              //    console.log('Have inGameNoregUser', inGameNoregUser)
+              if (!socket.recovered) {
+                //      console.log('SOCKED NOT RECOVERED and SEND MESSAGE')
+                socket.emit('sendMessage',
+                  {
+                    message: `Так как вы начали игру в комнате незарегистрированным, то в этой игре вы продолжите как гость#${Math.abs(
+                      noregUserId)}`
+                  })
+              }
+              else {
+                //   console.log('SOCKED RECOVERED.DONT SEND MESSAGE')
+              }
+              
+              isValidateId = noregUserId
+            }
+            else {
+              //    console.log('Havent inGameNoregUser',)
+            }
+            
+            
+          }
+        }
+        
+        console.log('Connected with AccessToken', isValidateId)
+        return {idRoom, isValidateId}
+      }
+      
+       console.log('Connected with noRegToken', noregUserId)
+      isValidateId = noregUserId
       return {idRoom, isValidateId}
-    }
-
-    // console.log('LET SEE noregToken userID')
-
-    let noregUserId = await getNoregUserId(noRegToken, socket)
-    if (!noregUserId) {
-      //   console.log('Havent noregToken 2')
-      //Создавай новый токен и клади его в БД
-
-      noRegToken = uuid.v4()
-      socket.handshake.auth.noregToken = noRegToken.toString()
-      socket.emit('setNoregToken', noRegToken)
-      await UserModel.NoRegUsers.create({noRegToken: noRegToken})
-      noregUserId = await getNoregUserId(noRegToken, socket)
-
-      // socket.emit("setError",
-      //   {message: `Произошла ошибка. Пожалуйста перезагрузите страницу`, status: 400, functionName: 'connection'})
-      // return null
-    }
-    //  console.log('Connected with noRegToken', noregUserId)
-    isValidateId = noregUserId
-    return {idRoom, isValidateId}
-  } catch(e) {
-    console.log(e)
-    return null
-  }
-}
-
-async getValidateGameData(idRoom, socket, io, isValidateId)
-{
-  let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-  if (!gameRoom) {
-    socket.emit("setError",
-      {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
-    // console.log('inValid idRoom')
-    return null
-  }
-  let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
-  let hostData = await UserModel.RoomSession.findOne(
-    {where: {gameRoomId: gameRoom.id, userId: gameRoom.dataValues.hostId}})
-  let isHostPlayer = !!hostData.isPlayer
-  let isAgeRestriction = await this.isAgeRestriction(gameRoom.dataValues.hostId,true,idRoom)
-  let isStarted = !!gameRoom.isStarted
-  let isPlayingBefore = !!userPlaying
-  let dataUsersPlaying = await this.getPlayingUsers(idRoom)
-  return {
-    isStarted,
-    isPlayingBefore,
-    countPlayers: dataUsersPlaying.length,
-    hostId: gameRoom.dataValues.hostId,
-    watchersCount: this.getWatchersCount(io, idRoom),
-    players: dataUsersPlaying,
-    userId: isValidateId,
-    isHidden: !!gameRoom.isHidden,
-    isHostPlayer: isHostPlayer,
-    isAgeRestriction: isAgeRestriction
-  }
-}
-
-async getPlayingUsers(idRoom)
-{
-  let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-  let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
-  let data = []
-  for (const user of playersInRoom) {
-    let userData = await this.getIdAndNicknameFromUser(user.userId)
-    if (userData) {
-      data.push(userData)
+    } catch(e) {
+      console.log(e)
+      return null
     }
   }
-  // console.log(data)
-  return data
-}
-
-async getIdAndNicknameFromUser(userId)
-{
-  let data = null
-  if (userId>0) {
-    let userData = await UserModel.User.findOne({where: {id: userId}})
-    data = {id: `${userId}`, nickname: `${userData.nickname}`}
+  
+  async getValidateGameData(idRoom, socket, io, isValidateId) {
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    if (!gameRoom) {
+      socket.emit("setError",
+        {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
+      // console.log('inValid idRoom')
+      return null
+    }
+    let userPlaying = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
+    let hostData = await UserModel.RoomSession.findOne(
+      {where: {gameRoomId: gameRoom.id, userId: gameRoom.dataValues.hostId}})
+    let isHostPlayer = !!hostData.isPlayer
+    let isAgeRestriction = await this.isAgeRestriction(gameRoom.dataValues.hostId, true, idRoom)
+    let isStarted = !!gameRoom.isStarted
+    let isPlayingBefore = !!userPlaying
+    let dataUsersPlaying = await this.getPlayingUsers(idRoom)
+    return {
+      isStarted,
+      isPlayingBefore,
+      countPlayers: dataUsersPlaying.length,
+      hostId: gameRoom.dataValues.hostId,
+      watchersCount: this.getWatchersCount(io, idRoom),
+      players: dataUsersPlaying,
+      userId: isValidateId,
+      isHidden: !!gameRoom.isHidden,
+      isHostPlayer: isHostPlayer,
+      isAgeRestriction: isAgeRestriction
+    }
+  }
+  
+  async getPlayingUsers(idRoom) {
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    let playersInRoom = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+    let data = []
+    for (const user of playersInRoom) {
+      let userData = await this.getIdAndNicknameFromUser(user.userId)
+      if (userData) {
+        data.push(userData)
+      }
+    }
+    // console.log(data)
     return data
   }
-  data = {id: `${userId}`, nickname: `Гость#${Math.abs(userId)}`}
-  return data
-}
-
-getWatchersCount(io, idRoom)
-{
-  let count = 0
-  for (const room of io.sockets.adapter.rooms) {
-    if (room[0]===`watchers:${idRoom}`) {
-      //Пример собранных данных. Либо просто data = null
-      count = room.length
-      break
+  
+  async getIdAndNicknameFromUser(userId) {
+    let data = null
+    if (userId>0) {
+      let userData = await UserModel.User.findOne({where: {id: userId}})
+      data = {id: `${userId}`, nickname: `${userData.nickname}`}
+      return data
+    }
+    data = {id: `${userId}`, nickname: `Гость#${Math.abs(userId)}`}
+    return data
+  }
+  
+  getWatchersCount(io, idRoom) {
+    let count = 0
+    for (const room of io.sockets.adapter.rooms) {
+      if (room[0]===`watchers:${idRoom}`) {
+        //Пример собранных данных. Либо просто data = null
+        count = room.length
+        break
+      }
+    }
+    return count
+  }
+  
+  joinRoomAndWatchTimer(socket, idRoom) {
+    if (timerList[idRoom]) {
+      clearTimeout(timerList[idRoom])
+      delete timerList[idRoom]
+    }
+    //   console.log('TIMER LIST JOIN', timerList)
+  }
+  
+  disconnectAndSetTimer(io, socket, idRoom) {
+    if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
+      //   console.log('Комната пустая, удалим через 3 часа')
+      timerList[idRoom] = setTimeout(async () => {
+        await this.deleteRoomFromDB(idRoom)
+        //   console.log('DELETE ROOMS TIMER')
+      }, timeToCloseRoom)
+      //   console.log('TIMER LISt DISCONNECT ', timerList)
     }
   }
-  return count
-}
-
-joinRoomAndWatchTimer(socket, idRoom)
-{
-  if (timerList[idRoom]) {
-    clearTimeout(timerList[idRoom])
-    delete timerList[idRoom]
+  
+  async deleteRoomFromDB(idRoom) {
+    let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+    
+    if (gameRoom.isStarted) {
+      await playerDataService.setStatisticGame(idRoom)
+    }
+    await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
+    await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
+    await UserModel.Logi.destroy(({where: {idRoom: idRoom}}))
+    
   }
-  //   console.log('TIMER LIST JOIN', timerList)
-}
-
-disconnectAndSetTimer(io, socket, idRoom)
-{
-  if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
-    //   console.log('Комната пустая, удалим через 3 часа')
-    timerList[idRoom] = setTimeout(async () => {
-      await this.deleteRoomFromDB(idRoom)
-      //   console.log('DELETE ROOMS TIMER')
-    }, timeToCloseRoom)
-    //   console.log('TIMER LISt DISCONNECT ', timerList)
-  }
-}
-
-async deleteRoomFromDB(idRoom)
-{
-  let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-
-  if (gameRoom.isStarted) {
-    await playerDataService.setStatisticGame(idRoom)
-  }
-  await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
-  await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
-  await UserModel.Logi.destroy(({where:{idRoom:idRoom}}))
-
-}
-
+  
 }
 
 /////////////////////////////////////////////
 
-async function getNoregUserId(noRegToken, socket) {
+async function getNoregUserId(noRegToken) {
   const isValidNoRegToken = await UserModel.NoRegUsers.findOne({where: {noRegToken: noRegToken}})
   if (!isValidNoRegToken) {
-
     return null
   }
   return -Math.abs(isValidNoRegToken.id)
