@@ -209,7 +209,7 @@ module.exports = function(io) {
       socket.on('startGame', async (playersData) => {
         let isCustomGame = false
         try {
-          if (GameData.countPlayers<0) {
+          if (GameData.countPlayers<5) {
             socket.emit("setError",
               {
                 message: `Для начала игры нужно минимум 6 игроков`,

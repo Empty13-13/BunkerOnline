@@ -117,6 +117,7 @@ module.exports = function(io) {
         await ioUserService.deleteRoomFromDB(idRoom)
         
         console.log('RoomClose делаем')
+        socket.emit('Комната успешно закрыта, обновите страницу')
         io.in(idRoom).emit('roomClosed', {message: 'Комната закрыта администратором', status: 200})
         io.in(idRoom).disconnectSockets(true);
       })

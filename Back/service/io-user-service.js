@@ -30,8 +30,11 @@ class ioUserService {
     let hostPack
     if(isJoin){
       let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
+      if(gameRoom.isStarted){
       let creator = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoom.id,userId:gameRoom.creatorId}})
-      hostPack = JSON.parse(creator.usePack)
+      hostPack = JSON.parse(creator.usePack)}else{
+        hostPack = await playerDataService.hostUsePack(hostId)
+      }
     }else {
       hostPack = await playerDataService.hostUsePack(hostId)
     }

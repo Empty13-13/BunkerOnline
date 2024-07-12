@@ -107,7 +107,7 @@ let isActive = ref(null)
 const diceNum = ref(0)
 
 const mayStartGame = computed(() => {
-  return selectedGame.players.length>0
+  return selectedGame.players.length>=selectedGame.minPlayers
 })
 
 onBeforeMount(() => {
