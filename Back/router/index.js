@@ -134,6 +134,7 @@ router.post('/activateKey', authMiddleware, userController.activateKey);
 router.get('/pricesInfo', authMiddleware, userController.getPriceInfo);
 router.get('/getHomeImageName', userController.getHomeImageName);
 router.get('/getBaseProfession', userController.getBaseProfession);
+router.get('/getUpdateInfo', userController.getUpdateInfo);
 
 
 //router.get('/loginVK',userController.loginVK);

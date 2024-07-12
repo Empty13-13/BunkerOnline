@@ -1011,6 +1011,10 @@ class UserService {
   async getPriceInfo() {
     return await UserModel.prices.findAll()
   }
+  
+  async getUpdateInfo() {
+    return UserModel.updateInfo.findAll()
+  }
 }
 
 async function getNickName(user) {

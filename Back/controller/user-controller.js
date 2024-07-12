@@ -725,6 +725,16 @@ class UserController {
       next(e)
     }
   }
+  
+  async getUpdateInfo(req,res,next) {
+    try {
+      const priceInfo = await userService.getUpdateInfo()
+      res.json(priceInfo)
+    } catch(e) {
+      console.log(e)
+      next(e)
+    }
+  }
 }
 
 
