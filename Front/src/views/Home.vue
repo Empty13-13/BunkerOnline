@@ -14,7 +14,7 @@ import { useGlobalPopupStore } from "@/stores/popup.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import axiosInstance from "@/api.js";
 import AppLoader from "@/components/AppLoader.vue";
-import { getId, getLocalData, recaptchaMaker } from "@/plugins/functions.js";
+import { getId, getLocalData, openWindow, recaptchaMaker } from "@/plugins/functions.js";
 import { set, useWindowFocus } from "@vueuse/core";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
 
@@ -202,7 +202,7 @@ async function getImageName() {
               <AppButton @click="letsGo" v-else class="create-room__btn create" color="gold">
                 Создать игру
               </AppButton>
-              <AppButton class="create-room__btn find" color="purple" iconName="discord.svg">Поиск игроков</AppButton>
+              <AppButton class="create-room__btn find" color="purple" iconName="discord.svg" @click="openWindow(otherTexts.allTexts['discordLink'])">Поиск игроков</AppButton>
               <AppButton class="create-room__btn howToPlay" color="gold" :border="true" @click="isOpenHowToPlay=true">
                 Как играть?
               </AppButton>
