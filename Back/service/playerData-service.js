@@ -229,6 +229,13 @@ class playerDataService {
       dataPlayer2.id = dataPlayer1.id
       dataPlayer2.text = dataPlayer1.text
 //s
+    }else if(chartName==='health' && (dataPlayer1.text.includes('Идеально здоров') ||dataPlayer2.text.includes('Идеально здоров'))){
+       if(dataPlayer1.text.includes('Идеально здоров')){
+         dataPlayer2.id = dataPlayer1.id
+         dataPlayer2.text = dataPlayer1.text
+       }else{
+
+       }
     }
     else {
       dataPlayer2.id = [dataPlayer2.id, dataPlayer1.id]
@@ -255,6 +262,7 @@ class playerDataService {
           dataPlayer2.description = `${dataPlayer1.description}`
         }
       }
+
     }
     let isOpenPlayer1 = false
     let isOpenPlayer2 = false
@@ -1062,7 +1070,35 @@ class playerDataService {
       return this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
     }
   }
-  
+
+
+  replaceAgeStag(text,sex){
+    let lastvar=''
+    if(sex===0){
+      if(text.includes(`(Молодой)`)){
+        text = text.replaceAll('(Молодой)','(Молодая)')
+        lastvar =`(Молодой)`
+      }else if(text.includes(`(Взрослый)`)){
+        text = text.replaceAll('(Взрослый)','(Взрослая)')
+        lastvar =`(Взрослый)`
+      }else{
+        text = text.replaceAll('(Пожилой)','(Пожилая)')
+        lastvar =`(Пожилой)`
+      }
+    }else{
+      if(text.includes(`(Молодая)`)){
+        text = text.replaceAll('(Молодая)','(Молодой)')
+        lastvar =`(Молодая)`
+      }else if(text.includes(`(Взрослая)`)){
+        text = text.replaceAll('(Взрослая)','(Взрослый)')
+        lastvar =`(Взрослая)`
+      }else{
+        text = text.replaceAll('(Пожилая)','(Пожилой)')
+        lastvar =`(Пожилая)`
+      }
+    }
+    return text
+  }
   async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
     let isUsedSystemAdvancePack = false
     if (usePack.includes(this.systemSettings.advancePack)) {

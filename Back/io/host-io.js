@@ -933,12 +933,18 @@ module.exports = function(io) {
             let data = JSON.parse(player.sex)
             // console.log(data.text)
             if (data.text.includes('Мужчина')) {
+                let newText = playerDataService.replaceAgeStag(data.text,0)
+                lastVar[player.userId] = data.text
+              data.text = newText
               data.text = data.text.replace('Мужчина', 'Женщина')
-              lastVar[player.userId] = 'Мужчина'
+
             }
             else if (data.text.includes('Женщина')) {
+                let newText = playerDataService.replaceAgeStag(data.text,1)
+                lastVar[player.userId] = data.text
+                data.text = newText
               data.text = data.text.replace('Женщина', 'Мужчина')
-              lastVar[player.userId] = 'Женщина'
+
             }
             else {
               invalidPlayersNickname.push(await ioUserService.getNickname(player.userId))
@@ -1913,10 +1919,16 @@ module.exports = function(io) {
           let playerData1 = JSON.parse(player1[chartName])
           let playerData2 = JSON.parse(player2[chartName])
           lastVar.chartName = chartName
+            console.log(playerData1,playerData2)
           lastVar[playerId1] = structuredClone(playerData1)
           lastVar[playerId2] = structuredClone(playerData2)
+            let isOpen1 = playerData1.isOpen
+            let isOpen2 = playerData2.isOpen
           playerData1 = structuredClone(lastVar[playerId2])
           playerData2 = structuredClone(lastVar[playerId1])
+            playerData1.isOpen = isOpen1
+            playerData2.isOpen = isOpen2
+            console.log(playerData1,playerData2)
           player1[chartName] = JSON.stringify(playerData1)
           player2[chartName] = JSON.stringify(playerData2)
           await player1.save()
@@ -1935,7 +1947,7 @@ module.exports = function(io) {
             io.to(`user:${playerId2}:${idRoom}`).emit('setAllGameData',
               {players: {[playerId2]: {[chartName]: playerData2}}})
           }
-          
+          console.log(emitData)
         }
         await UserModel.Logi.create({
           idRoom: idRoom,

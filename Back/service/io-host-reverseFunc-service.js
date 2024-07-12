@@ -77,17 +77,12 @@ class ioHostRevFunc {
     let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomId, userId: playersId}})
     for (let player of players) {
       let data = JSON.parse(player.sex)
-      if (data.text.includes('Мужчина')) {
-        data.text = data.text.replace('Мужчина', 'Женщина')
-        lastVar[player.userId] = 'Мужчина'
-      }
-      else if (data.text.includes('Женщина')) {
-        data.text = data.text.replace('Женщина', 'Мужчина')
-        lastVar[player.userId] = 'Женщина'
-      }
+      data.text =lastVar[player.userId]
+      console.log(data)
       let isOpen = data.isOpen
       player.sex = JSON.stringify(data)
       data = {sex: data}
+      console.log(player.sex)
       await player.save()
       console.log(data)
       if (isOpen) {
@@ -99,7 +94,8 @@ class ioHostRevFunc {
       }
     }
     io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', emitData)
-
+    console.log(emitData)
+    return emitData
 
   }
 

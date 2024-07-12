@@ -386,7 +386,7 @@ module.exports = function(io) {
                 })
               // Ошибка, что игрок уже мертв и не может голосовать
             }
-            
+              io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
           }
           else {
             socket.emit("setError",
