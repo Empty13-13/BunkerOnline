@@ -221,6 +221,13 @@ const prices = sequelize.define('prices',{
   link:{type: DataTypes.STRING()},
 })
 
+const updateInfo = sequelize.define('updateInfo',{
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  title:{type: DataTypes.STRING(255)},
+  text:{type: DataTypes.STRING(10000)},
+  dateText:{type: DataTypes.STRING(255)},
+})
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
@@ -250,6 +257,7 @@ module.exports = {
   ResetPassword,
   NoRegUsers,
   GameRooms,
+  updateInfo,
   RoomSession,
   ChartBunker,
   ChartPack,
