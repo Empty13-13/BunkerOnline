@@ -131,7 +131,7 @@ router.get('/otherText/:id', userController.loadOtherText);
 router.get('/wikiList', userController.loadWikiList);
 router.post('/generateKeys', adminMiddleware('admin'), adminController.generateKeys);
 router.post('/activateKey', authMiddleware, userController.activateKey);
-router.get('/pricesInfo', authMiddleware, userController.getPriceInfo);
+router.get('/pricesInfo', userController.getPriceInfo);
 router.get('/getHomeImageName', userController.getHomeImageName);
 router.get('/getBaseProfession', userController.getBaseProfession);
 router.get('/getUpdateInfo', userController.getUpdateInfo);
