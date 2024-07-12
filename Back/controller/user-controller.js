@@ -162,7 +162,7 @@ class UserController {
       //  console.log(req.cookies)
       const userData = await userService.refresh(refreshToken)
       res.cookie('refreshToken', userData.refreshToken,
-        {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
+        {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'Lax'})
       delete userData.refreshToken
       return res.json(userData)
       
@@ -232,7 +232,7 @@ class UserController {
       return
     }
     res.cookie('refreshToken', userData.refreshToken,
-      {maxAge: 30 * 24 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
+      {maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict'})
     delete userData.refreshToken
     //console.log(userData.user.id)
     const redirect_url = `${process.env.FRONT_API}/profile=${userData.user.id}?account=connected`
