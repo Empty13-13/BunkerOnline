@@ -608,10 +608,8 @@ function toggleSoundHandler() {
               </div>
 
               <div class="wrapper-listGamer__subText">
-                <p>* Чтобы узнать, выжил ли ваш бункер по окончании игры, вы можете пройти тест <a target="_blank"
-                                                                                                   href="/test">Оценка
-                                                                                                                выживаемости
-                                                                                                                бункера</a>
+                <p>* Чтобы узнать, выжил ли ваш бункер по окончании игры, вы можете пройти тест
+                  <a target="_blank" href="/test">"Оценка выживаемости бункера"</a>
                 </p>
               </div>
             </div>
@@ -1204,10 +1202,16 @@ function toggleSoundHandler() {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1.2;
+    position: relative;
 
     a {
       line-height: 1.2;
       position: relative;
+      color: #F9D35BFF;
+      background: linear-gradient(90deg, #F9D35B, #D96613);
+      background-clip: border-box;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
 
       &::after {
         content: '';
@@ -1216,7 +1220,8 @@ function toggleSoundHandler() {
         top: calc(100%);
         width: 100%;
         height: 1px;
-        background: rgba(255,255,255,0.4);
+        background: #F9D35BFF;
+        opacity: 0.4;
       }
 
       @media (any-hover: hover){
