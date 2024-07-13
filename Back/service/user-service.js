@@ -263,14 +263,18 @@ class UserService {
     // console.log(user.data)
     const userId = user.data['id']
     let nickname = user.data['username']
-    const email = user.data['email']
+    let email = user.data['email']
+    //let email = null
+    if(!email || email === null){
+      email = `${userId}@noreguser.com`
+    }
     // const avatar = user.data['avatar']
     const isNickname = await UserModel.User.findOne({where: {nickname: nickname}})
     const candidate = await UserModel.DiscordAuthId.findOne({where: {discordId: userId}})
     //console.log(candidate)
     const candidateUser = await UserModel.User.findOne({where: {email: email}})
-    //console.log(candidateUser.userId)
-
+    //console.log(candidateUser.userId)s
+    console.log(email,userId,nickname,candidateUser)
     if (!candidate) {
       let userDto = null
       console.log('ДОШЁЛ1')
