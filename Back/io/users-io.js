@@ -8,6 +8,7 @@ const UserModel = require('../model/models')
 const ioUserService = require('../service/io-user-service')
 const playerDataService = require('../service/playerData-service')
 const {Op} = require('sequelize')
+const {User} = require("../model/models");
 
 
 module.exports = function(io) {
@@ -67,6 +68,13 @@ module.exports = function(io) {
     socket.on('joinRoom', async () => {
       //await changeNoregIdToRegId(socket)
       let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
+        let isAdmin = false
+        if(isValidateId>0){
+            let userA = await UserModel.User.findOne({where:{id:isValidateId,accsessLevel:'admin'}})
+            if(userA){
+                isAdmin = true
+            }
+        }
       if (!GameData) {
         return
       }
@@ -82,7 +90,7 @@ module.exports = function(io) {
           socket.emit('setAllGameData', data)
         }
         else {
-          if (GameData.isHidden) {
+          if (GameData.isHidden &&!isAdmin) {
             socket.emit("setError",
               {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
             io.in(socket.id).disconnectSockets(true);
@@ -90,9 +98,15 @@ module.exports = function(io) {
           }
           let data = await playerDataService.joinGameData(idRoom, isValidateId, true)
           socket.join(`watchers:${idRoom}`)
-          socket.emit('sendMessage',
-            //`Игра уже началась. На данный момент вы являетесь наблюдателем`
-            {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
+            if(isAdmin){
+                socket.emit('sendMessage',
+                    //`Игра уже началась. На данный момент вы являетесь наблюдателем`
+                    {message: `Игра уже началась. На данный момент вы являетесь наблюдателем с ролью Админа`})
+            }else {
+                socket.emit('sendMessage',
+                    //`Игра уже началась. На данный момент вы являетесь наблюдателем`
+                    {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
+            }
           socket.emit('startedGame')
           GameData.watchersCount += 1
           watchersCount = GameData.watchersCount

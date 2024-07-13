@@ -2080,6 +2080,7 @@ module.exports = function(io) {
           let vars = {}
           let zeroPlayer = players.find(item => item.userId===userList[0])
           let lastPlayer = players.find(item => item.userId===userList[userList.length - 1])    //players[players.length - 1]
+            console.log(chartName,userList)
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
           dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
           playerProfessionData.isOpen = dataForNextPlayer.isOpen

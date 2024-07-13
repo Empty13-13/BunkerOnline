@@ -305,6 +305,7 @@ class playerDataService {
   }
   
   async refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText) {
+    this.playerPerfectHealth=[]
     this.systemSettings = await this.getSystemSettingsData()
     this.getPlayerPerfectHealth(players)
     let data = {players: {}, lastVar: {}, emitData: {players: {}}}
@@ -316,7 +317,7 @@ class playerDataService {
         let lastVar = this.getLastVar(player)
         let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoom.id)
         resultPlayerData = await this.createDataPlayer(usePackIds, player.userId, gameRoom.id, null, player, true)
-        //console.log(resultPlayerData)
+        //console.log(resultPlayerData)s
         //
         data.players = Object.assign(data.players, resultPlayerData)
         data.lastVar = Object.assign(data.lastVar, lastVar)
@@ -508,6 +509,11 @@ class playerDataService {
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
+    let isHostNotPlayer = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoomData.id,userId:gameRoomData.hostId,isPlayer:0}})
+    if(isHostNotPlayer){
+      isHostNotPlayer.usePack = JSON.stringify(hostPackIds)
+      await isHostNotPlayer.save()
+    }
     // console.log('hostPackIds!!!!!!!!!!', hostPackIds)
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id, isPlayer: 1}})
     if (gameRoomData.isStarted) {
@@ -904,6 +910,7 @@ class playerDataService {
   async getAvailablePlayerData2(idRoom, isJoin = false) {
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     const players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoomData.id}})
+    let isHostNotPlayer = await UserModel.RoomSession.findOne({where: {gameRoomId: gameRoomData.id,isPlayer:0}})
     let userList = []
     //  let arrayPlayer = []
     if (!isJoin) {
@@ -911,11 +918,15 @@ class playerDataService {
       for (let i = 0; i<players.length; i++) {
         userList.push(players[list[i]].userId)
       }
+
     }
     else {
       userList = JSON.parse(gameRoomData.userList)
+      if(isHostNotPlayer){
+        userList.push(isHostNotPlayer.userId)
+      }
     }
-    
+    console.log(userList)
     //  console.log('POTOK',players[0])
     // console.log('ABRAKADABRA',userList)
     let data = {}
@@ -923,6 +934,8 @@ class playerDataService {
     for (let i = 0; i<players.length; i++) {
       let userData = {}
       let player = players.find(item => item.userId===userList[i])
+    //  if(!isHostNotPlayer || player.userId!==is)
+      console.log(player.userId)
       sortedPlayers.push(player.userId)
       // console.log('player',player.userId)
       //  arrayPlayer.push(player.userId)
@@ -955,8 +968,13 @@ class playerDataService {
       data[player.userId] = userData
       // console.log('NEWDATA',data)
     }
+    if(isHostNotPlayer){
+      let index =sortedPlayers.indexOf(isHostNotPlayer.userId)
+      sortedPlayers.splice(index,1)
+    }
     // console.log('DATA',data)
     if (!isJoin) {
+
       
       gameRoomData.userList = JSON.stringify(sortedPlayers)
       await gameRoomData.save()

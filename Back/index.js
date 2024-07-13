@@ -22,6 +22,9 @@ const ioUserService = require('./service/io-user-service')
 const UserModel = require('./model/models')
 
 
+
+
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 1,
@@ -80,7 +83,7 @@ require('./io/auth-io')(io)
 const PORT = process.env.PORT || 5000;
 
 // const corsOptions ={
-//   origin: 'http://localhost:5173/',
+//   origin: 'http://localhost:5173/',sыs
 // }
 
 app.use(fileUpload({}))
