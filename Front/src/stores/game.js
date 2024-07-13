@@ -358,9 +358,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getActivePlayersFromUserData = computed(() => {
     let resultArr = []
+    let indexPlayer = 0
     userData.value.sortedPlayers.forEach((id,index) => {
       if (!!userData.value[id].isPlayer) {
-        resultArr.push({id: id, data: userData.value[id],index})
+        resultArr.push({id: id, data: userData.value[id],index:indexPlayer++})
       }
     })
     return resultArr
@@ -398,7 +399,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const getPlayerEndSeconds = computed(() => {
     let seconds = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
     
-    return seconds>0 && seconds<61? seconds:0
+    return seconds>0? seconds:0
   })
   let timerCatastrophe = null
   setInterval(() => {
@@ -424,7 +425,9 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
             }
           }
         }
+        
         bunkerData.value[key] = data.bunkerData[key]
+        
         if (key==='endOfTime') {
           if (+(new Date(bunkerData.value.endOfTime)) - +(dateNow.value)>0) {
             clearInterval(timerCatastrophe)
