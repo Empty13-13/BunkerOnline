@@ -165,7 +165,7 @@ function banUser(e) {
       }
     } catch(e) {
       console.log(e.message)
-      globalPopup.activate('Ошибка сервера','Произошла ошибка на сервере, <br> ' + e.response.message,'red')
+      globalPopup.activate('Ошибка сервера', 'Произошла ошибка на сервере, <br> ' + e.response.message, 'red')
     }
 
     globalPreloader.deactivate()
@@ -407,7 +407,9 @@ function changePasswordHandler(e) {
       showPasswordChangePopup.value = true
     } catch(e) {
       console.log(e.message)
-      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление пароля. Если сообщение не пришло - проверьте папку "спам"', 'gold')
+      globalPopup.activate('Внимание',
+          'Вы уже отправляли запрос на восстановление пароля. Если сообщение не пришло - проверьте папку "спам"',
+          'gold')
     }
 
   }, 'Вы уверены что хотите сменить пароль?')
@@ -423,7 +425,8 @@ function changeEmailHandler(e) {
       showEmailChangePopup.value = true
     } catch(e) {
       console.log(e.message)
-      globalPopup.activate('Внимание', 'Вы уже отправляли запрос на восстановление email. Если сообщение не пришло - проверьте папку "спам"', 'gold')
+      globalPopup.activate('Внимание',
+          'Вы уже отправляли запрос на восстановление email. Если сообщение не пришло - проверьте папку "спам"', 'gold')
     }
   })
 }
@@ -654,8 +657,14 @@ function activateKeyHandler(e) {
             <div v-if="!isMyProfile" class="middle-profileBlock__column">
               <span>Пол: {{ getSex }}</span>
             </div>
-            <div v-if="!isMyProfile" class="middle-profileBlock__column">
-              <span>{{ data.about }}</span>
+            <div v-if="!isMyProfile" class="middle-profileBlock__column _notMe">
+<!--              <textarea readonly>{{data.about}}</textarea>-->
+<!--              <span v-html="data.about.replaceAll('\n','<br>')"></span>-->
+              <p v-for="text in data.about.replaceAll(' ','&nbsp;').split('\n')"
+                    :key="text"
+              >
+                {{text}}
+              </p>
             </div>
 
             <!--========================================================================================================================================================-->
@@ -1234,6 +1243,31 @@ function activateKeyHandler(e) {
 
     &._column {
       flex-direction: column;
+    }
+
+    &._notMe {
+      flex-direction: column;
+      align-items: flex-start;
+      max-width: 577px;
+
+      p {
+        display: inline-block;
+        max-width: 577px;
+        word-wrap: break-word;
+        text-align: left;
+      }
+
+      textarea {
+        background: none;
+        resize: none;
+        max-width: 577px;
+        flex: 1 1 auto;
+        display: flex;
+        width: auto;
+        outline: none !important;
+        padding: 0;
+        margin: 0;
+      }
     }
   }
 
