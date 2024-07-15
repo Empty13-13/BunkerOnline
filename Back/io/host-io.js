@@ -408,7 +408,7 @@ module.exports = function(io) {
       socket.on('timer:pause', async (value) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         gameRoom.timerPauseSeconds = Math.ceil((gameRoom.timerEndDate - new Date()) / 1000)
-        gameRoom.save()
+        await gameRoom.save()
         
         
         io.in(idRoom).emit('timer:pause')

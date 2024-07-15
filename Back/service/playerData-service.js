@@ -359,7 +359,7 @@ class playerDataService {
         }
         data.players[player.userId] = {[chartName]: lastData}
         player[chartName] = JSON.stringify(lastData)
-        player.save()
+        await player.save()
         if (lastData.isOpen) {
           data.emitData.players[player.userId] = {[chartName]: lastData}
         }

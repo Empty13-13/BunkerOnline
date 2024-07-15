@@ -74,7 +74,8 @@ axiosRetry(axiosInstance, {
       
       try {
         const newTokens = await axios.post(apiLink + "/refresh", {}, {
-          withCredentials: true
+          withCredentials: true,
+          headers: { Authorization: 'Bearer ' + myProfile.token}
         })
         
         myProfile.token = newTokens.data.accessToken

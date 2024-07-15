@@ -11,6 +11,7 @@ module.exports = async function(req, res, next) {
         accessToken = authorizationHeader.split('Bearer ')[1]
 
         if (!accessToken) {
+          console.log('(((((((((((((((((((((((((((((((((((')
           return next(ApiError.UnauthorizedError())
         }
         const userData = tokenService.validateAccessToken(accessToken)
@@ -31,6 +32,7 @@ module.exports = async function(req, res, next) {
     }
     next()
   } catch(e) {
+    console.log('Ошибка 3')
     return next(ApiError.UnauthorizedError())
   }
 }

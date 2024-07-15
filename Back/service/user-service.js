@@ -133,11 +133,16 @@ class UserService {
   
   async refresh(refreshToken) {
     if (!refreshToken) {
+      console.log('Ошибка 1')
       throw ApiError.UnauthorizedError()
     }
+    const tokensUsers = await UserModel.Token.findAll()
+    console.log('tokensUsers',tokensUsers)
+    
     const userData = tokenService.validateRefreshToken(refreshToken)
     const tokenFrom = await tokenService.findToken(refreshToken)
     if (!userData || !tokenFrom) {
+      console.log('Ошибка 2',userData,tokenFrom)
       throw ApiError.UnauthorizedError()
     }
     const user = await UserModel.User.findOne({where: {id: userData.id}})
