@@ -14,13 +14,15 @@ module.exports = async function(req, res, next) {
           return next(ApiError.UnauthorizedError())
         }
         const userData = tokenService.validateAccessToken(accessToken)
-        console.log(userData)
-        if (!userData) {
-          return next(ApiError.UnauthorizedError())
-        }
-        const isBlocked = await UserModel.BlackListUsers.findOne({where: {userId: userData.id}})
-        if (isBlocked) {
-          return next(ApiError.BlockedUser())
+        // console.log(userData)
+        // if (!userData) {
+        //   return next(ApiError.UnauthorizedError())
+        // }
+        if(userData) {
+          const isBlocked = await UserModel.BlackListUsers.findOne({where: {userId: userData.id}})
+          if (isBlocked) {
+            return next(ApiError.BlockedUser())
+          }
         }
       }
 
