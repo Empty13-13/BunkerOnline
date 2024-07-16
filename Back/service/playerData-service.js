@@ -159,7 +159,7 @@ class playerDataService {
     //  console.log(player[chartName])
     let data = JSON.parse(player[chartName])
     let newId = 0
-    if (data.text==='Пусто' || data.text==='Отсутствует' || data.text==='Без профессии') {
+    if (data.text==='Пусто' || data.text==='Отсутствует' || data.text==='Без профессии' || data.text ==='Идеально здоров') {
       data.text = ''
       data.id = null
     }
@@ -757,7 +757,7 @@ class playerDataService {
         timer.seconds = gameRoom.timerPauseSeconds
       }else{
         timer.date = gameRoom.timerEndDate
-        timer.nowDate = gameRoom.nowDateTimer
+        timer.nowDate = new Date()
       }
     }
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
