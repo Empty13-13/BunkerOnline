@@ -307,7 +307,7 @@ function toggleSoundHandler() {
           </ul>
         </div>
       </div>
-      <TheHostPanel v-if="hostFunctional.haveAccess" :player-items="itemsName.concat(specItems)" />
+      <TheHostPanel v-if="hostFunctional.haveAccess"/>
       <div class="watchersIcon"
            :class="selectedGame.watchersCount>0?'_active':''">
         <img src="/img/icons/watcher.svg" alt="">
@@ -326,13 +326,11 @@ function toggleSoundHandler() {
           <span class="text">
             {{
               Math.floor(selectedGameData.getCatastropheEndSeconds / 60 / 60)>0? Math.floor(
-                  selectedGameData.getCatastropheEndSeconds / 60 / 60) + 'Ч.':''
-            }}
-            {{
+                  selectedGameData.getCatastropheEndSeconds / 60 / 60).toString().padStart(2,'0') + ':':''
+            }}{{
               Math.floor(selectedGameData.getCatastropheEndSeconds / 60 % 60)>0? Math.floor(
-                  selectedGameData.getCatastropheEndSeconds / 60 % 60) + 'М.':''
-            }}
-            {{ Math.floor(selectedGameData.getCatastropheEndSeconds % 60) + 'С.' }}
+                  selectedGameData.getCatastropheEndSeconds / 60 % 60).toString().padStart(2,'0') + ':':''
+            }}{{ Math.floor(selectedGameData.getCatastropheEndSeconds % 60).toString().padStart(2,'0') }}
           </span>
         </div>
       </div>

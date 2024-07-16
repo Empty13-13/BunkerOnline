@@ -11,23 +11,10 @@ import { RouterView } from "vue-router";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
 
-let props = defineProps({
-  playerItems: Array
-})
-
-let editPlayerItems = []
-
-for (let data of props.playerItems) {
-  editPlayerItems.push({text: data[0], value: data[1]})
-}
-
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
 const confirmStore = useConfirmBlockStore()
 
-const charPerson = ref(null)
-const charItem = ref(null)
-const charInput = ref(null)
 const isOpen = ref(false)
 const funcData = ref({
   characteristics: {id: 0, chart: 0, inputValue: ''},
@@ -47,7 +34,6 @@ const funcData = ref({
 function selectPlayer2WithoutSelectedFirst(value) {
   return selectedGameData.getPlayerForSelect.filter(item => item.value!==value)
 }
-
 
 const professionItems = [
   {text: 'Дилетант', value: 0},
@@ -133,15 +119,6 @@ const bunkerCharacteristicsItems = [
   {text: 'Количество еды', value: 4},
   {text: 'В бункере присутствует', value: 6},
 ]
-
-onMounted(() => {
-})
-onBeforeUnmount(() => {
-})
-
-function charClick(e) {
-  console.log(charPerson, charItem, charInput)
-}
 
 //========================================================================================================================================================
 function closeRoom(e) {

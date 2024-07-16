@@ -142,6 +142,8 @@ onBeforeMount(async () => {
   }
 
   &__item-title {
+    display: flex;
+    align-items: center;
 
     &._title {
       font-weight: 700;

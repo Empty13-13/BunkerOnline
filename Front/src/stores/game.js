@@ -369,22 +369,22 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     return resultArr
   })
   const getPlayerForSelect = computed(() => {
-    return getAlivePlayers.value.map(item => {
-      return {value: item.id, text: item.data.nickname}
+    return getAlivePlayers.value.map((item,index) => {
+      return {value: item.id, text: (index+1) + " | " + item.data.nickname}
     })
   })
   const getPlayerForSelectAndAll = computed(() => {
     let players = [{value: 0, text: 'Для всех'}]
-    players = players.concat(getAlivePlayers.value.map(item => {
-      return {value: item.id, text: item.data.nickname}
+    players = players.concat(getAlivePlayers.value.map((item,index) => {
+      return {value: item.id, text: (index + 1)+ " | " + item.data.nickname}
     }))
     return players
   })
   const getAllPlayersSelectToChangeAdmin = computed(() => {
     let resultArr = []
-    userData.value.sortedPlayers.forEach(id => {
+    userData.value.sortedPlayers.forEach((id,index) => {
       if (userData.value[id] && id!==selectedGame.hostId) {
-        resultArr.push({value: id, text: userData.value[id].nickname})
+        resultArr.push({value: id, text: (index + 1)+ " | " +  userData.value[id].nickname})
       }
     })
     return resultArr
