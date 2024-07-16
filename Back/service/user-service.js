@@ -519,6 +519,20 @@ class UserService {
     for (let key in data) {
       // console.log("KEY BABSDHBSAJDHASBJDKHASBKHJD",key)
       if (!unCorrectInputs.toString().includes(key.toString())) {
+    //    console.log(key)
+        if(key==='text'){
+          const forbiddenCharacters = await UserModel.BlackListWords.findAll()
+
+          if (forbiddenCharacters) {
+            forbiddenCharacters.forEach(word => {
+              if (data[key].toLowerCase().includes(word.word.toLowerCase())) {
+                throw ApiError.BadRerquest(`В тексте есть недопустимые слова`, [{input: 'text', type: 'Inadmissible data'}])
+              }
+            })
+          }
+        //  console.log('pop')
+
+        }
         user[key] = data[key]
       }
       else {
