@@ -228,14 +228,12 @@ class playerDataService {
     if (chartName==='sex' || chartName==='body') {
       dataPlayer2.id = dataPlayer1.id
       dataPlayer2.text = dataPlayer1.text
-//s
+//s||dataPlayer2.text.includes('Идеально здоров')
     }else if(chartName==='health' && (dataPlayer1.text.includes('Идеально здоров') ||dataPlayer2.text.includes('Идеально здоров'))){
-       if(dataPlayer1.text.includes('Идеально здоров')){
+
          dataPlayer2.id = dataPlayer1.id
          dataPlayer2.text = dataPlayer1.text
-       }else{
 
-       }
     }
     else {
       dataPlayer2.id = [dataPlayer2.id, dataPlayer1.id]

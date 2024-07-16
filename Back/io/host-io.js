@@ -1213,7 +1213,7 @@ module.exports = function(io) {
               functionName: 'refresh:sexOpposite',
               wrongData: invalidPlayersNickname
             })
-          return
+         // return
         }
         if (!systemFunction.objIsEmpty(lastVar)) {
           await UserModel.Logi.create({
