@@ -740,7 +740,7 @@ class playerDataService {
   
   async joinGameData(idRoom, playerId, isWatcher = false) {
     let gameRoom = await UserModel.GameRooms.findOne({
-      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime', 'soundId', 'timerEndDate', 'timerPauseSeconds','hostId'],
+      attributes: ['id', 'bunkerSize', 'bunkerCreated', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'bunkerFood', 'bunkerAge', 'bunkerItemsOthers', 'imageId', 'voitingStatus', 'population', 'endOfTime', 'soundId', 'timerEndDate', 'timerPauseSeconds','hostId','nowDateTimer'],
       where: {idRoom: idRoom},
       raw: true
     })
@@ -757,6 +757,7 @@ class playerDataService {
         timer.seconds = gameRoom.timerPauseSeconds
       }else{
         timer.date = gameRoom.timerEndDate
+        timer.nowDate = gameRoom.nowDateTimer
       }
     }
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})
@@ -803,7 +804,7 @@ class playerDataService {
     bunkerData.endOfTime = gameRoom.endOfTime
     let bunkerItems = []
     for (let key in gameRoom) {
-      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime' && key.toString()!=='soundId'&& key.toString()!=='timerPauseSeconds'&& key.toString()!=='timerEndDate'&& key.toString()!=='hostId') {
+      if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId' && key.toString()!=='bunkerItems1' && key.toString()!=='bunkerItems2' && key.toString()!=='bunkerItems3' && key.toString()!=='voitingStatus' && key.toString()!=='bunkerItemsOthers' && key.toString()!=='bunkerAge' && key.toString()!=='population' && key.toString()!=='endOfTime' && key.toString()!=='soundId'&& key.toString()!=='timerPauseSeconds'&& key.toString()!=='timerEndDate'&& key.toString()!=='hostId'&& key.toString()!=='nowDateTimer') {
         let chartBunker = await UserModel.ChartBunker.findOne({where: {id: gameRoom[key]}})
         // console.log(gameRoom[key])
         bunkerData[key] = chartBunker.text

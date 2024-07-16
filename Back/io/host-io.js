@@ -208,9 +208,9 @@ module.exports = function(io) {
       
       socket.on('startGame', async (playersData) => {
         let isCustomGame = false
-        let gameRoom = await UserModel.GameRooms.findOne({where:{idRoom:idRoom}})
-        let allPlayers = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1}})
-        console.log(allPlayers.length,GameData.countPlayers)
+        let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
+        let allPlayers = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
+        console.log(allPlayers.length, GameData.countPlayers)
         try {
           if (allPlayers.length<6) {
             socket.emit("setError",
@@ -392,12 +392,14 @@ module.exports = function(io) {
         //d
       })
       socket.on('timer:start', async (seconds) => {
+        let nowDate = new Date()
         let timerEndDate = new Date(+new Date() + (seconds * 1000))
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         gameRoom.timerEndDate = timerEndDate
+        gameRoom.nowDateTimer = nowDate
         await gameRoom.save()
-        io.in(idRoom).emit('timer:start', timerEndDate)
-         io.in(`watchers:${idRoom}`).emit('timer:start', timerEndDate)
+        io.in(idRoom).emit('timer:start', {date: timerEndDate, nowDate: nowDate})
+        io.in(`watchers:${idRoom}`).emit('timer:start', {date: timerEndDate, nowDate: nowDate})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий поставил таймер на ${seconds} секунд`,
@@ -422,13 +424,14 @@ module.exports = function(io) {
       })
       socket.on('timer:resume', async (value) => {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-        
+        let nowDate = new Date()
         let timerEndDate = new Date(+new Date() + (gameRoom.timerPauseSeconds * 1000))
         gameRoom.timerPauseSeconds = null
         gameRoom.timerEndDate = timerEndDate
+        gameRoom.nowDateTimer = nowDate
         await gameRoom.save()
-        io.in(idRoom).emit('timer:resume', timerEndDate)
-        io.in(`watchers:${idRoom}`).emit('timer:resume', timerEndDate)
+        io.in(idRoom).emit('timer:resume', {date: timerEndDate, nowDate: nowDate})
+        io.in(`watchers:${idRoom}`).emit('timer:resume', {date: timerEndDate, nowDate: nowDate})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий возобновил таймер`,
@@ -440,6 +443,7 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         gameRoom.timerEndDate = null
         gameRoom.timerPauseSeconds = null
+        gameRoom.nowDateTimer = null
         await gameRoom.save()
         io.in(idRoom).emit('timer:stop')
         io.in(`watchers:${idRoom}`).emit('timer:stop')
@@ -933,18 +937,18 @@ module.exports = function(io) {
             let data = JSON.parse(player.sex)
             // console.log(data.text)
             if (data.text.includes('Мужчина')) {
-                let newText = playerDataService.replaceAgeStag(data.text,0)
-                lastVar[player.userId] = data.text
+              let newText = playerDataService.replaceAgeStag(data.text, 0)
+              lastVar[player.userId] = data.text
               data.text = newText
               data.text = data.text.replace('Мужчина', 'Женщина')
-
+              
             }
             else if (data.text.includes('Женщина')) {
-                let newText = playerDataService.replaceAgeStag(data.text,1)
-                lastVar[player.userId] = data.text
-                data.text = newText
+              let newText = playerDataService.replaceAgeStag(data.text, 1)
+              lastVar[player.userId] = data.text
+              data.text = newText
               data.text = data.text.replace('Женщина', 'Мужчина')
-
+              
             }
             else {
               invalidPlayersNickname.push(await ioUserService.getNickname(player.userId))
@@ -1233,12 +1237,12 @@ module.exports = function(io) {
         }
         else {
           socket.emit("setError",
-                      {
-                        message: "Нельзя применить к данному игроку",
-                        status: 701,
-                        functionName: 'refresh:sexOpposite',
-                        wrongData: invalidPlayersNickname
-                      })
+            {
+              message: "Нельзя применить к данному игроку",
+              status: 701,
+              functionName: 'refresh:sexOpposite',
+              wrongData: invalidPlayersNickname
+            })
 //           await UserModel.Logi.create({
 //             idRoom: idRoom,
 //             funcName: `degreeOfSick`,
@@ -1247,8 +1251,8 @@ module.exports = function(io) {
 //           })
         }
         // console.log(emitData)
-
-
+        
+        
         // io.in(idRoom).emit()
       })
       socket.on('refresh:cureMake', async (playersId, makeId) => {
@@ -1919,16 +1923,16 @@ module.exports = function(io) {
           let playerData1 = JSON.parse(player1[chartName])
           let playerData2 = JSON.parse(player2[chartName])
           lastVar.chartName = chartName
-            console.log(playerData1,playerData2)
+          console.log(playerData1, playerData2)
           lastVar[playerId1] = structuredClone(playerData1)
           lastVar[playerId2] = structuredClone(playerData2)
-            let isOpen1 = playerData1.isOpen
-            let isOpen2 = playerData2.isOpen
+          let isOpen1 = playerData1.isOpen
+          let isOpen2 = playerData2.isOpen
           playerData1 = structuredClone(lastVar[playerId2])
           playerData2 = structuredClone(lastVar[playerId1])
-            playerData1.isOpen = isOpen1
-            playerData2.isOpen = isOpen2
-            console.log(playerData1,playerData2)
+          playerData1.isOpen = isOpen1
+          playerData2.isOpen = isOpen2
+          console.log(playerData1, playerData2)
           player1[chartName] = JSON.stringify(playerData1)
           player2[chartName] = JSON.stringify(playerData2)
           await player1.save()
@@ -1996,7 +2000,7 @@ module.exports = function(io) {
         })
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAwaitRoomData', {
           hostId: +playerId,
-          isHostPlayer:!!newHost.isPlayer
+          isHostPlayer: !!newHost.isPlayer
         })
         io.in([idRoom, `watchers:${idRoom}`]).emit('setAllGameData', {
           logsData: {
@@ -2080,7 +2084,7 @@ module.exports = function(io) {
           let vars = {}
           let zeroPlayer = players.find(item => item.userId===userList[0])
           let lastPlayer = players.find(item => item.userId===userList[userList.length - 1])    //players[players.length - 1]
-            console.log(chartName,userList)
+          console.log(chartName, userList)
           let playerProfessionData = JSON.parse(lastPlayer[chartName])
           dataForNextPlayer = JSON.parse(zeroPlayer[chartName])
           playerProfessionData.isOpen = dataForNextPlayer.isOpen

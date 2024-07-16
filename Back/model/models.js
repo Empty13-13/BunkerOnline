@@ -94,6 +94,7 @@ const GameRooms = sequelize.define('gameRooms', {
   voitingStatus: {type: DataTypes.TINYINT},
   soundId:{type: DataTypes.INTEGER},
   timerEndDate : {type: DataTypes.DATE},
+  nowDateTimer : {type: DataTypes.DATE},
   timerPauseSeconds:{type: DataTypes.INTEGER}
 })
 

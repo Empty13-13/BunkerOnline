@@ -341,7 +341,8 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   const showPlayVoiceButton = ref(true)
   const playedAudio = ref(false)
   const dateNow = ref(new Date())
-  const timerEndDate = ref((new Date()).toLocaleString())
+  const nowDateTimer = ref(new Date())
+  const timerEndDate = ref(new Date())
   
   const getAlivePlayers = computed(() => {
     let players = []
@@ -397,9 +398,13 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000 || 0
   })
   const getPlayerEndSeconds = computed(() => {
+    let a = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
+    nowDateTimer.value = new Date( +nowDateTimer.value - 1000)
     let seconds = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
-    
-    return seconds>0? seconds:0
+    seconds = Math.floor((new Date(timerEndDate.value) - new Date(nowDateTimer.value)) / 1000)
+    console.log(timerEndDate.value, nowDateTimer.value)
+    console.log(new Date(timerEndDate.value), new Date(nowDateTimer.value))
+    return Math.floor((new Date(timerEndDate.value) - new Date(nowDateTimer.value)) / 1000) || seconds>0? seconds:0
   })
   let timerCatastrophe = null
   setInterval(() => {
@@ -501,10 +506,10 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     }
     if (data.hasOwnProperty('timer')) {
       if (data.timer.date) {
-        useSelectedGameGameplay().startTimer(data.timer.date)
+        useSelectedGameGameplay().startTimer(data.timer.date,data.timer.nowDateTimer)
       }
       else if (data.timer.seconds) {
-        timerEndDate.value = new Date(+(new Date()) + (+data.timer.seconds * 1000)).toLocaleString()
+        timerEndDate.value = new Date(+(new Date()) + (+data.timer.seconds * 1000))
         timerSeconds.value = +data.timer.seconds
         timerStart.value = true
         isPauseTimer.value = true
@@ -633,12 +638,14 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     showCancelButton.value = false
     playedAudio.value = false
     timerEndDate.value = new Date().toLocaleString()
+    nowDateTimer.value = new Date().toLocaleString()
   }
   
   return {
     showPlayVoiceButton,
     showCancelButton,
     timerEndDate,
+    nowDateTimer,
     getPlayerEndSeconds,
     dateNow,
     votedPlayerID,
@@ -724,9 +731,10 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     userSocket.emit('voiting:choiseUser', +userId)
   }
   
-  function startTimer(date) {
+  function startTimer(date,nowDate) {
     stopTimer()
-    let second = Math.ceil((+(new Date(date)) - +(new Date())) / 1000)
+    let second = Math.ceil((+(new Date(date)) - +(new Date(nowDate))) / 1000)
+    selectedGameData.nowDateTimer = new Date(nowDate)
     if (second<1) {
       return
     }
@@ -760,8 +768,8 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.timerSeconds = selectedGameData.getPlayerEndSeconds
   }
   
-  function resumeTimer(date) {
-    startTimer(date)
+  function resumeTimer(date,nowDate) {
+    startTimer(date,nowDate)
   }
   
   function stopTimer() {
@@ -770,6 +778,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.timerStart = false
     selectedGameData.isPauseTimer = false
     clearInterval(timerInterval)
+    selectedGameData.nowDateTimer = new Date().toLocaleString()
     selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
   
