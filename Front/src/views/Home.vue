@@ -26,11 +26,6 @@ const globalPreloader = usePreloaderStore()
 const otherTexts = useOtherTextsStore()
 
 const activeGames = ref([])
-const streamersData = [
-  {name: 'nickname228'},
-  {name: 'nickname228'},
-  {name: 'nickname228'},
-]
 const imageName = ref('asd')
 
 const inputId = ref('')
@@ -69,7 +64,7 @@ onBeforeMount(() => {
   }
 })
 onMounted(async () => {
-  await updateMyGames()
+  // await updateMyGames()
   await getImageName()
 
   // await updateAllGames()
