@@ -117,9 +117,17 @@ module.exports = function(io) {
         await ioUserService.deleteRoomFromDB(idRoom)
         
         console.log('RoomClose делаем')
-        socket.emit('Комната успешно закрыта, обновите страницу')
+          socket.emit('sendMessage:timer', {
+                  title: 'Сообщение от сервера',
+                  message: 'Комната успешно закрыта, обновите страницу',
+                  color: 'green'
+              }
+          )
         io.in(idRoom).emit('roomClosed', {message: 'Комната закрыта администратором', status: 200})
-        io.in(idRoom).disconnectSockets(true);
+          setTimeout(()=>{
+              io.in(idRoom).disconnectSockets(true);
+          },500)
+
       })
     }
   )

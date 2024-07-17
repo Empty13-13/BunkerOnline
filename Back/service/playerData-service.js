@@ -2087,7 +2087,8 @@ class playerDataService {
   async setStatisticGame(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
-    if (diffMinute>20) {
+    let logi = await UserModel.Logi.findOne({where:{idRoom:idRoom}})
+    if (diffMinute>30 && logi.length>3) {
       let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
       for (let player of players) {
         if (player.userId>0) {

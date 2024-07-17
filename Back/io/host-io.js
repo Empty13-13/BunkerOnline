@@ -64,6 +64,7 @@ module.exports = function(io) {
         await ioUserService.deleteRoomFromDB(idRoom)
         
         //   console.log('RoomClose делаем')
+        //  socket.emit('roomClosed')
         io.in(idRoom).emit('roomClosed', {message: 'Комната успешно удалена', status: 200})
         io.in(idRoom).disconnectSockets(true);
       })
@@ -330,7 +331,7 @@ module.exports = function(io) {
             socket.emit("setError",
               {
                 message: "Выживших игроков нет",
-                status: 400,
+                status: 400 ,
                 functionName: 'ByHour'
               })
             return
