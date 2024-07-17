@@ -47,7 +47,6 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     })
     userSocket.on('joinedRoom', data => {
       globalPreloader.activate()
-      console.log('Делаем getAwaitRoomData')
       userSocket.emit('getAwaitRoomData')
     })
     userSocket.on('setAwaitRoomData', data => {
@@ -57,7 +56,6 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       else {
         if (data.hostId && data.userId) {
           globalPreloader.activate()
-          console.log('Включаем прелоадер, т.к. обновляем глобальные данные')
         }
         selectedGame.setInitialData(data)
         console.log('setAwaitRoomData', data)
@@ -91,7 +89,6 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       globalPopup.activate(title || 'Сообщение от сервера', message || '', color, true)
     })
     userSocket.on('startedGame', async data => {
-      console.log('Игра началась')
       globalPreloader.activate()
       userSocket.emit('loadAllGameData')
       setTimeout(() => {
@@ -110,23 +107,19 @@ export const useUserSocketStore = defineStore('userSocket', () => {
       globalPreloader.deactivate()
     })
     userSocket.on("connection:good", () => {
-      console.log("userSocket", userSocket)
       console.log('Подключились по Socket.io')
       globalPreloader.activate()
       
       if (!userSocket.auth._retry) {
         if (selectedGame.isNewGame) {
-          console.log('Создаем комнату')
           userSocket.emit('createRoom')
           selectedGame.isNewGame = false
         }
         else {
-          console.log('joinRoom Присоединяемся к комнате, т.к. она уже создана')
           userSocket.emit('joinRoom')
         }
       }
       else {
-        console.log('joinRoom Присоединяемся к комнате, т.к. она уже создана')
         userSocket.emit('joinRoom')
       }
     });
@@ -163,7 +156,6 @@ export const useUserSocketStore = defineStore('userSocket', () => {
     userSocket.on('restartGame', () => {
       globalPreloader.activate()
       selectedGameData.logs = []
-      console.log('Заново играем')
       globalPopup.activate('Сообщение от ведущего', 'Игра началась заново', 'green', true)
       globalPreloader.deactivate()
     })

@@ -12,7 +12,6 @@ function toggleSpoiler() {
     slideUp(body.value, 300)
   }
   else {
-    console.log('sliddown')
     slideDown(body.value, 300)
   }
   isActive.value = !isActive.value

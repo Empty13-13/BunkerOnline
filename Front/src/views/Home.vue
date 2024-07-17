@@ -69,7 +69,6 @@ onBeforeMount(() => {
   }
 })
 onMounted(async () => {
-  console.log('noregToken', authStore.getLocalData('noregToken'))
   await updateMyGames()
   await getImageName()
 
@@ -77,7 +76,9 @@ onMounted(async () => {
   setIntervalIfPageFocused()
 })
 onBeforeUnmount(() => {
-  console.log('Очищаем интервал, т.к. выходит из Home')
+  clearInterval(updateInterval)
+})
+onUnmounted(() => {
   clearInterval(updateInterval)
 })
 
@@ -88,7 +89,6 @@ watch(windowFocus, () => {
 function setIntervalIfPageFocused() {
   if (windowFocus.value) {
     updateInterval = setInterval(async () => {
-      console.log('Обновляем игры')
       await updateMyGames()
     }, 30000)
   }
@@ -97,12 +97,13 @@ function setIntervalIfPageFocused() {
   }
 }
 
+
+
 async function updateMyGames() {
   try {
     let data = await axiosInstance.post('/userGames', {
       noregToken: authStore.getLocalData('noregToken')
     })
-    console.log(data)
     loadingActiveGame.value = true
     loadingAllGames.value = true
     roomData.value = []
@@ -161,7 +162,6 @@ async function getImageName() {
   try {
     let response = await axiosInstance.get('/getHomeImageName')
     imageName.value = response.data.imageName
-    console.log(response)
   } catch(e) {
     console.log(e)
     imageName.value = ''

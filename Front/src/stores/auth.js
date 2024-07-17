@@ -29,7 +29,6 @@ export const useAuthStore = defineStore('auth', () => {
         {
           withCredentials: isLogin()
         })
-      console.log('AUTH DATA', response)
       
       if (isLogin()) {
         myProfile.token = response.data.accessToken
@@ -89,7 +88,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
   
   async function refreshToken() {
+    const actionsProfile = useActionsProfileStore()
+    if(actionsProfile.isLoadingNewToken) {
+      return
+    }
     try {
+      actionsProfile.isLoadingNewToken = true
       const newTokens = await axiosInstance.post('/refresh', {}, {
         withCredentials: true,
       })
@@ -104,6 +108,8 @@ export const useAuthStore = defineStore('auth', () => {
       console.log("Refresh Error: ", e.message)
       myProfile.clearUserInfo()
       await router.push('/login')
+    } finally {
+      actionsProfile.isLoadingNewToken = false
     }
   }
   
@@ -147,7 +153,6 @@ export const useAuthStore = defineStore('auth', () => {
   //========================================================================================================================================================
   
   async function updateProfileInfo(id, payload) {
-    console.log(id, payload, `/updateUser=${id}`)
     try {
       return await axiosInstance.post(`/updateUser=${id}`, {...payload},
         {

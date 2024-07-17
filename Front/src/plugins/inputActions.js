@@ -11,7 +11,6 @@ export function setErrorForInput(inputName, textSmall) {
   slideDown(small,200)
 }
 export function focusInInput(e) {
-  console.log(e)
   clearError(e.target)
   slideUp(e.target.parentNode.querySelector('small'),200)
 }

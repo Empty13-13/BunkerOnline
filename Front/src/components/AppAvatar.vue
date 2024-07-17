@@ -63,10 +63,8 @@ async function changeFileInput(e) {
     showLoader.value=true
     const formData = new FormData()
     formData.append('file', file)
-    console.log(+getId.value)
     let response = await actionsProfile.uploadAvatar(+getId.value, formData)
     if(response) {
-      console.log(href.value, response.data.link)
       href.value = response.data.link
 
       if (+getId.value===myProfile.id) {

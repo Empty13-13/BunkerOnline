@@ -190,7 +190,6 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
   
   function transferHost(e, id) {
     showConfirmBlock(e.target, () => {
-      console.log(id)
       hostSocket.emit('transferHost', id)
     }, 'Вы действительно хотите передать права ведущего другому игроку?')
   }
@@ -400,8 +399,6 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getPlayerEndSeconds = computed(() => {
     let seconds = Math.floor((+timerEndDate.value - +dateNow.value + +deltaDateTimer.value) / 1000)
-    // console.log(+timerEndDate.value - +dateNow.value + +deltaDateTimer.value)
-    // console.log(timerEndDate.value,dateNow.value,deltaDateTimer.value)
     return seconds>0? seconds:0
   })
   let timerCatastrophe = null
@@ -695,7 +692,6 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   function openChart(el, charName) {
     showConfirmBlock(el.target, () => {
       if((charName==='spec1' || charName==='spec2') && selectedGameData.getMyPlayerData[charName].isOpen) {
-        console.log('записываем',router.currentRoute.value.params.id+":"+charName)
         setLocalData(`game:${router.currentRoute.value.params.id}:${charName}`,{openedBefore:true,date: +(new Date())})
       }
       

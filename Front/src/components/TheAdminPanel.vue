@@ -41,10 +41,7 @@ function toggleShow() {
 }
 
 function sendMessage(e) {
-
-
   showConfirmBlock(e.target, () => {
-        console.log('Отсылаем', funcData.value.sendMessage.select.value)
         adminSocket.emit(
             'sendMessage',
             funcData.value.sendMessage.select.value,
@@ -52,7 +49,6 @@ function sendMessage(e) {
             funcData.value.sendMessage.text,
             funcData.value.sendMessage.colorSelect.value,
         )
-        console.log('отослали')
       },
       `Вы уверены, что хотите отправить сообщение ${funcData.value.sendMessage.select.value===0? 'всем пользователям':'данному пользователю'}?`)
 }

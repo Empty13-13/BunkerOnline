@@ -26,21 +26,18 @@ onBeforeMount(async () => {
   try {
     let textData = await axiosInstance.get(`/otherText/footer:text`)
     text.value = textData.data
-    console.log(textData)
   } catch(e) {
     console.log('Не нашли текст для футера')
   }
   try {
     let copyRightData = await axiosInstance.get(`/otherText/footer:copyright`)
     copyRight.value = copyRightData.data
-    console.log(copyRightData)
   } catch(e) {
     console.log('Не нашли copyRight для футера')
   }
   try {
     let titleData = await axiosInstance.get(`/otherText/footer:title`)
     title.value = titleData.data
-    console.log(titleData)
   } catch(e) {
     console.log('Не нашли title для футера')
   }

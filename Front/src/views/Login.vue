@@ -129,7 +129,6 @@ async function loginHandler(e) {
           setErrorForInput(useAuthStore().errors.input, useAuthStore().errors.message)
         }
         else {
-          console.log('LOGGGGGGGGGIIIIIIIIINNNN')
           useAuthSocketStore().bindEvents()
           useAuthSocketStore()._connect()
           useAuthSocketStore().emit('login')

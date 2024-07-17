@@ -197,7 +197,6 @@ async function changeName(e) {
         let response = await actionsProfile.updateNickname(data.id, {nickname: data.name})
         data.isChange = false
         isChangingName.value = false
-        console.log("Смогли поменять ник!", response)
       } catch(e) {
         console.log(e.message)
         setErrorForInput('nickname', e.response.data.message)
@@ -233,7 +232,10 @@ onBeforeMount(async () => {
   }
 })
 onMounted(async () => {
-  await updateProfileInfo()
+  let params = getLinkParams()
+  if (!(params['account'] && params['account']==="connected")) {
+    await updateProfileInfo()
+  }
 
   try {
     let priceInfo = await axiosInstance.get('pricesInfo')
@@ -261,18 +263,17 @@ onMounted(async () => {
                                                text: item.months + ' ' + monthsNameForNum(item.months)
                                              }
                                            })
-    console.log('priceInfo', priceInfo)
   } catch(e) {
     console.log(e)
   }
 
   globalPreloader.deactivate()
 })
-onBeforeUpdate(async () => {
-  if (oldId!== +getId.value) {
-    destroyAll()
-  }
-})
+// onBeforeUpdate(async () => {
+//   if (oldId!== +getId.value) {
+//     destroyAll()
+//   }
+// })
 onUpdated(async () => {
   if (oldId!== +getId.value) {
     globalPreloader.activate()
@@ -280,19 +281,18 @@ onUpdated(async () => {
     await updateProfileInfo()
 
     if (isMyProfile) {
+      console.log('UPDATE1')
       await myProfile.setMyProfileInfo()
     }
 
     globalPreloader.deactivate()
   }
 })
-onBeforeUnmount(() => {
-  destroyAll()
-})
+// onBeforeUnmount(() => {
+//   destroyAll()
+// })
 
 const isPopupOpen = ref(false)
-const vipValueInput = ref('')
-const mvpValueInput = ref('')
 const isSaveLoader = ref(false)
 
 async function saveProfileInfoHandler(e) {
@@ -322,6 +322,7 @@ async function saveProfileInfoHandler(e) {
     saveBtnText.value = 'Сохранили!'
   }
   else {
+    globalPopup.activate('Ошибка!',response.response.data.message, 'red')
     saveBtnText.value = 'Ошибка!'
   }
   setTimeout(() => {
@@ -349,7 +350,6 @@ async function updateProfileInfo() {
   data.name = userInfo.data.nickname
   data.dateRegistration = new Date(userInfo.data.createdAt)
   data.avatar = userInfo.data.avatar
-  console.log('typeof data.birthday:: ', typeof userInfo.data.birthday, userInfo.data.birthday)
   data.birthday.date = userInfo.data.birthday? new Date(userInfo.data.birthday):null
   data.birthday.isHidden = userInfo.data.hiddenBirthday || false
   if (data.birthday.date) {
@@ -368,7 +368,6 @@ async function updateProfileInfo() {
   if (isHiddenBirthdayInput.value) {
     isHiddenBirthdayInput.value.checked = data.birthday.isHidden
   }
-  console.log('userInfo.data.sex', userInfo.data.sex)
   if (!(userInfo.data.sex===null || userInfo.data.sex===undefined)) {
     if (+userInfo.data.sex===0) {
       data.isMale = {text: 'Женский', value: +userInfo.data.sex}
@@ -381,7 +380,6 @@ async function updateProfileInfo() {
     data.isMale = {text: 'Не выбран', value: -1}
   }
 
-  console.log('data.isMale', data.isMale)
   if (isMaleSelect.value) {
     isMaleSelect.value.value = data.isMale
   }
@@ -468,12 +466,10 @@ function generateHandler(e) {
       let result = await axiosInstance.post('/generateKeys', data, {
         withCredentials: true
       })
-      console.log(result)
     } catch(e) {
       console.log(e)
       globalPopup.activate('Ошибка создания ключей', e.response.message)
     }
-    console.log(data)
   }, 'Вы уверены, что всё вписали правильно? В случае, если файл с таким названием уже есть, то он будет перезаписан')
 }
 

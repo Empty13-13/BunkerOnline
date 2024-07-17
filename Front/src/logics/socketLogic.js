@@ -2,7 +2,7 @@ import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useAuthStore } from "@/stores/auth.js";
-import { useMyProfileStore } from "@/stores/profile.js";
+import { useActionsProfileStore, useMyProfileStore } from "@/stores/profile.js";
 import { useSelectedGame, useSelectedGameData } from "@/stores/game.js";
 
 
@@ -14,7 +14,6 @@ export async function switchError(data, socket) {
   const vars = data.vars
   const color = data.color
   const wrongData = data.wrongData
-  console.log('setError KURVA', data)
   
   const globalPopup = useGlobalPopupStore()
   const globalPreloader = usePreloaderStore()
@@ -22,6 +21,7 @@ export async function switchError(data, socket) {
   const myProfile = useMyProfileStore()
   const selectedGame = useSelectedGame()
   const selectedGameData = useSelectedGameData()
+  const actionsProfile = useActionsProfileStore()
   
   switch(status) {
     case 403: {
@@ -35,7 +35,6 @@ export async function switchError(data, socket) {
         socket.connect()
         let countReconnect = 1
         let tryReEmitInterval = setInterval(() => {
-          console.log(functionName)
           
           if (socket.connected) {
             if (vars) {
@@ -59,7 +58,7 @@ export async function switchError(data, socket) {
               globalPreloader.deactivate()
             }
           }
-        }, 100)
+        }, 1500)
       }
       else {
         console.log('Не смогли ничего сделать SOCKET LOGIC 403')

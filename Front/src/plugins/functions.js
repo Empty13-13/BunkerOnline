@@ -197,7 +197,6 @@ export function setLocalData(nameData, data) {
 }
 
 export function getCountObject(object) {
-  console.log(object, object['<target>'])
   if (object.target) {
     object = object.target
   }
@@ -238,7 +237,6 @@ export function monthsNameForNum(num) {
   if (!num % 10<1) {
     lastNum = num % 10
   }
-  console.log(lastNum)
   if (lastNum===1) {
     return 'месяц'
   }

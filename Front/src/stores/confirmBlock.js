@@ -55,7 +55,6 @@ export const useConfirmBlockStore = defineStore('confirmBlock', () => {
   }
   
   async function _enterHandler() {
-    console.log('enterHandler')
     if (showBlock.value) {
       await _yesHandler()
     }

@@ -17,6 +17,7 @@ import { useStaticPagesStore } from "@/stores/static.js";
 import axiosInstance from "@/api.js";
 import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import router from "@/router/index.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -29,7 +30,6 @@ const otherTexts = useOtherTextsStore()
 
 const checkUser = () => {
   const tokens = authStore.getLocalData('userTokens')
-  console.log(tokens)
   if (tokens) {
     myProfile.token = tokens.token
   }
@@ -45,8 +45,7 @@ checkUser()
 
 onBeforeMount(async () => {
   let params = getLinkParams()
-  if (!(params['account'] && params['account']==="connected")) {
-    console.log("setMyProfileInfo APP", params)
+  if (!(params['account'] && params['account']==="connected") && router.currentRoute.value.name !=='profile') {
     await myProfile.setMyProfileInfo()
     authSocket.setConnect()
   }
@@ -81,15 +80,6 @@ onBeforeMount(async () => {
   }
 
   await otherTexts.downloadAllTexts()
-
-
-  // try {
-  //   let pageHTMLData = await axiosInstance.get('/staticPage/rules')
-  //   console.log('RULES', pageHTMLData)
-  //   staticPages.rulesPagesHTML = pageHTMLData.data.html
-  // } catch(e) {
-  //   console.log(e)
-  // }
 })
 
 onMounted(() => {

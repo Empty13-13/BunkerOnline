@@ -7,7 +7,6 @@ function setNoreg(event, isStarted = false) {
   access.level = 'noreg'
   access.id = 123
   access.loginId = 123
-  console.log(isStarted)
   access.isStarted = isStarted
 }
 
@@ -16,7 +15,6 @@ function setReg(event, isStarted = false, loginId = 313) {
   access.level = 'vip'
   access.id = 313
   access.loginId = loginId
-  console.log(loginId)
   access.isStarted = isStarted
 }
 
@@ -24,7 +22,6 @@ function setAdmin(event, isStarted = false, loginId = 313) {
   access.level = 'admin'
   access.id = 313
   access.loginId = loginId
-  console.log(loginId)
   access.isStarted = isStarted
 }
 

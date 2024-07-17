@@ -40,7 +40,6 @@ onBeforeMount(async () => {
   try {
     globalPreloader.activate()
     let baseProfData = await axiosInstance.get('/getBaseProfession')
-    console.log(baseProfData)
     if(baseProfData.data) {
       list.value = baseProfData.data
     }

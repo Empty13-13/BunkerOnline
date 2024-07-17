@@ -79,7 +79,6 @@ export const useMyProfileStore = defineStore('myProfile', () => {
     preloader.deactivate()
   }
   async function setMyPacks() {
-    console.log('Делаю запрос к пакам')
     try {
       showLoaderForPacks.value = true
       let packs = await axiosInstance.post(`/allPacks`)
@@ -98,9 +97,6 @@ export const useMyProfileStore = defineStore('myProfile', () => {
             basePacks.value.push(pack)
           }
         }
-        
-        console.log(basePacks.value)
-        console.log(advancePacks.value)
       }
     } catch(e) {
       console.log(e.message)
@@ -138,7 +134,6 @@ export const useMyProfileStore = defineStore('myProfile', () => {
         globalPopup.activate('Внимание','Используя пак из категории 18+ вы подтверждаете, что вы достигли совершеннолетнего возраста','red')
       }
     } catch(e) {
-      console.log('ОБРАЩАЮСЬ 2')
       await setMyPacks()
       console.log(e)
       globalPopup.activate('Ошибка изменения паков',e.response.data.message)
@@ -191,6 +186,8 @@ export const useMyProfileStore = defineStore('myProfile', () => {
 })
 
 export const useActionsProfileStore = defineStore('actionsProfile', () => {
+  const isLoadingNewToken = ref(false)
+  
   async function getUserInfo(id) {
     try {
       return await axiosInstance.get(`/user=${id}`, {withCredentials: true})
@@ -202,7 +199,8 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
   async function uploadAvatar(id, formData) {
     try {
       return await axiosInstance.post(`/uploadAvatar=${id}`, formData, {
-        withCredentials: true
+        withCredentials: true,
+        timeout: 60000,
       })
     } catch(e) {
       console.log(e.message)
@@ -232,6 +230,7 @@ export const useActionsProfileStore = defineStore('actionsProfile', () => {
   }
   
   return {
+    isLoadingNewToken,
     getUserInfo,
     uploadAvatar,
     updateNickname,

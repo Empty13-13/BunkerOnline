@@ -204,7 +204,6 @@ function startGame(e) {
           allData[player.id] = playerData
         }
       })
-      console.log(allData)
       if (!objIsEmpty(allData)) {
         hostSocket.emit('startGame', allData)
         await router.push({top: 0})

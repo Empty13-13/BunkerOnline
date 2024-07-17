@@ -333,7 +333,6 @@ onBeforeMount(async () => {
 
   try {
     let pageHTMLData = await axiosInstance.get('/staticPage/rules')
-    console.log('RULES',pageHTMLData)
     pageHTML.value = pageHTMLData.data.html
   } catch(e) {
 

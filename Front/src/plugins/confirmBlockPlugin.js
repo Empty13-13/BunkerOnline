@@ -13,7 +13,6 @@ export function showConfirmBlock(target, agreeFunction, text = 'Вы подтв�
     text = 'Вы подтверждаете действие?'
   }
   let confirmStore = useConfirmBlockStore()
-  // console.log(target.parentNode, target.parentNode.tagName, target.parentNode.tagName==='button')
   if (target.parentNode.tagName.toString().toLowerCase()==='button') {
     target = target.parentNode
   }
@@ -32,17 +31,14 @@ export function showConfirmBlock(target, agreeFunction, text = 'Вы подтв�
   
   if (position==='right') {
     resultData = getRightPosition(target, gap)
-    // console.log('Из правой позиции получили', resultData)
   }
   else {
     resultData = getLeftPosition(targetX, targetY, offsetX, offsetY, gap, resultWidth)
   }
   
   //Если окно получилось слишком маленьким
-  // console.log(resultData.resultWidth, confirmStore.width)
   if (resultData.resultWidth<confirmStore.width / 5 * 4) {
     resultData = setUp(target, gap,position)
-    // console.log(resultData)
   }
   
   offsetX = resultData.offsetX
@@ -95,19 +91,16 @@ function getRightPosition(target, gap) {
   let offsetX = targetInfo.x + targetInfo.width + gap
   let offsetY = targetInfo.y - gap
   let resultWidth = confirmStore.width
-  // console.log(offsetX, offsetY, resultWidth)
   
   if (offsetX + resultWidth + gap>window.innerWidth) {
     if (offsetX + resultWidth>window.innerWidth - gap) {
       resultWidth = resultWidth - (offsetX + resultWidth - window.innerWidth + gap) - gap
     }
     else {
-      // console.log(2)
       resultWidth = resultWidth - gap
     }
   }
   if (offsetY<100) {
-    // console.log(3)
     offsetY = 110
   }
   

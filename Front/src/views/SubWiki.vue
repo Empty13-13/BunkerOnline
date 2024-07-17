@@ -10,11 +10,9 @@ const pageHTML = ref('<h2>Идет загрузка страницы...</h2>')
 
 onMounted(async () => {
   globalPreloader.activate()
-  console.log(router.currentRoute.value.params.page)
   try {
     let dataPage = await axiosInstance.get(`/staticPage/${router.currentRoute.value.params.page}`)
     pageHTML.value = dataPage.data.html
-    // console.log(dataPage)
   } catch(e) {
     await router.replace({name:'NotFound'})
   } finally {
