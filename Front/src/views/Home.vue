@@ -64,7 +64,7 @@ onBeforeMount(() => {
   }
 })
 onMounted(async () => {
-  // await updateMyGames()
+  await updateMyGames()
   await getImageName()
 
   // await updateAllGames()
@@ -106,6 +106,7 @@ async function updateMyGames() {
       roomData.value = data.data.userGame.sort((room1, room2) => {
         return new Date(room2.dataCreate) - new Date(room1.dataCreate)
       })
+
       activeGames.value = data.data.allGames
     }
   } catch(e) {
@@ -223,7 +224,7 @@ async function getImageName() {
         <h2 class="activeGame__title">Активные игры</h2>
         <div class="activeGame__body">
           <AppLoader v-if="loadingAllGames" />
-          <TheList v-else :data="activeGames.reverse()" title="Активные игры" class="activeGame__game" />
+          <TheList v-else :data="activeGames" title="Активные игры" class="activeGame__game" />
           <!--          <TheList :data="streamersData" title="Стримеры онлайн" class="activeGame__game" />-->
         </div>
       </div>

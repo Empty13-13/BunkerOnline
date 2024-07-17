@@ -1,5 +1,10 @@
 <script setup="">
-defineProps(['data','title'])
+import { computed } from "vue";
+
+let props = defineProps(['data','title'])
+
+let getData = props.data.reverse()
+
 </script>
 
 <template>
@@ -7,8 +12,8 @@ defineProps(['data','title'])
     <div class="list__body">
       <h3 class="list__title">{{ title }}</h3>
       <ul class="list__ul">
-        <li v-if="data.length<1">Список пуст</li>
-        <li v-else v-for="item in data" :key="item.idRoom" class="list__item item-list">
+        <li v-if="getData.length<1">Список пуст</li>
+        <li v-else v-for="item in getData" :key="item.idRoom" class="list__item item-list">
           <div class="item-list__body">
             <div class="item-list__title">{{ item.nickname }}</div>
             <router-link v-if="item.idRoom" :to="`game=${item.idRoom}`" class="item-list__link">Смотреть</router-link>
