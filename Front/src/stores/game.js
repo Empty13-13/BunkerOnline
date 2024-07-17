@@ -523,17 +523,18 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       let choicePlayerNickname = userData.value[choiceIdPlayer].nickname
       let localVotedListNicknames = []
       for (let index in voitingData.voitingPull[choiceIdPlayer]) {
-        let votedPlayerNickname = userData.value[voitingData.voitingPull[choiceIdPlayer][index]].nickname
+        let votedPlayerNickname = (userData.value.sortedPlayers.indexOf(
+          voitingData.voitingPull[choiceIdPlayer][index]) + 1) + ' | ' + userData.value[voitingData.voitingPull[choiceIdPlayer][index]].nickname
         votedPlayerIds.push(voitingData.voitingPull[choiceIdPlayer][index])
         localVotedListNicknames.push(votedPlayerNickname)
         allVoteNum++
       }
-      votedList.push({nickname: choicePlayerNickname, whoVote: localVotedListNicknames})
+      votedList.push({nickname: choicePlayerNickname, whoVote: localVotedListNicknames, index:userData.value.sortedPlayers.indexOf(+choiceIdPlayer)+1})
     }
     
     for (let dataKey in userData.value) {
       if (userData.value[dataKey].isPlayer && userData.value[dataKey].isAlive && !votedPlayerIds.includes(+dataKey)) {
-        abstainedList.push(userData.value[dataKey].nickname)
+        abstainedList.push(`${userData.value.sortedPlayers.indexOf(+dataKey) + 1} | ${userData.value[dataKey].nickname}`)
       }
     }
     

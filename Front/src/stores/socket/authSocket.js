@@ -59,7 +59,7 @@ export const useAuthSocketStore = defineStore('authSocket', () => {
     }
     authSocket.connect()
     connected.value = authSocket.connected
-    console.log('Подключились к функционалу AUTH',authSocket.connected,myProfile.token)
+    // console.log('Подключились к функционалу AUTH',authSocket.connected,myProfile.token)
   }
   
   function close() {

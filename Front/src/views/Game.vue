@@ -661,7 +661,7 @@ function toggleSoundHandler() {
                   class="results-voting__line line-results-voting"
               >
                 <div class="line-results-voting__name">
-                  {{ vote.nickname }} <span>{{ vote.whoVote.length }}</span>
+                  {{vote.index}} | {{ vote.nickname }} <span>{{ vote.whoVote.length }}</span>
                 </div>
                 <div class="line-results-voting__progress progress-result">
                   <div class="progress-result__backline"
@@ -685,7 +685,7 @@ function toggleSoundHandler() {
                  class="results-voting__listAbstained">
               Игроки, которые не приняли участие в голосовании:
               <span>{{
-                  selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.join(', ')
+                  selectedGameData.getNonVoitingUsersNicknames(selectedGameData.voitingData).abstainedList.join(',&nbsp;&nbsp;')
                     }}</span>
             </div>
             <div v-else class="results-voting__listAbstained">
