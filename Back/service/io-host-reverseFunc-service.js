@@ -23,8 +23,8 @@ class ioHostRevFunc {
     for (let player of players) {
       let data = JSON.parse(player.profession)
       let exp = lastVar[player.userId]
-      let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
-      data.text = data.text.replace(ecsExp, exp)
+     // let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
+      data.text = exp
       let isOpen = data.isOpen
       player.profession = JSON.stringify(data)
       data = {profession: data}
@@ -49,7 +49,7 @@ class ioHostRevFunc {
       let data = JSON.parse(player.health)
       let exp = lastVar[player.userId]
       let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
-      data.text = data.text.replace(ecsExp, exp)
+      data.text = exp
       let isOpen = data.isOpen
       player.health = JSON.stringify(data)
       data = {health: data}

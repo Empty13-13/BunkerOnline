@@ -621,7 +621,7 @@ module.exports = function(io) {
       })
       socket.on('refresh:professionExp', async (playersId, expId) => {
         //  console.log('id', playersId)
-        const expLevel = ['Дилетант', 'Стажер', 'Любитель', 'Опытный', 'Эксперт', 'Профессионал']
+        const expLevel = ['(Дилетант)', '(Стажер)', '(Любитель)', '(Опытный)', '(Эксперт)', '(Профессионал)']
         if (expId>5 || expId<0) {
           socket.emit("setError",
             {
@@ -686,11 +686,15 @@ module.exports = function(io) {
           if (player.isAlive && player.isPlayer) {
             let data = JSON.parse(player.profession)
             //   console.log(data.text)
+              console.log(data.text,data.text.indexOf('('))
             let ecsExp = data.text.substring(data.text.indexOf('(') + 1, data.text.indexOf(')'))
+              console.log(ecsExp)
             //   console.log('ecsExp', ecsExp)
             if (ecsExp!=='') {
-              lastVar[player.userId] = ecsExp
-              data.text = data.text.replace(ecsExp, exp)
+              lastVar[player.userId] = data.text
+                let match = data.text.match(/\(([^)]+)\)/g)
+                console.log(match)
+              data.text = data.text.replaceAll(/\(([^)]+)\)/g, exp)
               let isOpen = data.isOpen
               player.profession = JSON.stringify(data)
               await player.save()
@@ -1118,7 +1122,7 @@ module.exports = function(io) {
             })
           return
         }
-        const healthLevel = ['Легкая степень', 'Средняя степень', 'Тяжелая степень', 'Критическая степень']
+        const healthLevel = ['(Легкая степень)', '(Средняя степень)', '(Тяжелая степень)', '(Критическая степень)']
         let degree = healthLevel[degreeId]
         
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
@@ -1180,8 +1184,8 @@ module.exports = function(io) {
               // console.log('ecsExp', ecsExp)
               let isOpen = data.isOpen
               if (data.text!=='Идеально здоров') {
-                lastVar[player.userId] = ecsExp
-                data.text = data.text.replace(ecsExp, degree)
+                lastVar[player.userId] = data.text
+                  data.text = data.text.replaceAll(/\(([^)]+)\)/g, degree)
                 
                 player.health = JSON.stringify(data)
                 await player.save()
