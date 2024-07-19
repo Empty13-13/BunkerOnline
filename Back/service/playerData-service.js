@@ -754,8 +754,7 @@ class playerDataService {
       if(gameRoom.timerPauseSeconds!==null){
         timer.seconds = gameRoom.timerPauseSeconds
       }else{
-        timer.date = gameRoom.timerEndDate
-        timer.nowDate = new Date()
+        timer.nowSeconds = Math.floor((+gameRoom.timerEndDate - +new Date()) / 1000)
       }
     }
     let logs = await UserModel.Logi.findAll({where: {idRoom: idRoom}})

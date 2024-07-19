@@ -395,11 +395,11 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   
   const getCatastropheEndSeconds = computed(() => {
-    return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000 || 0
+    return (new Date(bunkerData.value.endOfTime) - dateNow.value) / 1000
   })
   const getPlayerEndSeconds = computed(() => {
-    let seconds = Math.floor((+timerEndDate.value - +dateNow.value + +deltaDateTimer.value) / 1000)
-    return seconds>0? seconds:0
+    let seconds = Math.floor((new Date(timerEndDate.value) - dateNow.value) / 1000)
+    return seconds>0?seconds:0
   })
   let timerCatastrophe = null
   setInterval(() => {
@@ -500,8 +500,8 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
       showCancelButton.value = data.showCancelButton
     }
     if (data.hasOwnProperty('timer')) {
-      if (data.timer.date) {
-        useSelectedGameGameplay().startTimer(data.timer.date,data.timer.nowDate)
+      if (data.timer.nowSeconds) {
+        useSelectedGameGameplay().startTimer(data.timer.nowSeconds)
       }
       else if (data.timer.seconds) {
         timerEndDate.value = new Date(+(new Date()) + (+data.timer.seconds * 1000))
@@ -728,13 +728,8 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     userSocket.emit('voiting:choiseUser', +userId)
   }
   
-  function startTimer(date,nowDate) {
+  function startTimer(second) {
     stopTimer()
-    let second = Math.floor((+new Date(date) - +new Date() + +new Date(new Date() - new Date(nowDate))) / 1000)
-    console.log(second)
-    if (second<1) {
-      return
-    }
     switch(second) {
       case 15: {
         selectedGameData.activeTimers[0] = true
@@ -749,14 +744,15 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
         break;
       }
     }
-    selectedGameData.nowDateTimer = new Date(nowDate)
-    selectedGameData.timerEndDate = new Date(date)
-    selectedGameData.deltaDateTimer = new Date(new Date() - new Date(nowDate))
+    console.log(second)
+    selectedGameData.timerSeconds = second
+    console.log(selectedGameData.timerSeconds)
+    selectedGameData.timerEndDate = new Date(+new Date() + second*1000)
+    // selectedGameData.deltaDateTimer = new Date(new Date() - new Date(nowDate))
     selectedGameData.timerStart = true
     selectedGameData.isPauseTimer = false
-    selectedGameData.timerSeconds = 0
     timerInterval = setInterval(() => {
-      if (new Date(selectedGameData.timerEndDate)<new Date()) {
+      if (Math.floor((new Date(selectedGameData.timerEndDate) - selectedGameData.dateNow) / 1000)<1) {
         stopTimer()
       }
     }, 1000)
@@ -767,17 +763,16 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.timerSeconds = selectedGameData.getPlayerEndSeconds
   }
   
-  function resumeTimer(date,nowDate) {
-    startTimer(date,nowDate)
+  function resumeTimer(seconds) {
+    startTimer(seconds)
   }
   
   function stopTimer() {
-    selectedGameData.timerEndDate = new Date().toLocaleString()
+    console.log('STOP')
     selectedGameData.timerSeconds = 0
     selectedGameData.timerStart = false
     selectedGameData.isPauseTimer = false
     clearInterval(timerInterval)
-    selectedGameData.nowDateTimer = new Date().toLocaleString()
     selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
   

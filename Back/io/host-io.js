@@ -399,8 +399,8 @@ module.exports = function(io) {
         gameRoom.timerEndDate = timerEndDate
         gameRoom.nowDateTimer = nowDate
         await gameRoom.save()
-        io.in(idRoom).emit('timer:start', {date: timerEndDate, nowDate: nowDate})
-        io.in(`watchers:${idRoom}`).emit('timer:start', {date: timerEndDate, nowDate: nowDate})
+        io.in(idRoom).emit('timer:start', {seconds, nowDate: nowDate})
+        io.in(`watchers:${idRoom}`).emit('timer:start', {seconds, nowDate: nowDate})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий поставил таймер на ${seconds} секунд`,
@@ -427,12 +427,13 @@ module.exports = function(io) {
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         let nowDate = new Date()
         let timerEndDate = new Date(+new Date() + (gameRoom.timerPauseSeconds * 1000))
+        let seconds = gameRoom.timerPauseSeconds
         gameRoom.timerPauseSeconds = null
         gameRoom.timerEndDate = timerEndDate
         gameRoom.nowDateTimer = nowDate
         await gameRoom.save()
-        io.in(idRoom).emit('timer:resume', {date: timerEndDate, nowDate: nowDate})
-        io.in(`watchers:${idRoom}`).emit('timer:resume', {date: timerEndDate, nowDate: nowDate})
+        io.in(idRoom).emit('timer:resume', {seconds, nowDate: nowDate})
+        io.in(`watchers:${idRoom}`).emit('timer:resume', {seconds, nowDate: nowDate})
         io.in(idRoom).emit('sendMessage:timer', {
             title: 'Сообщение от ведущего',
             message: `Ведущий возобновил таймер`,
