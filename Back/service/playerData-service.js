@@ -1636,7 +1636,7 @@ class playerDataService {
       let advancePacks = packs.filter(pack => pack.status.includes('advance'))
       let basePacks = packs.filter(pack => pack.status==='base')
       if (advancePacks.length>0 && basePacks.length>0) {
-        if (this.getRandomInt(0, 100)<=this.systemSettings.priorityPackPercentage) {
+        if (this.getRandomInt(0, 100)<=100 - this.systemSettings.priorityPackPercentage) {
           this.usedPack = this.basePack
           return
         }
