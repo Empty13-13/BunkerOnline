@@ -811,8 +811,7 @@ function toggleSoundHandler() {
               </div>
 
               <p v-if="!hostFunctional.haveAccess" class="info-awaitRoom__text">
-                Вы успешно зарегистрировались в игру
-                {{ selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname }}!
+                Вы успешно зарегистрировались в игру{{ selectedGame.userId<0? `, Гость#${Math.abs(selectedGame.userId)}`:myProfile.nickname }}!
               </p>
               <div class="info-awaitRoom__min">
                 {{
