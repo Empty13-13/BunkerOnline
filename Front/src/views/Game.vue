@@ -1677,7 +1677,7 @@ function toggleSoundHandler() {
 
 .line-results-voting {
   display: grid;
-  grid-template-columns: 127px  100fr 70px;
+  grid-template-columns: 170px  100fr 70px;
   margin-bottom: 30px;
   gap: 60px 35px;
 

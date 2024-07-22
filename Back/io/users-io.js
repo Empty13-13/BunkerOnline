@@ -171,8 +171,8 @@ module.exports = function(io) {
       socket.emit('setAwaitRoomData', data)
     })
     
-    socket.on('disconnecting', (reason) => {
-      ioUserService.disconnectAndSetTimer(io, socket, idRoom)
+    socket.on('disconnecting', async (reason) => {
+      await ioUserService.disconnectAndSetTimer(io, socket, idRoom)
       watchersCount -= 1
       io.in(idRoom).emit('setAwaitRoomData', {watchersCount})
     })

@@ -534,13 +534,18 @@ class ioUserService {
     //   console.log('TIMER LIST JOIN', timerList)
   }
   
-  disconnectAndSetTimer(io, socket, idRoom) {
+  async disconnectAndSetTimer(io, socket, idRoom) {
+    let timeFromDB = await UserModel.SystemSettings.findOne({where:{nameSetting:'timeToCloseRoom'}})
+    if(timeFromDB && timeFromDB.value) {
+      timeFromDB = timeFromDB.value * 60 * 1000
+    }
+    
     if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
       //   console.log('Комната пустая, удалим через 3 часа')
       timerList[idRoom] = setTimeout(async () => {
         await this.deleteRoomFromDB(idRoom)
         //   console.log('DELETE ROOMS TIMER')
-      }, timeToCloseRoom)
+      }, timeFromDB || timeToCloseRoom)
       //   console.log('TIMER LISt DISCONNECT ', timerList)
     }
   }
