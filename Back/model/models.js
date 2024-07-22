@@ -229,6 +229,13 @@ const updateInfo = sequelize.define('updateInfo',{
   dateText:{type: DataTypes.STRING(255)},
 })
 
+// const staticPages = sequelize.define('staticPages',{
+//   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+//   fileName: {type: DataTypes.STRING(255),allowNull: false},
+//   pageNum:{type: DataTypes.INTEGER},
+//   isHide:{type: DataTypes.TINYINT, defaultValue: 0},
+// })
+
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
 User.hasOne(VkAuthId)
