@@ -44,14 +44,14 @@ export const useAdminSocketStore = defineStore('adminSocket', () => {
       _retry: false,
     }
     adminSocket.connect()
-    connected.value = adminSocket.connected
+    connected.value = true
     console.log('Подключились к функционалу админа')
   }
   
   function close() {
     adminSocket.close()
     adminSocket.removeAllListeners()
-    connected.value = adminSocket.connected
+    connected.value = false
     console.log('Разрываем с админом SOCKET.IO')
   }
   

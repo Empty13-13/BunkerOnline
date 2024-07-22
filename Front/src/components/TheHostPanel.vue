@@ -10,10 +10,12 @@ import { useHostFunctionalStore, useSelectedGame, useSelectedGameData } from "@/
 import { RouterView } from "vue-router";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import AppSmallInfo from "@/components/AppSmallInfo.vue";
+import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
 
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
 const confirmStore = useConfirmBlockStore()
+const adminSocket = useAdminSocketStore()
 
 const isOpen = ref(false)
 const funcData = ref({
@@ -150,7 +152,7 @@ function cancelPreviousAction(e) {
     <span @click.left="isOpen=false"></span>
     <div class="hostPanel__block">
       <h3 class="hostPanel__title">Панель ведущего</h3>
-      <div class="hostPanel__body">
+      <div class="hostPanel__body" :class="adminSocket.connected?'_admin':''">
         <div class="hostPanel__timers timers-hostPanel">
           <div class="timers-hostPanel__num">
             <AppButton @click="hostFunctional.activateTimer(15)" class="timers-hostPanel__btn"
@@ -602,6 +604,13 @@ function cancelPreviousAction(e) {
   }
 
   &__body {
+    @media (max-width: $mobile) {
+      padding-bottom: 35px;
+
+      &._admin {
+        padding-bottom: 80px;
+      }
+    }
   }
 }
 

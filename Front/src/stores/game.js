@@ -182,7 +182,6 @@ export const useHostFunctionalStore = defineStore('hostPrivileges', () => {
         hostSocket.emit('refresh:SetNull', 1)
       }
       else {
-        console.log(array.find(item => item.text===obj.text).rotate)
         hostSocket.emit('refresh:ByHour', obj.value, array.find(item => item.text===obj.text).rotate)
       }
     })
@@ -346,8 +345,12 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   
   const getAlivePlayers = computed(() => {
     let players = []
-    for (let player of getActivePlayersFromUserData.value) {
-      player.data.isAlive? players.push(player):null
+    for (let i = 0; i<getActivePlayersFromUserData.value.length; i++) {
+      let player = getActivePlayersFromUserData.value[i]
+      if(player.data.isAlive) {
+        player.nicknameWithNum = `${i + 1} | ${player.data.nickname}`
+        players.push(player)
+      }
     }
     return players
   })
@@ -369,27 +372,65 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
   })
   const getPlayerForSelect = computed(() => {
     return getAlivePlayers.value.map((item,index) => {
-      return {value: item.id, text: (index+1) + " | " + item.data.nickname}
+      return {value: item.id, text: item.nicknameWithNum}
     })
   })
   const getPlayerForSelectAndAll = computed(() => {
     let players = [{value: 0, text: 'Для всех'}]
     players = players.concat(getAlivePlayers.value.map((item,index) => {
-      return {value: item.id, text: (index + 1)+ " | " + item.data.nickname}
+      return {value: item.id, text: item.nicknameWithNum}
     }))
     return players
   })
   const getAllPlayersSelectToChangeAdmin = computed(() => {
     let resultArr = []
+    // let index = 0
+    // for (let id in userData.value) {
+    //   if(Number.isFinite(+id)) {
+    //     if (userData.value[id] && +id!==+selectedGame.hostId) {
+    //       resultArr.push({value: id, text: (index + 1)+ " | " +  userData.value[id].nickname})
+    //     }
+    //     index++
+    //   }
+    // }
+    
+    let lastIndex = -1
     userData.value.sortedPlayers.forEach((id,index) => {
-      if (userData.value[id] && id!==selectedGame.hostId) {
+      if (userData.value[id] && +id!==+selectedGame.hostId) {
         resultArr.push({value: id, text: (index + 1)+ " | " +  userData.value[id].nickname})
+        lastIndex = index + 1
       }
     })
+    for (let id in userData.value) {
+      if (
+        Number.isFinite(+id) &&
+        !!userData.value[id] && !resultArr.find(item => +item.value === +id) &&
+        userData.value[id] && +id!==+selectedGame.hostId
+      ) {
+        resultArr.push({value: id, text: (lastIndex + 1)+ " | " +  userData.value[id].nickname})
+        lastIndex++
+      }
+    }
     return resultArr
   })
-  const getAllPlayersSelectToChangeAdminAndAll = computed(() => {
-    let resultArr = [...getAllPlayersSelectToChangeAdmin.value]
+  const getAllPlayersSelectToAdminFunctionsAndAll = computed(() => {
+    let resultArr = []
+    let lastIndex = -1
+    userData.value.sortedPlayers.forEach((id,index) => {
+      if (userData.value[id] && +id!==+selectedGame.hostId) {
+        resultArr.push({value: id, text: (index + 1)+ " | " +  userData.value[id].nickname})
+        lastIndex = index + 1
+      }
+    })
+    for (let id in userData.value) {
+      if (
+        Number.isFinite(+id) &&
+        !!userData.value[id] && !resultArr.find(item => +item.value === +id)
+      ) {
+        resultArr.push({value: id, text: (lastIndex + 1)+ " | " +  userData.value[id].nickname})
+        lastIndex++
+      }
+    }
     resultArr.unshift({value: 0, text: 'Для всех'})
     return resultArr
   })
@@ -670,7 +711,7 @@ export const useSelectedGameData = defineStore('selectedGameData', () => {
     showDice6,
     showDice20,
     getCatastropheEndSeconds,
-    getAllPlayersSelectToChangeAdminAndAll,
+    getAllPlayersSelectToAdminFunctionsAndAll,
     setData,
     getCharForPlayer,
     getDescriptionForChar,
@@ -744,9 +785,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
         break;
       }
     }
-    console.log(second)
     selectedGameData.timerSeconds = second
-    console.log(selectedGameData.timerSeconds)
     selectedGameData.timerEndDate = new Date(+new Date() + second*1000)
     // selectedGameData.deltaDateTimer = new Date(new Date() - new Date(nowDate))
     selectedGameData.timerStart = true
@@ -768,7 +807,6 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   }
   
   function stopTimer() {
-    console.log('STOP')
     selectedGameData.timerSeconds = 0
     selectedGameData.timerStart = false
     selectedGameData.isPauseTimer = false

@@ -291,6 +291,17 @@ async function getImageName() {
   position: relative;
   z-index: 2;
 
+  &._game {
+    @media (max-width: $mobile) {
+      padding-top: 100px;
+      padding-bottom: 100px;
+
+      min-height: 100vh;
+      min-height: 100dvh;
+      height: auto;
+    }
+  }
+
   &__container {
     height: 100%;
   }
@@ -339,10 +350,9 @@ async function getImageName() {
       font-size: 13px;
     }
     @media (max-width: $mobile) {
-      max-width: 310px;
+      max-width: 90%;
     }
     @media (max-width: $mobileSmall) {
-      max-width: 280px;
       font-size: 12px;
     }
   }
@@ -374,9 +384,14 @@ async function getImageName() {
     font-size: 14px;
     line-height: 1.8;
     font-weight: 400;
+
+    @media (max-width: $mobileSmall) {
+      font-size: 12px;
+    }
   }
 
   &__block {
+
     audio {
       margin: 0 auto;
       margin-top: 20px;

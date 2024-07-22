@@ -41,7 +41,7 @@ onBeforeMount(async () => {
     globalPreloader.activate()
     let baseProfData = await axiosInstance.get('/getBaseProfession')
     if(baseProfData.data) {
-      list.value = baseProfData.data
+      list.value = baseProfData.data.sort(((a,b) => a.title.localeCompare(b.title)))
     }
   } catch(e) {
     console.log('Ошибка при попытке взять профессии')

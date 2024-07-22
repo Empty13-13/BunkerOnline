@@ -72,7 +72,7 @@ function closeRoom(e) {
         <div v-slide class="block-adminPanel__title">Отправить сообщение игроку</div>
         <div slidebody class="block-adminPanel__body" hidden="hidden">
           <form class="block-adminPanel__form">
-            <AppSelect v-model="funcData.sendMessage.select" :options="selectedGameData.getAllPlayersSelectToChangeAdminAndAll" />
+            <AppSelect v-model="funcData.sendMessage.select" :options="selectedGameData.getAllPlayersSelectToAdminFunctionsAndAll" />
             <input v-model="funcData.sendMessage.title" type="text" placeholder="Заголовок сообщения">
             <input v-model="funcData.sendMessage.text" type="text" placeholder="Текст сообщения">
             <AppSelect v-model="funcData.sendMessage.colorSelect" :options="colorSelectOptions" />

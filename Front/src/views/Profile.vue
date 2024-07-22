@@ -1574,9 +1574,10 @@ function activateKeyHandler(e) {
   &__text {
     font-size: 11px;
     font-weight: 600;
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     opacity: 40%;
     text-align: center;
+    line-height: 1.5;
   }
 
   &__days {
@@ -1650,7 +1651,7 @@ function activateKeyHandler(e) {
   margin-top: 20px;
   display: flex;
   gap: 20px;
-  padding: 30px 20px;
+  padding: 15px 20px 30px;
 
   @media (max-width: $mobileSmall) {
     flex-direction: column;
@@ -1692,8 +1693,6 @@ function activateKeyHandler(e) {
       bottom: calc(100% + 5px);
     }
   }
-
-
 }
 </style>
 

@@ -71,12 +71,12 @@ module.exports = function(io) {
         
         console.log('ADMINNNNNN3', io.sockets.adapter.rooms)
       })
-      socket.on('sendMessage', async (userId, title, textMessage,color) => {
+      socket.on('sendMessage', async (userId, title, textMessage, color) => {
         console.log('ПРИШЛО1')
         let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
         console.log(idRoom)
         console.log('ПРИШЛО')
-        console.log('color',color)
+        console.log('color', color)
         if (+userId===0) {
           let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id}})
           if (!players) {
@@ -105,29 +105,29 @@ module.exports = function(io) {
             }
           )
         }
-        socket.emit('sendMessage:timer', {
-            title: 'Сообщение от сервера',
-            message: 'Сообщение успешно отправлено',
-            color: 'green'
-          }
-        )
+        socket.emit('sendMessage', {
+          title: title,
+          message: textMessage,
+          color: color || 'white'
+        })
         
       })
       socket.on('closeRoom', async () => {
+        console.log('RoomClose делаем')
         await ioUserService.deleteRoomFromDB(idRoom)
         
-        console.log('RoomClose делаем')
-          socket.emit('sendMessage:timer', {
-                  title: 'Сообщение от сервера',
-                  message: 'Комната успешно закрыта, обновите страницу',
-                  color: 'green'
-              }
-          )
+        console.log('RoomClose делаем2')
+        socket.emit('sendMessage', {
+            title: 'Сообщение от сервера',
+            message: 'Комната успешно закрыта, обновите страницу',
+            color: 'green'
+          }
+        )
         io.in(idRoom).emit('roomClosed', {message: 'Комната закрыта администратором', status: 200})
-          setTimeout(()=>{
-              io.in(idRoom).disconnectSockets(true);
-          },500)
-
+        setTimeout(() => {
+          io.in(idRoom).disconnectSockets(true);
+        }, 500)
+        
       })
     }
   )

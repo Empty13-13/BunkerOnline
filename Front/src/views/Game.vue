@@ -335,7 +335,7 @@ function toggleSoundHandler() {
       </div>
       <TheAdminPanel v-if="myProfile.isAdmin" />
     </Teleport>
-    <div id="welcome" class="welcome">
+    <div id="welcome" class="welcome _game">
       <AppBackground :catastropheImg="selectedGameData.bunkerData.imageName" />
       <div class="welcome__container">
         <div class="welcome__body">
