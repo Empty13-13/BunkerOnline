@@ -10,14 +10,14 @@ const otherTexts = useOtherTextsStore()
 const links = ref([])
 
 onMounted(async () => {
-  globalPreloader.activate()
+  // globalPreloader.activate()
   try {
     let linksData = await axiosInstance.get('/wikiList')
     links.value = linksData.data
   } catch(e) {
 
   }
-  globalPreloader.deactivate()
+  // globalPreloader.deactivate()
 })
 
 </script>

@@ -343,9 +343,7 @@ function toggleSoundHandler() {
             Катаклизм
           </h1>
           <div slideBody class="welcome__block">
-            <p class="welcome__subtitle">
-              {{ selectedGameData.bunkerData.catastrophe }}
-            </p>
+            <p class="welcome__subtitle" v-html="selectedGameData.bunkerData.catastrophe"></p>
             <p v-if="selectedGameData.bunkerData.population" class="welcome__population">
               Остаток населения - {{ selectedGameData.bunkerData.population }} человек
             </p>
