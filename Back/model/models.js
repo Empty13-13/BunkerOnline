@@ -92,10 +92,10 @@ const GameRooms = sequelize.define('gameRooms', {
   population: {type: DataTypes.STRING},
   endOfTime: {type: DataTypes.DATE},
   voitingStatus: {type: DataTypes.TINYINT},
-  soundId:{type: DataTypes.INTEGER},
-  timerEndDate : {type: DataTypes.DATE},
-  nowDateTimer : {type: DataTypes.DATE},
-  timerPauseSeconds:{type: DataTypes.INTEGER}
+  soundId: {type: DataTypes.INTEGER},
+  timerEndDate: {type: DataTypes.DATE},
+  nowDateTimer: {type: DataTypes.DATE},
+  timerPauseSeconds: {type: DataTypes.INTEGER}
 })
 
 const RoomSession = sequelize.define('roomSession', {
@@ -184,7 +184,7 @@ const CatastropheImage = sequelize.define('catastropheImage', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   imageName: {type: DataTypes.STRING},
   catastropheId: {type: DataTypes.INTEGER},
-  favourite: {type: DataTypes.TINYINT,defaultValue: 0},
+  favourite: {type: DataTypes.TINYINT, defaultValue: 0},
 })
 
 const CatastropheSounds = sequelize.define('catastropheSounds', {
@@ -196,45 +196,47 @@ const EmailNotification = sequelize.define('emailNotification', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
   type: {type: DataTypes.STRING},
   userId: {type: DataTypes.INTEGER},
-  timerEndDate : {type: DataTypes.DATE}
+  timerEndDate: {type: DataTypes.DATE}
 })
 
 const OtherTexts = sequelize.define('otherTexts', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  name:{type: DataTypes.STRING,allowNull:false},
-  text:{type: DataTypes.STRING(15000),allowNull:false},
+  name: {type: DataTypes.STRING, allowNull: false},
+  text: {type: DataTypes.STRING(15000), allowNull: false},
 })
 
 const gameKey = sequelize.define('gameKey', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  key:{type: DataTypes.STRING(1000)},
-  period:{type: DataTypes.INTEGER},
-  type:{type: DataTypes.STRING()},
-  isActivate:{type: DataTypes.TINYINT, defaultValue: 0}
+  key: {type: DataTypes.STRING(1000)},
+  period: {type: DataTypes.INTEGER},
+  type: {type: DataTypes.STRING()},
+  isActivate: {type: DataTypes.TINYINT, defaultValue: 0}
 })
 
-const prices = sequelize.define('prices',{
+const prices = sequelize.define('prices', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  price:{type: DataTypes.STRING()},
-  oldPrice:{type: DataTypes.STRING()},
-  levelAccess:{type: DataTypes.STRING()},
-  months:{type: DataTypes.INTEGER},
-  link:{type: DataTypes.STRING()},
+  price: {type: DataTypes.STRING()},
+  oldPrice: {type: DataTypes.STRING()},
+  levelAccess: {type: DataTypes.STRING()},
+  months: {type: DataTypes.INTEGER},
+  link: {type: DataTypes.STRING()},
 })
 
-const updateInfo = sequelize.define('updateInfo',{
+const updateInfo = sequelize.define('updateInfo', {
   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-  title:{type: DataTypes.STRING(255)},
-  text:{type: DataTypes.STRING(10000)},
-  dateText:{type: DataTypes.STRING(255)},
+  title: {type: DataTypes.STRING(255)},
+  text: {type: DataTypes.STRING(10000)},
+  dateText: {type: DataTypes.STRING(255)},
 })
 
-// const staticPages = sequelize.define('staticPages',{
-//   id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-//   fileName: {type: DataTypes.STRING(255),allowNull: false},
-//   pageNum:{type: DataTypes.INTEGER},
-//   isHide:{type: DataTypes.TINYINT, defaultValue: 0},
-// })
+const staticPages = sequelize.define('staticPages', {
+  id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+  fileName: {type: DataTypes.STRING(255), allowNull: false},
+  link: {type: DataTypes.STRING(255), allowNull: false},
+  title: {type: DataTypes.STRING(255), allowNull: false},
+  pageNum: {type: DataTypes.INTEGER, allowNull: false},
+  isHide: {type: DataTypes.TINYINT, defaultValue: 0},
+})
 
 User.hasOne(Token)
 User.hasOne(DiscordAuthId)
@@ -264,6 +266,7 @@ module.exports = {
   BlackListUsers,
   ResetPassword,
   NoRegUsers,
+  staticPages,
   GameRooms,
   updateInfo,
   RoomSession,
