@@ -11,6 +11,7 @@ const {Op} = require('sequelize')
 const {User} = require("../model/models");
 const {tryUpgradeElement} = require("jsdom/lib/jsdom/living/helpers/custom-elements");
 
+let watcherCounterArr = []
 
 module.exports = function(io) {
   io.on('connection', async socket => {
@@ -35,7 +36,7 @@ module.exports = function(io) {
     // console.log('DICKPICK',socket)
     
     
-   // console.log(`${socket.id} user connected with userId ${isValidateId}`)
+    // console.log(`${socket.id} user connected with userId ${isValidateId}`)
     socket.on('createRoom', async () => {
       // let isReg = false
       
@@ -49,10 +50,10 @@ module.exports = function(io) {
             functionName: 'createRoom'
           })
         io.in(socket.id).disconnectSockets(true);
-     //   console.log('inValid idRoom')
+        //   console.log('inValid idRoom')
         return
       }
-      let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId,creatorId:isValidateId})
+      let gameRoom = await UserModel.GameRooms.create({idRoom: idRoom, hostId: isValidateId, creatorId: isValidateId})
       
       await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
       
@@ -69,13 +70,13 @@ module.exports = function(io) {
     socket.on('joinRoom', async () => {
       //await changeNoregIdToRegId(socket)
       let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
-        let isAdmin = false
-        if(isValidateId>0){
-            let userA = await UserModel.User.findOne({where:{id:isValidateId,accsessLevel:'admin'}})
-            if(userA){
-                isAdmin = true
-            }
+      let isAdmin = false
+      if (isValidateId>0) {
+        let userA = await UserModel.User.findOne({where: {id: isValidateId, accsessLevel: 'admin'}})
+        if (userA) {
+          isAdmin = true
         }
+      }
       if (!GameData) {
         return
       }
@@ -91,7 +92,7 @@ module.exports = function(io) {
           socket.emit('setAllGameData', data)
         }
         else {
-          if (GameData.isHidden &&!isAdmin) {
+          if (GameData.isHidden && !isAdmin) {
             socket.emit("setError",
               {message: "Комнаты не существует", status: 404, functionName: 'joinRoom'})
             io.in(socket.id).disconnectSockets(true);
@@ -99,19 +100,20 @@ module.exports = function(io) {
           }
           let data = await playerDataService.joinGameData(idRoom, isValidateId, true)
           socket.join(`watchers:${idRoom}`)
-            if(isAdmin){
-                socket.emit('sendMessage',
-                    //`Игра уже началась. На данный момент вы являетесь наблюдателем`
-                    {message: `Игра уже началась. На данный момент вы являетесь наблюдателем с ролью Админа`})
-            }else {
-                socket.emit('sendMessage',
-                    //`Игра уже началась. На данный момент вы являетесь наблюдателем`
-                    {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
-            }
+          if (isAdmin) {
+            socket.emit('sendMessage',
+              //`Игра уже началась. На данный момент вы являетесь наблюдателем`
+              {message: `Игра уже началась. На данный момент вы являетесь наблюдателем с ролью Админа`})
+          }
+          else {
+            socket.emit('sendMessage',
+              //`Игра уже началась. На данный момент вы являетесь наблюдателем`
+              {message: `Игра уже началась. На данный момент вы являетесь наблюдателем`})
+          }
           socket.emit('startedGame')
           GameData.watchersCount += 1
           watchersCount = GameData.watchersCount
-          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
+          socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size})
           // delete GameData.hostId
           socket.emit('setAwaitRoomData', GameData)
           socket.emit('setAllGameData', data)
@@ -147,7 +149,7 @@ module.exports = function(io) {
               {message: "Комната заполнена. Вы являетесь наблюдателем.", status: 409, color: 'gold'})
             GameData.watchersCount += 1
             watchersCount = GameData.watchersCount
-            socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: GameData.watchersCount})
+            socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size})
             socket.emit('setAwaitRoomData', GameData)
           }
         }
@@ -173,15 +175,13 @@ module.exports = function(io) {
     })
     
     socket.on('disconnecting', async (reason) => {
-      watchersCount -= 1
-      io.in(idRoom).emit('setAwaitRoomData', {watchersCount})
-      console.log('b')
     })
     
     socket.on('disconnect', async (reason, details) => {
+      watchersCount -= 1
       await ioUserService.disconnectAndSetTimer(io, socket, idRoom)
       io.in(idRoom)
-      console.log('a')
+      io.in(idRoom).emit('setAwaitRoomData', {watchersCount:io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size || 0})
     })
     socket.on('openChart', async (chartName) => {
       
@@ -191,20 +191,20 @@ module.exports = function(io) {
         
         if (game && game.isStarted===1) {
           let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
-          if(!player.isAlive || !player.isPlayer){
-             socket.emit("setError",
-                        {
-                          message: "Вы не можете открывать характеристики по причине: Вас изгнали/вы не игрок",
-                          status: 400,
-                          functionName: 'openChart'
-                        })
-                      return
+          if (!player.isAlive || !player.isPlayer) {
+            socket.emit("setError",
+              {
+                message: "Вы не можете открывать характеристики по причине: Вас изгнали/вы не игрок",
+                status: 400,
+                functionName: 'openChart'
+              })
+            return
           }
           if (player[chartName]) {
             let emitData = {}
             let data = JSON.parse(player[chartName])
             let usePack = JSON.parse(player.usePack)
-          //  console.log(usePack, usePack[0], usePack.includes(1))
+            //  console.log(usePack, usePack[0], usePack.includes(1))
             if (!data.isOpen) {
               data.isOpen = true
               emitData = data
@@ -218,7 +218,7 @@ module.exports = function(io) {
             await player.save()
             socket.emit('openChart:good', chartName)
             io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
-             io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
+            io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
           }
           else {
             socket.emit("setError",
@@ -262,15 +262,15 @@ module.exports = function(io) {
             let game = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
             if (game && game.isStarted===1) {
               let player = await UserModel.RoomSession.findOne({where: {userId: isValidateId, gameRoomId: game.id}})
-              if(!player.isAlive || !player.isPlayer){
-                           socket.emit("setError",
-                                      {
-                                        message: "Вы не можете меня характеристики по причине: Вас изгнали/вы не игрок",
-                                        status: 400,
-                                        functionName: 'refreshChartMVP'
-                                      })
-                                    return
-                        }
+              if (!player.isAlive || !player.isPlayer) {
+                socket.emit("setError",
+                  {
+                    message: "Вы не можете меня характеристики по причине: Вас изгнали/вы не игрок",
+                    status: 400,
+                    functionName: 'refreshChartMVP'
+                  })
+                return
+              }
               if (player[chartName] && player.isMVPRefresh!==1) {
                 let data = await playerDataService.refreshChartMvp(player, chartName, game.id)
                 if (data===null) {
@@ -298,14 +298,20 @@ module.exports = function(io) {
                 })
                 
                 if (data.isOpen) {
-                //  console.log(chartName)
+                  //  console.log(chartName)
                   io.in(idRoom).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                 }
                 else {
                   socket.emit('setAllGameData', {players: {[isValidateId]: {[chartName]: data}}})
                 }
                 io.in(idRoom).emit('setAllGameData',
-                  {logsData: [{type: 'text', value: `Пользователь MVP ${user.nickname} изменил характеристику`,date: new Date()}]})
+                  {
+                    logsData: [{
+                      type: 'text',
+                      value: `Пользователь MVP ${user.nickname} изменил характеристику`,
+                      date: new Date()
+                    }]
+                  })
                 socket.emit('refreshChartMVP:good', chartName)
               }
               else {
@@ -360,7 +366,7 @@ module.exports = function(io) {
     })
     socket.on('voiting:choiseUser', async (choiseId) => {
       let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-
+      
       if (gameRoom.voitingStatus===0) {
         let isPlayer = await UserModel.RoomSession.findOne(
           {where: {gameRoomId: gameRoom.id, isPlayer: 1, userId: choiseId, isAlive: 1}})
@@ -370,20 +376,22 @@ module.exports = function(io) {
               where:
                 {gameRoomId: gameRoom.id, isPlayer: 1, userId: isValidateId}
             })
-        //  console.log('usersIO:isValidateId', isValidateId)
+          //  console.log('usersIO:isValidateId', isValidateId)
           if (player) {
             if (player.isAlive) {
               if (choiseId!==isValidateId) {
-               // console.log(choiseId, isValidateId)
+                // console.log(choiseId, isValidateId)
                 player.votedFor = choiseId
                 await player.save()
                 socket.emit('voiting:choiseUser:good')
-                let allPlayers = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1}})
-                let playerChoise = await UserModel.RoomSession.findAll({where:{gameRoomId:gameRoom.id,isPlayer:1,isAlive:1,votedFor:{[Op.ne]:null}}})
-                if(allPlayers.length === playerChoise.length){
-                         await ioUserService.finishedVoiting(idRoom,gameRoom.hostId,io,socket)
-
-                      }
+                let allPlayers = await UserModel.RoomSession.findAll(
+                  {where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1}})
+                let playerChoise = await UserModel.RoomSession.findAll(
+                  {where: {gameRoomId: gameRoom.id, isPlayer: 1, isAlive: 1, votedFor: {[Op.ne]: null}}})
+                if (allPlayers.length===playerChoise.length) {
+                  await ioUserService.finishedVoiting(idRoom, gameRoom.hostId, io, socket)
+                  
+                }
               }
               else {
                 socket.emit("setError",
@@ -403,7 +411,7 @@ module.exports = function(io) {
                 })
               // Ошибка, что игрок уже мертв и не может голосовать
             }
-              //io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
+            //io.in(`watchers:${idRoom}`).emit('setAllGameData', {players: {[isValidateId]: {[chartName]: emitData}}})
           }
           else {
             socket.emit("setError",
@@ -438,25 +446,27 @@ module.exports = function(io) {
       }
     })
     
-    socket.on('exitPlayer',async () => {
+    socket.on('exitPlayer', async () => {
       try {
-        const gameRoom = await UserModel.GameRooms.findOne({where:{idRoom}})
-        if(gameRoom) {
-         if (!gameRoom.isStarted) {
-           await UserModel.RoomSession.destroy({where:{gameRoomId:gameRoom.id,userId:isValidateId}})
-           
-           console.log(await ioUserService.getPlayingUsers(idRoom))
-           io.in(idRoom).emit('setAwaitRoomData',{players: await ioUserService.getPlayingUsers(idRoom)})
-           socket.emit('exitPlayer:good')
-         } else {
-           socket.emit("setError",
-             {
-               message: 'Вы не можете выйти из игры, которая уже началась',
-               status: 400,
-               functionName: 'exitPlayer'
-             })
-         }
-        } else {
+        const gameRoom = await UserModel.GameRooms.findOne({where: {idRoom}})
+        if (gameRoom) {
+          if (!gameRoom.isStarted) {
+            await UserModel.RoomSession.destroy({where: {gameRoomId: gameRoom.id, userId: isValidateId}})
+            
+            console.log(await ioUserService.getPlayingUsers(idRoom))
+            io.in(idRoom).emit('setAwaitRoomData', {players: await ioUserService.getPlayingUsers(idRoom)})
+            socket.emit('exitPlayer:good')
+          }
+          else {
+            socket.emit("setError",
+              {
+                message: 'Вы не можете выйти из игры, которая уже началась',
+                status: 400,
+                functionName: 'exitPlayer'
+              })
+          }
+        }
+        else {
           socket.emit("setError",
             {
               message: 'Игра, из которой вы хотите выйти, не существует',
@@ -474,7 +484,7 @@ module.exports = function(io) {
       }
     })
     
-   // console.log(io.sockets.adapter.rooms)
+    // console.log(io.sockets.adapter.rooms)
   })
 }
 
