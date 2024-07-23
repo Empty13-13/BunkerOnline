@@ -537,7 +537,7 @@ class ioUserService {
   async disconnectAndSetTimer(io, socket, idRoom) {
     let timeFromDB = await UserModel.SystemSettings.findOne({where: {nameSetting: 'timeToCloseRoom'}})
     if (timeFromDB && timeFromDB.value) {
-      timeFromDB = timeFromDB.value * 1000
+      timeFromDB = timeFromDB.value * 60 * 1000
     }
     
     if (!io.sockets.adapter.rooms.get(idRoom)) {
