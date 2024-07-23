@@ -301,7 +301,7 @@ function exitPlayer(e) {
             <div v-else class="info-awaitRoom__warning">
               <div class="info-awaitRoom__title titleH2"  v-html="selectedGame.agreeTitle"></div>
               <p class="info-awaitRoom__warningText" v-html="selectedGame.agreeText"></p>
-              <div class="info-awaitRoom__buttons">
+              <div class="info-awaitRoom__warningButtons">
                 <AppButton color="red" @click="router.push({name:'home'})">На главную </AppButton>
                 <AppButton color="green" @click.prevent="userSocket.emit('joinRoom',true)">Подключиться</AppButton>
               </div>
@@ -2028,7 +2028,7 @@ function exitPlayer(e) {
     }
   }
 
-  &__buttons {
+  &__warningButtons {
     font-weight: 700;
     display: flex;
     justify-content: center;
