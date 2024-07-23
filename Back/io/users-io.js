@@ -18,7 +18,6 @@ module.exports = function(io) {
     let data = await ioUserService.validateToken(socket)
     let isValidateId = null
     let idRoom = null
-    let watchersCount = 0
     if (data) {
       isValidateId = data.isValidateId
       idRoom = data.idRoom
@@ -112,7 +111,6 @@ module.exports = function(io) {
           }
           socket.emit('startedGame')
           GameData.watchersCount += 1
-          watchersCount = GameData.watchersCount
           socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size})
           // delete GameData.hostId
           socket.emit('setAwaitRoomData', GameData)
@@ -148,7 +146,6 @@ module.exports = function(io) {
             socket.emit('setError',
               {message: "Комната заполнена. Вы являетесь наблюдателем.", status: 409, color: 'gold'})
             GameData.watchersCount += 1
-            watchersCount = GameData.watchersCount
             socket.to(idRoom).emit('setAwaitRoomData', {watchersCount: io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size})
             socket.emit('setAwaitRoomData', GameData)
           }
@@ -178,7 +175,6 @@ module.exports = function(io) {
     })
     
     socket.on('disconnect', async (reason, details) => {
-      watchersCount -= 1
       await ioUserService.disconnectAndSetTimer(io, socket, idRoom)
       io.in(idRoom)
       io.in(idRoom).emit('setAwaitRoomData', {watchersCount:io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size || 0})
