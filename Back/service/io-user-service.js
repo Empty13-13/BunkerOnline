@@ -480,7 +480,7 @@ class ioUserService {
       isPlayingBefore,
       countPlayers: dataUsersPlaying.length,
       hostId: gameRoom.dataValues.hostId,
-      watchersCount: this.getWatchersCount(io, idRoom),
+      watchersCount: io.sockets?.adapter?.rooms?.get(`watchers:${idRoom}`)?.size || 0,
       players: dataUsersPlaying,
       userId: isValidateId,
       isHidden: !!gameRoom.isHidden,
