@@ -558,7 +558,7 @@ class ioUserService {
     }
     await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
     await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
-    await UserModel.RoomSession.destroy({where: {gameRoomId: idRoom}})
+    // await UserModel.RoomSession.destroy({where: {gameRoomId: idRoom}})
     await UserModel.Logi.destroy(({where: {idRoom: idRoom}}))
     
   }
