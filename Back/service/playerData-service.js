@@ -2088,8 +2088,9 @@ class playerDataService {
     let diffMinute = Math.floor((new Date() - +gameRoom.createdAt) / 1000 / 60)
     let logi = await UserModel.Logi.findOne({where:{idRoom:idRoom}})
     let numStats = await UserModel.SystemSettings.findOne({where:{nameSetting:'minNumOfActionsForStatistics'}})
-    console.log('minNumOfActionsForStatistics',numStats.value)
-    if (diffMinute>30 && logi.length>(numStats.value || 20)) {
+    let minTimeForStatistics = await UserModel.SystemSettings.findOne({where: {nameSetting: 'minTimeForStatistics'}})
+    
+    if (diffMinute>minTimeForStatistics?.value || 30 && logi.length>(numStats?.value || 20)) {
       let players = await UserModel.RoomSession.findAll({where: {gameRoomId: gameRoom.id, isPlayer: 1}})
       for (let player of players) {
         if (player.userId>0) {
