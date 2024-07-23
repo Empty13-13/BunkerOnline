@@ -13,6 +13,7 @@ onMounted(async () => {
   // globalPreloader.activate()
   try {
     let linksData = await axiosInstance.get('/wikiList')
+    console.log(linksData)
     links.value = linksData.data
   } catch(e) {
 

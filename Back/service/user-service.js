@@ -1041,7 +1041,15 @@ class UserService {
   }
   
   async getUpdateInfo() {
-    return UserModel.updateInfo.findAll()
+    return await UserModel.updateInfo.findAll()
+  }
+  
+  async getAllStaticPages() {
+    return await UserModel.staticPages.findAll()
+  }
+  
+  async getStaticPage(url) {
+    return await UserModel.staticPages.findOne({where:{link:url}})
   }
 }
 

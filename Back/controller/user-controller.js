@@ -26,16 +26,16 @@ class UserController {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-        //    console.log('УДАЧНО')
+            //    console.log('УДАЧНО')
           }
           else {
-         //   console.log('Не удачно')
+            //   console.log('Не удачно')
             return next(ApiError.CapthaBlock())
             
           }
         })
         .catch((e) => {
-       //   console.log('Не удачно CATCH', e)
+          //   console.log('Не удачно CATCH', e)
           return next(ApiError.CapthaBlock())
         })
       
@@ -60,7 +60,7 @@ class UserController {
     try {
       
       let {recaptchaToken} = req.body
-    //  console.log(recaptchaToken)
+      //  console.log(recaptchaToken)
       
       const params = new URLSearchParams({
         secret: process.env.recaptchaKey,
@@ -70,16 +70,16 @@ class UserController {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-      //      console.log('УДАЧНО')
+            //      console.log('УДАЧНО')
           }
           else {
-        //    console.log('Не удачно')
+            //    console.log('Не удачно')
             return next(ApiError.CapthaBlock())
             
           }
         })
         .catch((e) => {
-     //     console.log('Не удачно CATCH', e)
+          //     console.log('Не удачно CATCH', e)
           return next(ApiError.CapthaBlock())
         })
       
@@ -260,7 +260,7 @@ class UserController {
   async getUser(req, res, next) {
     try {
       const userId = req.params.id
-     // console.log(userId)
+      // console.log(userId)
       // const id = req.headers
       let token = null
       const accessToken = req.headers.authorization
@@ -334,7 +334,7 @@ class UserController {
     try {
       
       let {recaptchaToken} = req.body
-   //   console.log(recaptchaToken)
+      //   console.log(recaptchaToken)
       
       const params = new URLSearchParams({
         secret: process.env.recaptchaKey,
@@ -344,16 +344,16 @@ class UserController {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-       //     console.log('УДАЧНО')
+            //     console.log('УДАЧНО')
           }
           else {
-        //    console.log('Не удачно')
+            //    console.log('Не удачно')
             return next(ApiError.CapthaBlock())
             
           }
         })
         .catch((e) => {
-        //  console.log('Не удачно CATCH', e)
+          //  console.log('Не удачно CATCH', e)
           return next(ApiError.CapthaBlock())
         })
       
@@ -496,10 +496,10 @@ class UserController {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-          //  console.log('УДАЧНО')
+            //  console.log('УДАЧНО')
           }
           else {
-          //  console.log('Не удачно')
+            //  console.log('Не удачно')
             return next(ApiError.CapthaBlock())
           }
         })
@@ -610,37 +610,52 @@ class UserController {
   async loadStaticPage(req, res, next) {
     try {
       let fs = require('fs')
-      let name = `${process.env.STATIC_PAGE_LINK + req.params.id.toString()}.txt`
-      let _name = `${process.env.STATIC_PAGE_LINK + '_' + req.params.id.toString()}.txt`
       const jsdom = require("jsdom");
       const {JSDOM} = jsdom;
       
-      fs.readFile(name, 'utf8', (e, data) => {
-      //  console.log(name)
-        if (!e) {
-        //  console.log('Прочитали файл')
-          const dom = new JSDOM(data);
-          let title = dom.window.document.querySelector('h1').textContent
-        //  console.log(title)
-          res.json({html: data, title})
-        }
-        else {
-          fs.readFile(_name, 'utf8', (e, data) => {
-        //    console.log(name)
-            if (!e) {
-            //  console.log('Прочитали файл2')
-              const dom = new JSDOM(data);
-              let title = dom.window.document.querySelector('h1').textContent
-             // console.log(title)
-              res.json({html: data, title})
-            }
-            else {
-            //  console.log('Ошибка чтения файла')
-              next(e)
-            }
-          })
-        }
-      })
+      let staticPage = await userService.getStaticPage(req.params.id.toString())
+      if (!staticPage || !staticPage.fileName) {
+        console.log('АЙАЙАЙА')
+        next()
+        return
+      }
+      else {
+        fs.readFile(process.env.STATIC_PAGE_LINK+staticPage.fileName, 'utf8', (e, data) => {
+          res.json({html: data})
+        })
+      }
+      
+      
+      // let name = `${process.env.STATIC_PAGE_LINK + req.params.id.toString()}.txt`
+      // let _name = `${process.env.STATIC_PAGE_LINK + '_' + req.params.id.toString()}.txt`
+      //
+      //
+      // fs.readFile(name, 'utf8', (e, data) => {
+      //   //  console.log(name)
+      //   if (!e) {
+      //     //  console.log('Прочитали файл')
+      //     const dom = new JSDOM(data);
+      //     let title = dom.window.document.querySelector('h1').textContent
+      //     //  console.log(title)
+      //     res.json({html: data, title})
+      //   }
+      //   else {
+      //     fs.readFile(_name, 'utf8', (e, data) => {
+      //       //    console.log(name)
+      //       if (!e) {
+      //         //  console.log('Прочитали файл2')
+      //         const dom = new JSDOM(data);
+      //         let title = dom.window.document.querySelector('h1').textContent
+      //         // console.log(title)
+      //         res.json({html: data, title})
+      //       }
+      //       else {
+      //         //  console.log('Ошибка чтения файла')
+      //         next(e)
+      //       }
+      //     })
+      //   }
+      // })
     } catch(e) {
       next(e)
     }
@@ -650,12 +665,13 @@ class UserController {
     try {
       const textData = await userService.getOtherText(req.params.id.toString())
       if (textData) {
-        if(textData.text) {
+        if (textData.text) {
           res.json(textData.text)
-        } else {
+        }
+        else {
           res.json(textData)
         }
-      //  console.log('Нашли текст')
+        //  console.log('Нашли текст')
       }
       else {
         next({message: 'Текст не найден'})
@@ -669,31 +685,48 @@ class UserController {
     try {
       const fs = require('fs');
       let resultArr = []
+      const staticPages = await userService.getAllStaticPages()
+      if (!staticPages.length) {
+        res.json(resultArr)
+        return
+      }
       
-      await fs.readdir(process.env.STATIC_PAGE_LINK, (err, files) => {
-        if (err) throw err;
-        
-        files.forEach(filename => {
-          if (filename[0]!=='_') {
-            let result = fs.readFileSync(process.env.STATIC_PAGE_LINK + filename, {encoding: "utf-8"})
-           // console.log('Прочитали файл3', filename)
-            const jsdom = require("jsdom");
-            const {JSDOM} = jsdom;
-            const dom = new JSDOM(result);
-            let title = dom.window.document.querySelector('h1').textContent
-            resultArr.push({title, link: filename.replace('.txt', '')})
-           // console.log(resultArr)
+      function isFileExist(path) {
+        return new Promise((resolve, reject) => {
+          try {
+            fs.access(path, fs.constants.F_OK, (a) => {
+              if (!a) {
+                resolve(true)
+              }
+              else {
+                resolve(false)
+              }
+            })
+          } catch(e) {
+            reject(e)
           }
         })
-        
-        res.json(resultArr)
-      });
+      }
+      
+      for (let page of staticPages) {
+        try {
+          if (!page.isHide && await isFileExist(process.env.STATIC_PAGE_LINK + page.fileName)) {
+            resultArr.push({title: page.title, link: page.link, pageNum: page.pageNum})
+          }
+        } catch(e) {
+          console.log(e)
+        }
+      }
+      
+      resultArr = resultArr.sort((a, b) => +a.pageNum - +b.pageNum)
+      res.json(resultArr)
+      
     } catch(e) {
       next(e)
     }
   }
-
-  async getBaseProfession(req,res,next){
+  
+  async getBaseProfession(req, res, next) {
     try {
       const data = await userService.getBaseProfession()
       res.json(data)
@@ -703,7 +736,7 @@ class UserController {
       next(e)
     }
   }
-
+  
   async getHomeImageName(req, res, next) {
     try {
       const imageName = await userService.getHomeImageName()
@@ -726,7 +759,7 @@ class UserController {
     }
   }
   
-  async getUpdateInfo(req,res,next) {
+  async getUpdateInfo(req, res, next) {
     try {
       const priceInfo = await userService.getUpdateInfo()
       res.json(priceInfo)
