@@ -297,7 +297,15 @@ function exitPlayer(e) {
       <div class="awaitRoom__container">
         <div class="awaitRoom__body">
           <div class="info-awaitRoom">
-            <div class="info-awaitRoom__title titleH2">{{ selectedGame.gameLoadText }}</div>
+            <div v-if="selectedGame.agreeToAccess" class="info-awaitRoom__title titleH2">{{ selectedGame.gameLoadText }}</div>
+            <div v-else class="info-awaitRoom__warning">
+              <div class="info-awaitRoom__title titleH2"  v-html="selectedGame.agreeTitle"></div>
+              <p class="info-awaitRoom__warningText" v-html="selectedGame.agreeText"></p>
+              <div class="info-awaitRoom__buttons">
+                <AppButton color="red" @click="router.push({name:'home'})">На главную </AppButton>
+                <AppButton color="green" @click.prevent="userSocket.emit('joinRoom',true)">Подключиться</AppButton>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1996,6 +2004,52 @@ function exitPlayer(e) {
     margin: 0 auto;
     padding: 12px 23px;
     font-weight: 700;
+  }
+
+  &__warning {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    @media (max-width: $mobileSmall) {
+      justify-content: inherit;
+      align-items: inherit;
+    }
+  }
+
+  &__warningText {
+    margin-bottom: 25px;
+    font-size: 15px;
+    line-height: 1.4;
+    @media (max-width: $mobile) {
+      font-size: 14px;
+      line-height: 1,2;
+    }
+  }
+
+  &__buttons {
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    
+    @media (max-width:$mobileSmall){
+      justify-content: inherit;
+      align-items: inherit;
+    }
+
+    button {
+      height: 40px;
+      font-weight: 700;
+      width: 180px;
+      font-size: 13px;
+
+      @media (max-width: $mobileSmall) {
+        width: 100%;
+      }
+    }
   }
 }
 

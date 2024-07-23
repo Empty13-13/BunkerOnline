@@ -13,6 +13,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
   const globalPopup = useGlobalPopupStore()
   const selectedGameData = useSelectedGameData()
+  const globalPreloader = useGlobalPopupStore()
   
   const isNewGame = ref(false)
   const gameId = ref(null)
@@ -27,6 +28,9 @@ export const useSelectedGame = defineStore('selectedGame', () => {
   const maxPlayers = ref(15)
   const minPlayers = ref(6)
   const isCreateCustomGame = ref(false)
+  const agreeToAccess = ref(true)
+  const agreeTitle = ref('Внимание!')
+  const agreeText = ref('Вы уверены, что хотите подключиться к игре?<br><br>Для продолжения нажмите кнопку "подключиться"')
   const isGameExist = computed(() => {
     return !!(hostId.value && players.value && userId.value);
   })
@@ -48,16 +52,16 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
   }
   
-  function clearData() {
-    hostId.value = 0
-    isStarted.value = false
-    watchersCount.value = 0
-    players.value = []
-    userId.value = 0
-    isHidden.value = false
-  }
   
   function setInitialData(data) {
+    if(data.hasOwnProperty('agreeToAccess')) {
+      if(!data.agreeToAccess) {
+        agreeToAccess.value = false
+        agreeTitle.value = data.title
+        agreeText.value = data.text
+        globalPreloader.deactivate()
+      }
+    }
     if (data.hasOwnProperty('hostId')) {
       hostId.value = data.hostId
     }
@@ -94,12 +98,25 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     isCreateCustomGame.value = false
     clearData()
   }
+  function clearData() {
+    hostId.value = 0
+    isStarted.value = false
+    watchersCount.value = 0
+    players.value = []
+    userId.value = 0
+    isHidden.value = false
+    agreeTitle.value = 'Внимание!'
+    agreeText.value = 'Вы уверены, что хотите подключиться к игре?<br><br>Для продолжения нажмите кнопку "подключиться"'
+  }
+  
   
   return {
     isHidden,
     isStarted,
     hostId,
     watchersCount,
+    agreeTitle,
+    agreeText,
     players,
     userId,
     gameId,
@@ -109,6 +126,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     minPlayers,
     maxPlayers,
     isCreateCustomGame,
+    agreeToAccess,
     imWatcher,
     clearData,
     clear,

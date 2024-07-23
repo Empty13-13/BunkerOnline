@@ -66,7 +66,7 @@ module.exports = function(io) {
       // console.log(io.sockets.adapter.rooms)
     })
 //========================================================================================================================================================
-    socket.on('joinRoom', async () => {
+    socket.on('joinRoom', async (agreeToAccess) => {
       //await changeNoregIdToRegId(socket)
       let GameData = await ioUserService.getValidateGameData(idRoom, socket, io, isValidateId)
       let isAdmin = false
@@ -127,6 +127,31 @@ module.exports = function(io) {
             // socket.emit('joinedRoom', {message: 'Вы успешно подключились к комнате', status: 201})
           }
           else if (GameData.countPlayers<15) {
+            if(!agreeToAccess) {
+              const title = await UserModel.OtherTexts.findOne({where:{name:'connectGame:title'}})
+              if(GameData.isAgeRestriction) {
+                const text = await UserModel.OtherTexts.findOne({where:{name:'connectGame:text18+'}})
+                socket.emit('setAwaitRoomData', {
+                  agreeToAccess: false,
+                  isAgeRestriction:true,
+                  title: title?.title || 'Внимание!',
+                  text: text?.text || 'Вы уверены, что хотите подключиться к игре?<br>\n' +
+                    'В игре присутствуют паки 18+, примите это к сведению. Подключаясь, вы подтверждаете что вам 18+ лет<br>\n' +
+                    '<br>\n' +
+                    'Для продолжения нажмите кнопку "подключиться"'
+                })
+              } else {
+                const text = await UserModel.OtherTexts.findOne({where:{name:'connectGame:text'}})
+                socket.emit('setAwaitRoomData', {
+                  agreeToAccess: false,
+                  title: title?.title || 'Внимание!',
+                  text: text?.text || 'Вы уверены, что хотите подключиться к игре?<br>\n' +
+                    '<br>\n' +
+                    'Для продолжения нажмите кнопку "подключиться"'
+                })
+              }
+              return
+            }
             let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
             await UserModel.RoomSession.create({gameRoomId: gameRoom.id, userId: isValidateId})
             GameData.players.push(await ioUserService.getIdAndNicknameFromUser(isValidateId))
