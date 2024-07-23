@@ -9,6 +9,7 @@ const ioUserService = require('../service/io-user-service')
 const playerDataService = require('../service/playerData-service')
 const {Op} = require('sequelize')
 const {User} = require("../model/models");
+const {tryUpgradeElement} = require("jsdom/lib/jsdom/living/helpers/custom-elements");
 
 
 module.exports = function(io) {
@@ -434,6 +435,42 @@ module.exports = function(io) {
             functionName: 'voiting:choiseUser'
           })
         // Ошибка, что голосвание либо не началось, либо уже закончилось
+      }
+    })
+    
+    socket.on('exitPlayer',async () => {
+      try {
+        const gameRoom = await UserModel.GameRooms.findOne({where:{idRoom}})
+        if(gameRoom) {
+         if (!gameRoom.isStarted) {
+           await UserModel.RoomSession.destroy({where:{gameRoomId:gameRoom.id,userId:isValidateId}})
+           
+           console.log(await ioUserService.getPlayingUsers(idRoom))
+           io.in(idRoom).emit('setAwaitRoomData',{players: await ioUserService.getPlayingUsers(idRoom)})
+           socket.emit('exitPlayer:good')
+         } else {
+           socket.emit("setError",
+             {
+               message: 'Вы не можете выйти из игры, которая уже началась',
+               status: 400,
+               functionName: 'exitPlayer'
+             })
+         }
+        } else {
+          socket.emit("setError",
+            {
+              message: 'Игра, из которой вы хотите выйти, не существует',
+              status: 400,
+              functionName: 'exitPlayer'
+            })
+        }
+      } catch(e) {
+        socket.emit("setError",
+          {
+            message: e.message,
+            status: 603,
+            functionName: 'voiting:choiseUser'
+          })
       }
     })
     

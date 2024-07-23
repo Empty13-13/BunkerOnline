@@ -267,13 +267,25 @@ function getRandomNumToDice() {
 }
 
 const audioPlayer = ref()
-
 function toggleSoundHandler() {
   selectedGameData.playedAudio = !selectedGameData.playedAudio
   selectedGameData.showPlayVoiceButton = false
   setTimeout(() => {
     audioPlayer.value.play()
   }, 200)
+}
+
+const isExitButtonLoad = ref(false)
+function exitPlayer(e) {
+  showConfirmBlock(e.target,() => {
+    isExitButtonLoad.value = true
+    userSocket.emit('exitPlayer')
+    userSocket.on('exitPlayer:good',async () => {
+      isExitButtonLoad.value = false
+      await router.replace({name:'home'})
+      userSocket.removeListener('exitPlayer:good')
+    })
+  },'Вы действительно хотите выйти из очереди в игру?')
 }
 
 </script>
@@ -325,10 +337,10 @@ function toggleSoundHandler() {
           <span class="text">
             {{
               Math.floor(selectedGameData.getCatastropheEndSeconds / 60 / 60)>0? Math.floor(
-                  selectedGameData.getCatastropheEndSeconds / 60 / 60).toString().padStart(2,'0') + ':':''
+                  selectedGameData.getCatastropheEndSeconds / 60 / 60).toString().padStart(2,'0') + ':':'00:'
             }}{{
               Math.floor(selectedGameData.getCatastropheEndSeconds / 60 % 60)>0? Math.floor(
-                  selectedGameData.getCatastropheEndSeconds / 60 % 60).toString().padStart(2,'0') + ':':''
+                  selectedGameData.getCatastropheEndSeconds / 60 % 60).toString().padStart(2,'0') + ':':'00:'
             }}{{ Math.floor(selectedGameData.getCatastropheEndSeconds % 60).toString().padStart(2,'0') }}
           </span>
         </div>
@@ -865,6 +877,8 @@ function toggleSoundHandler() {
                 </button>
               </div>
               <p v-else class="info-awaitRoom__text small">Только ведущий может начать игру</p>
+              <AppLoader v-if="isExitButtonLoad"/>
+              <AppButton v-else-if="!hostFunctional.haveAccess" class="info-awaitRoom__exitBtn" color="red" @click="exitPlayer">Выйти из очереди</AppButton>
             </div>
           </div>
         </div>
@@ -1976,6 +1990,12 @@ function toggleSoundHandler() {
 
   &__hiddenGame {
     margin-bottom: 15px !important;
+  }
+
+  &__exitBtn {
+    margin: 0 auto;
+    padding: 12px 23px;
+    font-weight: 700;
   }
 }
 

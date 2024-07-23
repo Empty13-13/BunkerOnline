@@ -800,6 +800,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
   function pauseTimer() {
     selectedGameData.isPauseTimer = true
     selectedGameData.timerSeconds = selectedGameData.getPlayerEndSeconds
+    clearInterval(timerInterval)
   }
   
   function resumeTimer(seconds) {
@@ -810,6 +811,7 @@ export const useSelectedGameGameplay = defineStore('selectedGameGameplay', () =>
     selectedGameData.timerSeconds = 0
     selectedGameData.timerStart = false
     selectedGameData.isPauseTimer = false
+    selectedGameData.timerEndDate = new Date()
     clearInterval(timerInterval)
     selectedGameData.activeTimers = selectedGameData.activeTimers.map(item => item = false)
   }
