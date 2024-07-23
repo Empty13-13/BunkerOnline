@@ -450,7 +450,7 @@ class ioUserService {
         return {idRoom, isValidateId}
       }
       
-       console.log('Connected with noRegToken', noregUserId)
+      console.log('Connected with noRegToken', noregUserId)
       isValidateId = noregUserId
       return {idRoom, isValidateId}
     } catch(e) {
@@ -535,29 +535,30 @@ class ioUserService {
   }
   
   async disconnectAndSetTimer(io, socket, idRoom) {
-    let timeFromDB = await UserModel.SystemSettings.findOne({where:{nameSetting:'timeToCloseRoom'}})
-    if(timeFromDB && timeFromDB.value) {
-      timeFromDB = timeFromDB.value * 60 * 1000
+    let timeFromDB = await UserModel.SystemSettings.findOne({where: {nameSetting: 'timeToCloseRoom'}})
+    if (timeFromDB && timeFromDB.value) {
+      timeFromDB = timeFromDB.value * 1000
     }
     
-    if (io.sockets.adapter.rooms.get(idRoom) && io.sockets.adapter.rooms.get(idRoom).size<2) {
-      //   console.log('Комната пустая, удалим через 3 часа')
-      timerList[idRoom] = setTimeout(async () => {
-        await this.deleteRoomFromDB(idRoom)
-        //   console.log('DELETE ROOMS TIMER')
-      }, timeFromDB || timeToCloseRoom)
-      //   console.log('TIMER LISt DISCONNECT ', timerList)
+    if (!io.sockets.adapter.rooms.get(idRoom)) {
+      let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom}})
+      if (gameRoom) {
+        timerList[idRoom] = setTimeout(async () => {
+          await this.deleteRoomFromDB(idRoom)
+        }, timeFromDB || timeToCloseRoom)
+      }
     }
   }
   
   async deleteRoomFromDB(idRoom) {
     let gameRoom = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
     
-    if (gameRoom.isStarted) {
+    if (gameRoom && gameRoom.isStarted) {
       await playerDataService.setStatisticGame(idRoom)
     }
     await UserModel.GameRooms.destroy({where: {idRoom: idRoom}})
     await UserModel.RoomSession.destroy({where: {gameRoomId: null}})
+    await UserModel.RoomSession.destroy({where: {gameRoomId: idRoom}})
     await UserModel.Logi.destroy(({where: {idRoom: idRoom}}))
     
   }

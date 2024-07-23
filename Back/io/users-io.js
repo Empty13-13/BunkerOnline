@@ -172,13 +172,15 @@ module.exports = function(io) {
     })
     
     socket.on('disconnecting', async (reason) => {
-      await ioUserService.disconnectAndSetTimer(io, socket, idRoom)
       watchersCount -= 1
       io.in(idRoom).emit('setAwaitRoomData', {watchersCount})
+      console.log('b')
     })
     
-    socket.on('disconnect', (reason, details) => {
+    socket.on('disconnect', async (reason, details) => {
+      await ioUserService.disconnectAndSetTimer(io, socket, idRoom)
       io.in(idRoom)
+      console.log('a')
     })
     socket.on('openChart', async (chartName) => {
       
