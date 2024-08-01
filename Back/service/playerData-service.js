@@ -40,6 +40,7 @@ class playerDataService {
     this.childFreeCount = 0
     this.perfectHealthCount = 0
     this.playerPerfectHealth = []
+    this.playerChildFree = []
   }
   
   async getSystemSettingsData() {
@@ -68,7 +69,27 @@ class playerDataService {
       this.playerPerfectHealth.push(playersArray[index])
       playersArray.splice(index,1)
     }
-  //  console.log(this.playerPerfectHealth)
+  //  console.log(this.playerPerfectHealth)s
+
+  }
+
+  getPlayerChildFree(players){
+    // let prefectPrerc = 100-this.systemSettings.perfectHealthPercentage
+    let count = Math.round(players.length*(this.systemSettings.childFreePercentage/100))
+    // console.log(players.length)
+    // console.log(count)
+
+    let playersArray = []
+    for(let player of players){
+      playersArray.push(player.userId)
+    }
+
+    for(let i=0;i<count;i++){
+      let index = this.getRandomInt(0,playersArray.length-1)
+      this.playerChildFree.push(playersArray[index])
+      playersArray.splice(index,1)
+    }
+    //  console.log(this.playerPerfectHealth)s
 
   }
   
@@ -304,8 +325,10 @@ class playerDataService {
   
   async refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText) {
     this.playerPerfectHealth=[]
+    this.playerChildFree = []
     this.systemSettings = await this.getSystemSettingsData()
     this.getPlayerPerfectHealth(players)
+    this.getPlayerChildFree(players)
     let data = {players: {}, lastVar: {}, emitData: {players: {}}}
     if (chartName==='allChart') {
       let hostPackIds = await this.creatorUsePack(idRoom)
@@ -503,9 +526,11 @@ class playerDataService {
   }
   
   async createDataGame(idRoom, playersData) {
+    this.playerPerfectHealth=[]
+    this.playerChildFree = []
     this.systemSettings = await this.getSystemSettingsData()
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    
+    console.log(this.playerChildFree,this.playerPerfectHealth)
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
     let isHostNotPlayer = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoomData.id,userId:gameRoomData.hostId,isPlayer:0}})
     if(isHostNotPlayer){
@@ -532,6 +557,7 @@ class playerDataService {
     }
     await this.collectAndSetDataForPlayer(hostPackIds, players)
     this.getPlayerPerfectHealth(players)
+    this.getPlayerChildFree(players)
     for (let player of players) {
       let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoomData.id)
       let resultPlayerData = null
@@ -569,6 +595,7 @@ class playerDataService {
     await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: textForLog, step: 0})
     // console.log(data)
     this.playerPerfectHealth=[]
+    this.playerChildFree = []
     return data
   }
   
@@ -1117,6 +1144,8 @@ class playerDataService {
   }
   async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
     let isUsedSystemAdvancePack = false
+    this.childFreeCount = 0
+    this.perfectHealthCount = 0
     if (usePack.includes(this.systemSettings.advancePack)) {
       isUsedSystemAdvancePack = true
     }
@@ -1159,8 +1188,9 @@ class playerDataService {
         }
         sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
           age)} ${sex? maleSexText[1]:femaleSexText[1]}`
-        
-        if (!((this.childFreeCount + 1) / 6 * 100>25) &&
+       // console.log(this.systemSettings.childFreePercentage)
+        console.log(this.childFreeCount,'!!!!!!!!!!!')
+        if (!((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
           this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
           sex += ' | чайлдфри'
           this.childFreeCount += 1
@@ -1174,8 +1204,8 @@ class playerDataService {
       else if (chartName==='health') {
         
         let health = null
-        
-        if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
+
+        if (!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
           100)<=this.systemSettings.perfectHealthPercentage) {
           health = {id: 0, text: 'Идеально здоров', isOpen: false}
           this.perfectHealthCount += 1
@@ -1269,9 +1299,8 @@ class playerDataService {
       }
       sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
         age)} ${sex? maleSexText[1]:femaleSexText[1]}`
-      
-      if (!((this.childFreeCount + 1) / 6 * 100>25) &&
-        this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
+      console.log(this.systemSettings.childFreePercentage,'1')
+      if (this.playerChildFree.includes(playerId)) {
         sex += ' | чайлдфри'
         this.childFreeCount += 1
       }
