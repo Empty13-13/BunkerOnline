@@ -616,7 +616,7 @@ function exitPlayer(e) {
                      v-for="item in itemsName"
                      :key="item[1]"
                 >
-                  <p v-html="selectedGameData.getCharForPlayer(data.id, item[1])"></p>
+                  <p v-html="selectedGameData.getCharForPlayer(data.id, item[1])" style="margin: auto 0"></p>
                   <AppSmallInfo v-if="selectedGameData.getDescriptionForChar(data.id,item[1])"
                                 :text="selectedGameData.getDescriptionForChar(data.id,item[1])" />
                 </div>
@@ -1486,6 +1486,7 @@ function exitPlayer(e) {
     font-size: 11px;
     font-weight: 600;
     position: relative;
+    display: flex;
 
     &:first-child {
       border-left: 1px solid #323232;
