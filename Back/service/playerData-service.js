@@ -444,6 +444,7 @@ class playerDataService {
   }
   
   async refreshChartBunker(chartName = null, idRoom, userId) {
+    console.log(chartName)
     this.systemSettings = await this.getSystemSettingsData()
     let gameRoom = await UserModel.GameRooms.findOne({
       attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerCreated', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'imageId'],
@@ -460,7 +461,7 @@ class playerDataService {
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
     let dataLocation
     let dataBedRoom
-    if(chartName='bunkerCreated'){
+    if(chartName==='bunkerCreated'){
       dataLocation = await this.refreshDataBunker(usePack, 'bunkerLocation', gameRoom, idRoom)
       dataBedRoom = await this.refreshDataBunker(usePack, 'bunkerBedroom', gameRoom, idRoom)
     }
@@ -507,6 +508,7 @@ class playerDataService {
     }
     await gameRoom.save()
    //  console.log(data)
+    console.log(data)
     return data
     
     
