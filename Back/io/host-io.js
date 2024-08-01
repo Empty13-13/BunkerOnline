@@ -521,8 +521,10 @@ module.exports = function(io) {
               }
               //  console.log(gameRoom.bunkerItemsOthers)
             }
-            else {
-              vars = {chartName: chartName, lastVar: gameRoom[chartName]}
+            else if(chartName ==='bunkerCreated'){
+              vars = {chartName: chartName, bunkerCreated: gameRoom[chartName],bunkerLocation:gameRoom.bunkerLocation,bunkerBedroom:gameRoom.bunkerBedroom}
+            }else{
+                vars = {chartName: chartName, lastVar: gameRoom[chartName]}
             }
             //  console.log('LOOOOL',vars)
             await UserModel.Logi.create({
