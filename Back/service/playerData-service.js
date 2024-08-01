@@ -40,6 +40,7 @@ class playerDataService {
     this.childFreeCount = 0
     this.perfectHealthCount = 0
     this.playerPerfectHealth = []
+    this.playerChildFree = []
   }
   
   async getSystemSettingsData() {
@@ -55,8 +56,8 @@ class playerDataService {
   getPlayerPerfectHealth(players){
    // let prefectPrerc = 100-this.systemSettings.perfectHealthPercentage
     let count = Math.round(players.length*(this.systemSettings.perfectHealthPercentage/100))
-    console.log(players.length)
-    console.log(count)
+   // console.log(players.length)
+   // console.log(count)
 
     let playersArray = []
     for(let player of players){
@@ -68,7 +69,27 @@ class playerDataService {
       this.playerPerfectHealth.push(playersArray[index])
       playersArray.splice(index,1)
     }
-    console.log(this.playerPerfectHealth)
+  //  console.log(this.playerPerfectHealth)s
+
+  }
+
+  getPlayerChildFree(players){
+    // let prefectPrerc = 100-this.systemSettings.perfectHealthPercentage
+    let count = Math.round(players.length*(this.systemSettings.childFreePercentage/100))
+    // console.log(players.length)
+    // console.log(count)
+
+    let playersArray = []
+    for(let player of players){
+      playersArray.push(player.userId)
+    }
+
+    for(let i=0;i<count;i++){
+      let index = this.getRandomInt(0,playersArray.length-1)
+      this.playerChildFree.push(playersArray[index])
+      playersArray.splice(index,1)
+    }
+    //  console.log(this.playerPerfectHealth)s
 
   }
   
@@ -276,7 +297,7 @@ class playerDataService {
       }
     }
     else {
-      console.log(dataPlayer1)
+     // console.log(dataPlayer1)
       this.systemSettings = await this.getSystemSettingsData()
       let usePack = JSON.parse(player1.usePack)
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
@@ -292,7 +313,7 @@ class playerDataService {
     //  console.log('PLAYERS', player1, player2)
     await player1.save()
     await player2.save()
-    console.log(players)
+  //  console.log(players)
     return {
       players: players,
       lastVar: lastVar,
@@ -304,8 +325,10 @@ class playerDataService {
   
   async refreshChartPlayers(chartName, idRoom, players, gameRoom, chartText) {
     this.playerPerfectHealth=[]
+    this.playerChildFree = []
     this.systemSettings = await this.getSystemSettingsData()
     this.getPlayerPerfectHealth(players)
+    this.getPlayerChildFree(players)
     let data = {players: {}, lastVar: {}, emitData: {players: {}}}
     if (chartName==='allChart') {
       let hostPackIds = await this.creatorUsePack(idRoom)
@@ -475,7 +498,7 @@ class playerDataService {
       
     }
     await gameRoom.save()
-     console.log(data)
+   //  console.log(data)
     return data
     
     
@@ -503,9 +526,11 @@ class playerDataService {
   }
   
   async createDataGame(idRoom, playersData) {
+    this.playerPerfectHealth=[]
+    this.playerChildFree = []
     this.systemSettings = await this.getSystemSettingsData()
     const gameRoomData = await UserModel.GameRooms.findOne({where: {idRoom: idRoom}})
-    
+    console.log(this.playerChildFree,this.playerPerfectHealth)
     const hostPackIds = await this.hostUsePack(gameRoomData.hostId)
     let isHostNotPlayer = await UserModel.RoomSession.findOne({where:{gameRoomId:gameRoomData.id,userId:gameRoomData.hostId,isPlayer:0}})
     if(isHostNotPlayer){
@@ -532,6 +557,7 @@ class playerDataService {
     }
     await this.collectAndSetDataForPlayer(hostPackIds, players)
     this.getPlayerPerfectHealth(players)
+    this.getPlayerChildFree(players)
     for (let player of players) {
       let usePackIds = await this.playerUsePack(hostPackIds, player.userId, gameRoomData.id)
       let resultPlayerData = null
@@ -569,6 +595,7 @@ class playerDataService {
     await UserModel.Logi.create({idRoom: idRoom, funcName: 'StartGame', text: textForLog, step: 0})
     // console.log(data)
     this.playerPerfectHealth=[]
+    this.playerChildFree = []
     return data
   }
   
@@ -618,9 +645,9 @@ class playerDataService {
         countMin = new Date(+new Date() + (catastropheMin.countMin * 60 * 1000))
       }
       // console.log('allImageId', allImageId)
-      console.log(allImageId.length)
+    //  console.log(allImageId.length)
       if(allImageId.length>0) {
-        console.log('ПРОШЛО')
+     //   console.log('ПРОШЛО')
         if (allImageId.length === 1) {
           imageId = allImageId[0].id
           imageName = allImageId[0].imageName
@@ -765,7 +792,7 @@ class playerDataService {
       if (!log.isBack) {
         showCancelButton = true
       }
-       console.log(log.step)
+     //  console.log(log.step)
       if(log.step===0){
          showCancelButton = false
       }
@@ -824,7 +851,7 @@ class playerDataService {
         }
       }
     }
-    console.log(gameRoom)
+  //  console.log(gameRoom)
     bunkerData.bunkerCreated = bunkerData.bunkerCreated.replace('[year]', gameRoom.bunkerAge)
     bunkerItems = [...bunkerItems, ...gameRoom.bunkerItemsOthers.split(',').filter(item => item.length>0)]
     bunkerData.bunkerItems = bunkerItems
@@ -841,7 +868,7 @@ class playerDataService {
     if (!isWatcher || gameRoom.voitingStatus===1) {
       voitingData = await this.getAvailableVoitingData(gameRoom, playerId)
     }
-    console.log(thisPlayer)
+  //  console.log(thisPlayer)
     if (gameRoom.voitingStatus===0 && thisPlayer &&(!thisPlayer.isAlive && !isHost)) {
       voitingData = null
     }
@@ -924,7 +951,7 @@ class playerDataService {
         userList.push(isHostNotPlayer.userId)
       }
     }
-    console.log(userList)
+   // console.log(userList)
     //  console.log('POTOK',players[0])
     // console.log('ABRAKADABRA',userList)
     let data = {}
@@ -933,7 +960,7 @@ class playerDataService {
       let userData = {}
       let player = players.find(item => item.userId===userList[i])
     //  if(!isHostNotPlayer || player.userId!==is)
-      console.log(player.userId)
+     // console.log(player.userId)
       sortedPlayers.push(player.userId)
       // console.log('player',player.userId)
       //  arrayPlayer.push(player.userId)
@@ -1050,7 +1077,7 @@ class playerDataService {
       let newChart = this.getRandomDataBunker(chartName, isUsedSystemAdvancePack)
       let allImageId = await UserModel.CatastropheImage.findAll({where: {catastropheId: newChart.id}})
       let population = this.getRandomInt(this.systemSettings.minPopulation, this.systemSettings.maxPopulation)
-      console.log('population',population)
+    //  console.log('population',population)
       let countMin = null
       let soundName = null
       let soundId = null
@@ -1117,6 +1144,8 @@ class playerDataService {
   }
   async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
     let isUsedSystemAdvancePack = false
+    this.childFreeCount = 0
+    this.perfectHealthCount = 0
     if (usePack.includes(this.systemSettings.advancePack)) {
       isUsedSystemAdvancePack = true
     }
@@ -1159,8 +1188,9 @@ class playerDataService {
         }
         sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
           age)} ${sex? maleSexText[1]:femaleSexText[1]}`
-        
-        if (!((this.childFreeCount + 1) / 6 * 100>25) &&
+       // console.log(this.systemSettings.childFreePercentage)
+        console.log(this.childFreeCount,'!!!!!!!!!!!')
+        if (!((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
           this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
           sex += ' | чайлдфри'
           this.childFreeCount += 1
@@ -1174,8 +1204,8 @@ class playerDataService {
       else if (chartName==='health') {
         
         let health = null
-        
-        if (!((this.perfectHealthCount + 1) / 8 * 100>30) && this.getRandomInt(0,
+
+        if (!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
           100)<=this.systemSettings.perfectHealthPercentage) {
           health = {id: 0, text: 'Идеально здоров', isOpen: false}
           this.perfectHealthCount += 1
@@ -1192,7 +1222,7 @@ class playerDataService {
         }
       }
       else if (chartName==='profession') {
-        console.log(user)
+       // console.log(user)
         let datas = JSON.parse(user.sex).text
         let newAge = parseInt(datas.match(/\d+/))
         if (newAge) {
@@ -1269,9 +1299,8 @@ class playerDataService {
       }
       sex = `${sex? maleSexText[0]:femaleSexText[0]} ${age} ${this.getAgeText(
         age)} ${sex? maleSexText[1]:femaleSexText[1]}`
-      
-      if (!((this.childFreeCount + 1) / 6 * 100>25) &&
-        this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
+      console.log(this.systemSettings.childFreePercentage,'1')
+      if (this.playerChildFree.includes(playerId)) {
         sex += ' | чайлдфри'
         this.childFreeCount += 1
       }
@@ -1497,6 +1526,7 @@ class playerDataService {
         }
       }
       else {
+      //  console.log(this.usedPack)
         let nameArray = this.usedPack.chartPlayerData.filter(item => item.name===name)
         if (nameArray.length) {
           let index = this.getRandomInt(0, nameArray.length - 1)
@@ -1708,6 +1738,7 @@ class playerDataService {
   async collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName = null) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(usePack)
     let useChartId = []
+    console.log(baseIdPack,advanceIdPack)
     if (chartName===null) {
       for (let key in gameRoom) {
         if (key.toString()!=='id' && key.toString()!=='bunkerSize' && key.toString()!=='maxSurvivor' && key.toString()!=='imageId') {
@@ -1731,18 +1762,22 @@ class playerDataService {
     }
     if (chartName!=='bunkerSize') {
       if (!baseIdPack.includes(+this.systemSettings.basePack)) {
+        console.log('Системный базовый пак')
         // console.log(this.systemSettings.basePack)
         this.systemBasePack = await this.getDataPackRefresh(this.systemSettings.basePack, useChartId, chartName, true)
         //  console.log('Сделали системный пак')
       }
       
       if (!advanceIdPack.includes(+this.systemSettings.advancePack)) {
+        console.log('Системный расширенный пак')
         this.systemAdvancePack = await this.getDataPackRefresh(this.systemSettings.advancePack, useChartId, chartName,
           true)
       }
       // console.log(baseIdPack, advanceIdPack)
       this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName, true)
-      this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
+      this.advancePack = await this.getDataPackRefresh(advanceIdPack, useChartId, chartName, true)
+      //console.log(this.advancePack)
+      console.log('СМОТРИМ ТУТ')
     }
     
     
@@ -1771,13 +1806,14 @@ class playerDataService {
     }
     //console.log(baseIdPack, advanceIdPack)
     this.basePack = await this.getDataPackRefresh(baseIdPack, useChartId, chartName)
-    this.advancePack = this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
+    this.advancePack = await this.getDataPackRefresh(advanceIdPack, useChartId, chartName)
     
     
   }
   
   async collectAndSetDataForPlayer(hostPack, players, isChange = false) {
     let {baseIdPack, advanceIdPack} = await this.howThisPack(hostPack)
+    console.log('СМОТРИМ ТУТ 2')
     // console.log('//////////////////')
     //console.log(baseIdPack, advanceIdPack)
     // console.log('//////////////////')
