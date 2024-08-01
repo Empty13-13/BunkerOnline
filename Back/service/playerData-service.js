@@ -1198,7 +1198,7 @@ class playerDataService {
           age)} ${sex? maleSexText[1]:femaleSexText[1]}`
        // console.log(this.systemSettings.childFreePercentage)
         console.log(this.childFreeCount,'!!!!!!!!!!!')
-        if (!addChart && !((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
+        if ( !((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
           this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
           sex += ' | чайлдфри'
           this.childFreeCount += 1
@@ -1213,7 +1213,7 @@ class playerDataService {
         
         let health = null
 
-        if (!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
+        if (!addChart &&!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
           100)<=this.systemSettings.perfectHealthPercentage) {
           health = {id: 0, text: 'Идеально здоров', isOpen: false}
           this.perfectHealthCount += 1
