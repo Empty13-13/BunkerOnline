@@ -3,9 +3,12 @@ import { onMounted, ref } from "vue";
 import axiosInstance from "@/api.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const globalPreloader = usePreloaderStore()
 const otherTexts = useOtherTextsStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Бункер онлайн Вики')
 
 const links = ref([])
 

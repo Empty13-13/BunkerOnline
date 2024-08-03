@@ -13,10 +13,13 @@ import axiosInstance from "@/api.js";
 import { useGlobalPopupStore } from "@/stores/popup.js";
 import { useAuthSocketStore } from "@/stores/socket/authSocket.js";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const myProfile = useMyProfileStore()
 const globalPopup = useGlobalPopupStore()
 const otherTexts = useOtherTextsStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Авторизация')
 
 const apiLink = import.meta.env.VITE_SERVER_API_LINK
 const showPopup = ref(false)

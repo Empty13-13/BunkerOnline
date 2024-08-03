@@ -17,6 +17,7 @@ import AppLoader from "@/components/AppLoader.vue";
 import { getId, getLocalData, openWindow, recaptchaMaker } from "@/plugins/functions.js";
 import { set, useWindowFocus } from "@vueuse/core";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -24,6 +25,8 @@ const selectedGame = useSelectedGame()
 const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 const otherTexts = useOtherTextsStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Бункер онлайн')
 
 const activeGames = ref([])
 const imageName = ref('asd')

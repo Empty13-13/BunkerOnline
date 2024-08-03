@@ -3,9 +3,12 @@ import { useOtherTextsStore } from "@/stores/otherTexts.js";
 import { computed, onBeforeMount, ref } from "vue";
 import axiosInstance from "@/api.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const otherTexts = useOtherTextsStore()
 const globalPreloader = usePreloaderStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Профессиональные возможности')
 
 const inputModel = ref('')
 

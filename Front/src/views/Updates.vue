@@ -3,6 +3,9 @@ import { computed, onBeforeMount, onMounted, ref } from "vue";
 import AppBackground from "@/components/AppBackground.vue";
 import AppButton from "@/components/AppButton.vue";
 import axiosInstance from "@/api.js";
+import { useMetaStore } from "@/stores/meta.js";
+const metaStore = useMetaStore()
+metaStore.setTitle('Обновления')
 
 const data = ref([])
 

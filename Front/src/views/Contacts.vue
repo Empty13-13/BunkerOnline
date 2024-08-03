@@ -1,8 +1,12 @@
 <script setup="">
-
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
+
+const metaStore = useMetaStore()
+metaStore.setTitle('Контакты')
 
 const otherTexts = useOtherTextsStore()
+
 </script>
 
 <template>

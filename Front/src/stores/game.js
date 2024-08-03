@@ -8,12 +8,14 @@ import { showConfirmBlock } from "@/plugins/confirmBlockPlugin.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import { useHostSocketStore } from "@/stores/socket/hostSocket.js";
 import router from "@/router/index.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 export const useSelectedGame = defineStore('selectedGame', () => {
   const hostFunctional = useHostFunctionalStore()
   const globalPopup = useGlobalPopupStore()
   const selectedGameData = useSelectedGameData()
   const globalPreloader = useGlobalPopupStore()
+  const metaStore = useMetaStore()
   
   const isNewGame = ref(false)
   const gameId = ref(null)
@@ -67,6 +69,11 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
     if (data.hasOwnProperty('isStarted')) {
       isStarted.value = data.isStarted
+      if(!!data.isStarted) {
+        metaStore.setTitle(`Игра началась`)
+      } else {
+        metaStore.setTitle(`Ожидание игроков`)
+      }
     }
     if (data.hasOwnProperty('watchersCount')) {
       watchersCount.value = data.watchersCount

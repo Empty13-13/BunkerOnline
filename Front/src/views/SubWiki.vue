@@ -3,8 +3,11 @@ import { onBeforeMount, onMounted, ref } from "vue";
 import axiosInstance from "@/api.js";
 import router from "@/router/index.js";
 import { usePreloaderStore } from "@/stores/preloader.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const globalPreloader = usePreloaderStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Бункер онлайн вики')
 
 const pageHTML = ref('<h2>Идет загрузка страницы...</h2>')
 
@@ -12,7 +15,17 @@ onMounted(async () => {
   // globalPreloader.activate()
   try {
     let dataPage = await axiosInstance.get(`/staticPage/${router.currentRoute.value.params.page}`)
-    pageHTML.value = dataPage.data.html
+    let html = dataPage.data.html
+    if(html) {
+      pageHTML.value = html
+
+      let title = html.split('<h1>')[1].split('</h1>')[0]
+      if(title) {
+        metaStore.setTitle(title)
+      }
+    } else {
+      await router.replace({name:'NotFound'})
+    }
   } catch(e) {
     await router.replace({name:'NotFound'})
   } finally {
@@ -37,6 +50,8 @@ onMounted(async () => {
 @import "@/assets/scss/style";
 
 .subWiki {
+  line-height: 1.5;
+
   &__container {
   }
 
