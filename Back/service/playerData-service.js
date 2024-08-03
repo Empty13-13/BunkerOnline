@@ -193,7 +193,7 @@ class playerDataService {
       let usePack = JSON.parse(player.usePack)
       await this.collectAndSetDataForPlayerRefresh(usePack, gameRoom.id, chartName)
       let newData = JSON.parse(player[chartName])
-      newData = await this.refreshDataPlayer(usePack, chartName, newData, gameRoom.id, player)
+      newData = await this.refreshDataPlayer(usePack, chartName, newData, gameRoom.id, player,true)
       //    console.log(data.text)
       //    console.log(newData.text)
       let newText = `${data.text}, ${newData.text}`
@@ -444,6 +444,7 @@ class playerDataService {
   }
   
   async refreshChartBunker(chartName = null, idRoom, userId) {
+    console.log(chartName)
     this.systemSettings = await this.getSystemSettingsData()
     let gameRoom = await UserModel.GameRooms.findOne({
       attributes: ['id', 'bunkerSize', 'maxSurvivor', 'catastrophe', 'bunkerTime', 'bunkerLocation', 'bunkerCreated', 'bunkerBedroom', 'bunkerItems1', 'bunkerItems2', 'bunkerItems3', 'imageId'],
@@ -458,6 +459,12 @@ class playerDataService {
     await this.collectAndSetDataForBunkerRefresh(usePack, gameRoom, chartName)
     // console.log('TWO')
     let data = await this.refreshDataBunker(usePack, chartName, gameRoom, idRoom)
+    let dataLocation
+    let dataBedRoom
+    if(chartName==='bunkerCreated'){
+      dataLocation = await this.refreshDataBunker(usePack, 'bunkerLocation', gameRoom, idRoom)
+      dataBedRoom = await this.refreshDataBunker(usePack, 'bunkerBedroom', gameRoom, idRoom)
+    }
     // console.log('Three')
     //console.log(chartName==='bunkerSize',chartName)s
     if (chartName && chartName!=='catastrophe' && chartName!=='bunkerSize' && chartName!=='bunkerCreated'&& chartName!=='bunkerItems') {
@@ -474,8 +481,10 @@ class playerDataService {
     }
     else if (chartName==='bunkerCreated') {
       gameRoom[chartName] = data.id
+      gameRoom.bunkerLocation = dataLocation.id
+      gameRoom.bunkerBedroom = dataBedRoom.id
       gameRoom.bunkerAge = data.bunkerAge
-      data = {[chartName]: data.text}
+      data = {[chartName]: data.text,bunkerLocation:dataLocation.text,bunkerBedroom:dataBedRoom.text}
     }
     else if (chartName==='bunkerSize') {
       gameRoom[chartName] = data.bunkerSize
@@ -499,6 +508,7 @@ class playerDataService {
     }
     await gameRoom.save()
    //  console.log(data)
+    console.log(data)
     return data
     
     
@@ -1142,7 +1152,7 @@ class playerDataService {
     }
     return text
   }
-  async refreshDataPlayer(usePack, chartName, data, gameRoomId, user) {
+  async refreshDataPlayer(usePack, chartName, data, gameRoomId, user,addChart=false) {
     let isUsedSystemAdvancePack = false
     this.childFreeCount = 0
     this.perfectHealthCount = 0
@@ -1190,7 +1200,7 @@ class playerDataService {
           age)} ${sex? maleSexText[1]:femaleSexText[1]}`
        // console.log(this.systemSettings.childFreePercentage)
         console.log(this.childFreeCount,'!!!!!!!!!!!')
-        if (!((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
+        if ( !((this.childFreeCount + 1) / players.length * 100>this.systemSettings.childFreePercentage) &&
           this.getRandomInt(0, 100)<=this.systemSettings.childFreePercentage) {
           sex += ' | чайлдфри'
           this.childFreeCount += 1
@@ -1205,7 +1215,7 @@ class playerDataService {
         
         let health = null
 
-        if (!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
+        if (!addChart &&!((this.perfectHealthCount + 1) / players.length * 100>this.systemSettings.perfectHealthPercentage) && this.getRandomInt(0,
           100)<=this.systemSettings.perfectHealthPercentage) {
           health = {id: 0, text: 'Идеально здоров', isOpen: false}
           this.perfectHealthCount += 1

@@ -200,6 +200,7 @@ class ioUserService {
       let lst = structuredClone(lastVar)
       let chartName = null
       let id
+      let bunkerData ={}
       let otherVar = null
       let emitData = {bunkerData: {}, logsData: {}}
       console.log(lastVar)
@@ -208,19 +209,24 @@ class ioUserService {
         if (key==='chartName') {
           chartName = lst[key]
         }
-        else if (key!=='otherVar' && chartName!=='bunkerItems') {
+        else if (key!=='otherVar' && chartName!=='bunkerItems' && chartName!=='bunkerCreated') {
+          console.log(id)
           id = lst[key]
         }
         else if (chartName==='bunkerItems') {
           console.log(lst[key])
           id = lst[key]
+        }else if (chartName ==='bunkerCreated'){
+         // console.log('lst',lst,'key',key,lst[key])
+          bunkerData[key]=lst[key]
         }
         else {
           otherVar = lst[key]
         }
       }
-      
-      if (otherVar) {
+      console.log('!!!!!!!!',!!bunkerData)
+
+       if (otherVar) {
         let imageId
         let soundId
         let imageName = null
@@ -239,7 +245,18 @@ class ioUserService {
         
         emitData.bunkerData = {population: otherVar.population, imageName: imageName, soundName: soundName}
       }
-      if (chartName==='bunkerItems') {
+
+      if(chartName==='bunkerCreated'){
+        console.log('1')
+        gameRoom.bunkerCreated = bunkerData.bunkerCreated
+        gameRoom.bunkerBedroom = bunkerData.bunkerBedroom
+        gameRoom.bunkerLocation = bunkerData.bunkerLocation
+        console.log(bunkerData.bunkerLocation)
+        let location = await UserModel.ChartBunker.findOne({where: {id: bunkerData.bunkerLocation}})
+        let created = await UserModel.ChartBunker.findOne({where: {id: bunkerData.bunkerCreated}})
+        let bedroom = await UserModel.ChartBunker.findOne({where: {id: bunkerData.bunkerBedroom}})
+        emitData.bunkerData = {bunkerLocation: location.text, bunkerCreated: created.text, bunkerBedroom: bedroom.text}
+      } else if (chartName==='bunkerItems') {
         console.log(id)
         gameRoom.bunkerItems1 = id[0]
         gameRoom.bunkerItems2 = id[1]
