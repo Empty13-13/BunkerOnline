@@ -39,7 +39,7 @@ const checkUser = () => {
     myProfile.id = userId
   }
 }
-const showBetaPopup = ref(false)
+// const showBetaPopup = ref(false)
 
 checkUser()
 
@@ -67,27 +67,27 @@ onBeforeMount(async () => {
         localStorage.removeItem(key)
       }
     }
-    if(key.includes('betaTestPopup')) {
-      let data = getLocalData(key)
-      if(data && data.date) {
-        if(((new Date()) - new Date(data.date))>1000*60*60*24) {
-          localStorage.removeItem(key)
-        }
-      } else {
-        localStorage.removeItem(key)
-      }
-    }
+    // if(key.includes('betaTestPopup')) {
+    //   let data = getLocalData(key)
+    //   if(data && data.date) {
+    //     if(((new Date()) - new Date(data.date))>1000*60*60*24) {
+    //       localStorage.removeItem(key)
+    //     }
+    //   } else {
+    //     localStorage.removeItem(key)
+    //   }
+    // }
   }
 
   await otherTexts.downloadAllTexts()
 })
 
 onMounted(() => {
-  let betaPopupLocal = getLocalData('betaTestPopup')
-  if (!betaPopupLocal) {
-    setLocalData('betaTestPopup', {read:true,date: +(new Date())})
-    showBetaPopup.value = true
-  }
+  // let betaPopupLocal = getLocalData('betaTestPopup')
+  // if (!betaPopupLocal) {
+  //   setLocalData('betaTestPopup', {read:true,date: +(new Date())})
+  //   showBetaPopup.value = true
+  // }
 
   authSocket.setConnect()
 })
@@ -112,20 +112,20 @@ onMounted(() => {
     <div v-html="globalPopup.text" style="text-align: center;"></div>
   </AppPopup>
 
-  <AppPopup v-model="showBetaPopup" color="red">
-    <template v-slot:title>
-      <p class="redTextColor" style="font-size: 28px;">Внимание!</p>
-    </template>
-    <p style="text-align: center">
-      Сайт находится на стадии бета-тестирования. В случае возникновения ошибок/багов и других событий, которые не должны
-      были происходить, напишите нам по
-      <a target="_blank" href="https://discord.com/channels/725334064751706114/1093869495505928212">ссылке в групповой чат</a> и как можно подробнее опишите проблему, с которой
-      столкнулись, прикрепляя скриншот.
-      <br>
-      <br>
-      <b>Спасибо за ваше участие!</b>
-    </p>
-  </AppPopup>
+<!--  <AppPopup v-model="showBetaPopup" color="red">-->
+<!--    <template v-slot:title>-->
+<!--      <p class="redTextColor" style="font-size: 28px;">Внимание!</p>-->
+<!--    </template>-->
+<!--    <p style="text-align: center">-->
+<!--      Сайт находится на стадии бета-тестирования. В случае возникновения ошибок/багов и других событий, которые не должны-->
+<!--      были происходить, напишите нам по-->
+<!--      <a target="_blank" href="https://discord.com/channels/725334064751706114/1093869495505928212">ссылке в групповой чат</a> и как можно подробнее опишите проблему, с которой-->
+<!--      столкнулись, прикрепляя скриншот.-->
+<!--      <br>-->
+<!--      <br>-->
+<!--      <b>Спасибо за ваше участие!</b>-->
+<!--    </p>-->
+<!--  </AppPopup>-->
 </template>
 
 <style lang="scss">
