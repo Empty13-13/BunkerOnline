@@ -94,7 +94,7 @@ export const useSelectedGame = defineStore('selectedGame', () => {
     }
     if (data.hasOwnProperty('isAgeRestriction') && data.isAgeRestriction) {
       globalPopup.activate('Внимание',
-        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре вы подтверждаете, что вам есть 18+ лет',
+        'В данной игре присутствуют паки 18+.<br>Подключаясь к игре вы подтверждаете, что вам есть 18 лет',
         'red')
     }
   }

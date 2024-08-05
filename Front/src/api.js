@@ -37,7 +37,7 @@ axiosInstance.interceptors.response.use((response) => {
   if (!error.response) {
     error.response = {message: 'Сервер не отвечает'}
     globalPopup.activate('Ошибка соединения с сервером',
-      'Пожалуйста,проверьте интернет-соединением, либо попробуйте перезагрузить страницу', 'red')
+      'Пожалуйста,проверьте интернет-соединение, либо попробуйте перезагрузить страницу', 'red')
   }
   
   console.log(error)

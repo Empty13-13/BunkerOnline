@@ -512,7 +512,7 @@ function activateKeyHandler(e) {
       activationKey.value = ''
       globalPopup.activate('Успешно!',
           `Ключ активирован. Доступ ${result.data.accessLevel? result.data.accessLevel.toUpperCase():''} будет действовать до ${new Date(
-              result.data.endDate).toLocaleDateString()}`, 'green')
+              result.data.endDate).toLocaleDateString()}<br><br>Не забудьте на сайте оплаты нажать кнопку «Подтвердить выполнение заказа», иначе через 3 дня подписка деактивируется.`, 'green')
     }
   }
 }
