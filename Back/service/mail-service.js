@@ -19,7 +19,7 @@ class MailService {
     await this.transporter.sendMail({
       from: `BunkerOnline <${process.env.SMTP_USER}>`,
       to,
-      subject: 'Активация аккаунта на BunkerOnline.ru',
+      subject: 'Активация аккаунта на Bunker-Online.com',
       text: 'asdasdas',
       html:
         `
@@ -53,7 +53,7 @@ class MailService {
     await this.transporter.sendMail({
       from: `BunkerOnline <${process.env.SMTP_USER}>`,
       to,
-      subject: 'Смена пароля на BunkerOnline.ru' ,
+      subject: 'Смена пароля на Bunker-Online.com' ,
       text: '',
       html:
         `
@@ -85,7 +85,7 @@ class MailService {
     await this.transporter.sendMail({
       from: `BunkerOnline <${process.env.SMTP_USER}>`,
       to,
-      subject: 'Смена email на bunkerOnline.ru',
+      subject: 'Смена email на Bunker-Online.com',
       text: '',
       html:
         `
@@ -122,7 +122,7 @@ class MailService {
       await this.transporter.sendMail({
         from: `BunkerOnline <${process.env.SMTP_USER}>`,
         to,
-        subject: 'Угроза безопасности аккаунт на bunkerOnline.ru' ,
+        subject: 'Угроза безопасности аккаунт на Bunker-Online.com' ,
         text: '',
         html:
           `
