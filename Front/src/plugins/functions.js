@@ -220,7 +220,7 @@ export function getRandomInt(min, max) {
 
 export function recaptchaMaker(goodFunction, errorFunction = new Function()) {
   grecaptcha.ready(function() {
-    grecaptcha.execute('6Lejyh8qAAAAAKebHWaghbtp3bfm9QUxBQuKnsa4', {action: 'submit'})
+    grecaptcha.execute('6Lejyh8qAAAAACdFQQvWGtE-3d_zJ7ffkmm9iZz6', {action: 'submit'})
               .then(async (token) => {
                 await goodFunction(token)
               })
