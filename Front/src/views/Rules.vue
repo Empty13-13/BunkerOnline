@@ -381,6 +381,7 @@ onBeforeMount(async () => {
   padding-top: 130px;
   position: relative;
   z-index: 5 !important;
+  line-height: 1.5;
 
   &__container {
   }

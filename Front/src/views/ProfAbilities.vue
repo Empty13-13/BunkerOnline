@@ -41,7 +41,7 @@ const getResultList = computed(() => {
 
 onBeforeMount(async () => {
   try {
-    globalPreloader.activate()
+    // globalPreloader.activate()
     let baseProfData = await axiosInstance.get('/getBaseProfession')
     if(baseProfData.data) {
       list.value = baseProfData.data.sort(((a,b) => a.title.localeCompare(b.title)))
@@ -49,7 +49,7 @@ onBeforeMount(async () => {
   } catch(e) {
     console.log('Ошибка при попытке взять профессии')
   } finally {
-    globalPreloader.deactivate()
+    // globalPreloader.deactivate()
   }
 })
 </script>
