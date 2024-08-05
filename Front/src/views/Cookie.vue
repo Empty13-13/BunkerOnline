@@ -1,6 +1,9 @@
 <script setup="">
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
 
+const metaStore = useMetaStore()
+metaStore.setTitle('Соглашение об использовании файлов cookie')
 const otherTexts = useOtherTextsStore()
 </script>
 

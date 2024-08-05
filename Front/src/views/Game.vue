@@ -44,6 +44,7 @@ import { goToBlock, openNavigation, showInfoHandler } from "@/plugins/navigation
 import AppLoader from "@/components/AppLoader.vue";
 import AppDice6 from "@/components/dices/AppDice6.vue";
 import TheAdminPanel from "@/components/TheAdminPanel.vue";
+import { useMetaStore } from "@/stores/meta.js";
 
 const myProfile = useMyProfileStore()
 const selectedGame = useSelectedGame()
@@ -54,6 +55,8 @@ const hostSocket = useHostSocketStore()
 const hostFunctional = useHostFunctionalStore()
 const selectedGameData = useSelectedGameData()
 const selectedGameGameplay = useSelectedGameGameplay()
+const metaStore = useMetaStore()
+metaStore.setTitle(`Игра ${router.currentRoute.value.params.id}`)
 
 const noteTextArea = ref(null)
 

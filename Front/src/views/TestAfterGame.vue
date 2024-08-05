@@ -1,6 +1,9 @@
 <script setup="">
 import AppButton from "@/components/AppButton.vue";
 import { ref, watch } from "vue";
+import { useMetaStore } from "@/stores/meta.js";
+const metaStore = useMetaStore()
+metaStore.setTitle('Оценка выживаемости бункера')
 
 const testData = [
   [

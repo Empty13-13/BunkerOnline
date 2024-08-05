@@ -1,7 +1,10 @@
 <script setup="">
-
 import AppBackground from "@/components/AppBackground.vue";
 import router from "@/router/index.js";
+import { useMetaStore } from "@/stores/meta.js";
+const metaStore = useMetaStore()
+metaStore.setTitle('Страница не найдена')
+
 </script>
 
 <template>

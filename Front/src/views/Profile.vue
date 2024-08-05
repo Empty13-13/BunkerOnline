@@ -36,6 +36,7 @@ import AppSelect from "@/components/Forms/AppSelect.vue";
 import { useAdminSocketStore } from "@/stores/socket/adminSocket.js";
 import { useConfirmBlockStore } from "@/stores/confirmBlock.js";
 import { useOtherTextsStore } from "@/stores/otherTexts.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const authStore = useAuthStore()
 const myProfile = useMyProfileStore()
@@ -44,6 +45,8 @@ const actionsProfile = useActionsProfileStore()
 const globalPopup = useGlobalPopupStore()
 const adminSocket = useAdminSocketStore()
 const otherTexts = useOtherTextsStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Профиль')
 
 const getId = computed(() => {
   return +router.currentRoute.value.path.split('=')[1]

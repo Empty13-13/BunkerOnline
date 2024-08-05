@@ -5,8 +5,11 @@ import { onBeforeMount, onMounted, ref } from "vue";
 import { usePreloaderStore } from "@/stores/preloader.js";
 import router from "@/router/index.js";
 import axiosInstance from "@/api.js";
+import { useMetaStore } from "@/stores/meta.js";
 
 const globalPreloader = usePreloaderStore()
+const metaStore = useMetaStore()
+metaStore.setTitle('Правила игры')
 
 const titles = [
   {name: 'История', link: 'history'},
