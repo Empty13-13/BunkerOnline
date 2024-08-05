@@ -8,7 +8,7 @@ import { useMetaStore } from "@/stores/meta.js";
 const globalPreloader = usePreloaderStore()
 const otherTexts = useOtherTextsStore()
 const metaStore = useMetaStore()
-metaStore.setTitle('Бункер онлайн Вики')
+metaStore.setTitle('Bunker Online Wiki')
 
 const links = ref([])
 

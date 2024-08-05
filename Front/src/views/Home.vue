@@ -26,7 +26,7 @@ const globalPopup = useGlobalPopupStore()
 const globalPreloader = usePreloaderStore()
 const otherTexts = useOtherTextsStore()
 const metaStore = useMetaStore()
-metaStore.setTitle('Бункер онлайн')
+metaStore.setTitle('Бункер онлайн!')
 
 const activeGames = ref([])
 const imageName = ref('asd')
